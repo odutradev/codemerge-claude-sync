@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
   "name": "CodeMerge Claude Sync",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Sincroniza automaticamente código do CodeMerge com Claude Projects",
-  "permissions": ["storage","activeTab"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
   "host_permissions": [
     "https://claude.ai/*",
     "http://localhost:*/*",
@@ -14,8 +17,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://claude.ai/project/*"],
-      "js": ["src/scripts/upsertFile.js"],
+      "matches": [
+        "https://claude.ai/project/*"
+      ],
+      "js": [
+        "src/scripts/upsertFile.js"
+      ],
       "run_at": "document_idle"
     }
   ]
