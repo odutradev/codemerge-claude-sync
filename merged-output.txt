@@ -1,19 +1,19 @@
 # Code Merge Output
-Generated at: 2025-10-06T14:16:17.416Z
+Generated at: 2025-10-06T14:21:56.343Z
 Source path: .
 Files processed: 6
-Total lines: 643
-Total characters: 21893
+Total lines: 666
+Total characters: 22786
 
 File types:
-  - js: 3 files (507 lines)
+  - js: 3 files (530 lines)
   - md: 2 files (101 lines)
   - json: 1 files (35 lines)
 
 Project structure & file index:
 ./
   - background.js (81 lines)
-  - content.js (384 lines)
+  - content.js (407 lines)
   - ICONS.md (18 lines)
   - manifest.json (35 lines)
   - popup.js (42 lines)
@@ -166,11 +166,18 @@ class CodeMergeClaudeSync {
     injectUI() {
         // Aguardar o container estar disponível
         const checkInterval = setInterval(() => {
-            const instructionsContainer = document.querySelector('[class*="border-0.5"][class*="border-border-300"][class*="rounded-2xl"]');
+            // Procurar pela seção de Arquivos dentro do container
+            const filesHeader = Array.from(document.querySelectorAll('h3')).find(
+                h3 => h3.textContent.trim() === 'Arquivos'
+            );
             
-            if (instructionsContainer?.parentElement) {
+            if (filesHeader) {
                 clearInterval(checkInterval);
-                this.createIntegratedUI(instructionsContainer.parentElement);
+                // Pegar o container pai que contém Instruções e Arquivos
+                const mainContainer = filesHeader.closest('.border-0\\.5.border-border-300.rounded-2xl');
+                if (mainContainer) {
+                    this.createIntegratedUI(mainContainer, filesHeader);
+                }
             }
         }, 500);
         
@@ -178,12 +185,21 @@ class CodeMergeClaudeSync {
         setTimeout(() => clearInterval(checkInterval), 10000);
     }
     
-    createIntegratedUI(parentElement) {
-        const container = document.createElement('div');
-        container.className = 'border-0.5 border-border-300 rounded-2xl transition-all duration-300 ease-out flex flex-col mt-3';
-        container.id = 'codemerge-sync-container';
+    createIntegratedUI(mainContainer, filesHeader) {
+        // Verificar se já foi injetado
+        if (document.getElementById('cms-sync-section')) return;
         
-        container.innerHTML = `
+        // Encontrar o divisor antes da seção de arquivos
+        const filesSection = filesHeader.closest('.w-full.px-\\[1\\.375rem\\]');
+        const dividerBeforeFiles = filesSection?.previousElementSibling;
+        
+        // Criar a seção de sync
+        const syncSection = document.createElement('div');
+        syncSection.id = 'cms-sync-section';
+        
+        syncSection.innerHTML = `
+            <div class="h-[0.5px] w-full bg-border-300"></div>
+            
             <div class="w-full px-[1.375rem] py-4 flex flex-row items-center justify-between gap-4 mt-1">
                 <div class="w-full flex flex-col gap-0.5">
                     <div class="h-6 w-full flex flex-row items-center justify-between gap-4">
@@ -244,7 +260,14 @@ class CodeMergeClaudeSync {
             </div>
         `;
         
-        parentElement.appendChild(container);
+        // Inserir antes do divisor da seção de arquivos
+        if (dividerBeforeFiles) {
+            mainContainer.insertBefore(syncSection, dividerBeforeFiles);
+        } else {
+            // Fallback: inserir antes da seção de arquivos
+            mainContainer.insertBefore(syncSection, filesSection);
+        }
+        
         this.attachEventListeners();
         this.updateUIState();
     }
