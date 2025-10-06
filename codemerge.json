@@ -1,0 +1,27 @@
+{
+  "projectName": "merged-output",
+  "outputPath": "merged-output.txt",
+  "watch": false,
+  "watchDelay": 1500,
+  "useGitignore": true,
+  "ignorePatterns": [
+    "node_modules/**",
+    ".git/**",
+    "dist/**",
+    "build/**",
+    "**/*.log",
+    ".env*",
+    "**/.DS_Store",
+    "coverage/**",
+    ".next/**",
+    ".nuxt/**"
+  ],
+  "includePatterns": [
+    "**/*.ts",
+    "**/*.js",
+    "**/*.tsx",
+    "**/*.jsx",
+    "**/*.json",
+    "**/*.md"
+  ]
+}
