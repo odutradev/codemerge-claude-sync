@@ -168,7 +168,7 @@ class CodeMergeClaudeSync {
                     </button>
                 </div>
                 
-                <div class="flex items-center justify-between pt-2 border-t-0.5 border-border-300">
+                <div class="flex items-center justify-between pt-2  border-border-300">
                     <div class="flex flex-col gap-0.5">
                         <span class="text-text-500 text-[11px]">Status</span>
                         <span id="cms-status-text" class="text-text-300 text-[12px] font-medium">Aguardando início</span>
