@@ -5,7 +5,7 @@ class CodeMergeClaudeSync {
         this.config = {
             serverUrl: 'http://localhost:9876',
             projectName: '',
-            updateInterval: 5000
+            updateInterval: 5000 // Fixo em 5 segundos
         };
         
         this.isRunning = false;
@@ -13,14 +13,28 @@ class CodeMergeClaudeSync {
         this.lastHash = null;
         this.lastSyncTime = null;
         this.syncStatus = 'idle'; // 'idle', 'syncing', 'success', 'error'
+        this.projectId = null;
         
         this.init();
     }
     
     async init() {
+        this.projectId = this.extractProjectId();
         await this.loadConfig();
+        await this.loadProjectState();
         this.injectUI();
-        console.log('🚀 CodeMerge Claude Sync iniciado');
+        
+        // Se estava rodando, reinicia automaticamente
+        if (this.isRunning) {
+            setTimeout(() => this.startSync(), 1000);
+        }
+        
+        console.log('🚀 CodeMerge Claude Sync iniciado - Projeto:', this.projectId);
+    }
+    
+    extractProjectId() {
+        const match = window.location.pathname.match(/\/project\/([a-f0-9-]+)/);
+        return match ? match[1] : 'default';
     }
     
     async loadConfig() {
@@ -31,6 +45,34 @@ class CodeMergeClaudeSync {
                 }
                 resolve();
             });
+        });
+    }
+    
+    async loadProjectState() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get([`project_${this.projectId}`], (result) => {
+                const state = result[`project_${this.projectId}`];
+                if (state) {
+                    this.config.projectName = state.projectName || '';
+                    this.isRunning = state.isRunning || false;
+                    this.lastHash = state.lastHash || null;
+                    this.lastSyncTime = state.lastSyncTime || null;
+                }
+                resolve();
+            });
+        });
+    }
+    
+    async saveProjectState() {
+        const state = {
+            projectName: this.config.projectName,
+            isRunning: this.isRunning,
+            lastHash: this.lastHash,
+            lastSyncTime: this.lastSyncTime
+        };
+        
+        return new Promise((resolve) => {
+            chrome.storage.local.set({ [`project_${this.projectId}`]: state }, resolve);
         });
     }
     
@@ -54,16 +96,13 @@ class CodeMergeClaudeSync {
     }
     
     injectUI() {
-        // Aguardar o container estar disponível
         const checkInterval = setInterval(() => {
-            // Procurar pela seção de Arquivos dentro do container
             const filesHeader = Array.from(document.querySelectorAll('h3')).find(
                 h3 => h3.textContent.trim() === 'Arquivos'
             );
             
             if (filesHeader) {
                 clearInterval(checkInterval);
-                // Pegar o container pai que contém Instruções e Arquivos
                 const mainContainer = filesHeader.closest('.border-0\\.5.border-border-300.rounded-2xl');
                 if (mainContainer) {
                     this.createIntegratedUI(mainContainer, filesHeader);
@@ -71,19 +110,15 @@ class CodeMergeClaudeSync {
             }
         }, 500);
         
-        // Timeout de segurança
         setTimeout(() => clearInterval(checkInterval), 10000);
     }
     
     createIntegratedUI(mainContainer, filesHeader) {
-        // Verificar se já foi injetado
         if (document.getElementById('cms-sync-section')) return;
         
-        // Encontrar o divisor antes da seção de arquivos
         const filesSection = filesHeader.closest('.w-full.px-\\[1\\.375rem\\]');
         const dividerBeforeFiles = filesSection?.previousElementSibling;
         
-        // Criar a seção de sync
         const syncSection = document.createElement('div');
         syncSection.id = 'cms-sync-section';
         
@@ -98,44 +133,33 @@ class CodeMergeClaudeSync {
                             <div id="cms-status-indicator" class="w-2 h-2 rounded-full bg-border-300 transition-colors"></div>
                         </div>
                     </div>
-                    <p class="text-text-500 font-small line-clamp-2">
-                        <span class="opacity-60">Sincronização automática com servidor CodeMerge</span>
-                    </p>
                 </div>
             </div>
             
             <div class="h-[0.5px] w-full bg-border-300"></div>
             
             <div class="w-full px-[1.375rem] py-4 flex flex-col gap-3 mb-1">
-                <div class="flex flex-col gap-2">
-                    <label class="text-text-300 text-[12px] font-medium">Nome do Projeto</label>
+                <div class="flex flex-row gap-2 items-center">
                     <input 
                         id="cms-project-name"
                         type="text" 
                         value="${this.config.projectName}"
-                        placeholder="Digite o nome do projeto"
-                        class="w-full px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
+                        placeholder="Nome do projeto"
+                        class="flex-1 px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
                     />
+                    <button 
+                        id="cms-toggle-sync"
+                        class="inline-flex items-center justify-center relative shrink-0 select-none transition duration-300 w-10 h-10 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 border-0.5 border-border-300 disabled:opacity-50 disabled:pointer-events-none"
+                        title="Iniciar/Parar sincronização"
+                    >
+                        <svg id="cms-play-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display: block;">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg id="cms-stop-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <path d="M6 6h12v12H6z"/>
+                        </svg>
+                    </button>
                 </div>
-                
-                <div class="flex flex-col gap-2">
-                    <label class="text-text-300 text-[12px] font-medium">Intervalo (segundos)</label>
-                    <input 
-                        id="cms-interval"
-                        type="number" 
-                        min="2" 
-                        max="300" 
-                        value="${this.config.updateInterval / 1000}"
-                        class="w-full px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
-                    />
-                </div>
-                
-                <button 
-                    id="cms-toggle-sync"
-                    class="inline-flex items-center justify-center relative shrink-0 select-none transition duration-300 font-medium h-9 px-4 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 border-0.5 border-border-300 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                    <span id="cms-button-text">Iniciar Sincronização</span>
-                </button>
                 
                 <div class="flex items-center justify-between pt-2 border-t-0.5 border-border-300">
                     <div class="flex flex-col gap-0.5">
@@ -150,11 +174,9 @@ class CodeMergeClaudeSync {
             </div>
         `;
         
-        // Inserir antes do divisor da seção de arquivos
         if (dividerBeforeFiles) {
             mainContainer.insertBefore(syncSection, dividerBeforeFiles);
         } else {
-            // Fallback: inserir antes da seção de arquivos
             mainContainer.insertBefore(syncSection, filesSection);
         }
         
@@ -164,21 +186,18 @@ class CodeMergeClaudeSync {
     
     attachEventListeners() {
         const projectInput = document.getElementById('cms-project-name');
-        const intervalInput = document.getElementById('cms-interval');
         const toggleButton = document.getElementById('cms-toggle-sync');
         
-        projectInput?.addEventListener('change', (e) => {
+        projectInput?.addEventListener('change', async (e) => {
             this.config.projectName = e.target.value.trim();
-            this.saveConfig();
+            await this.saveConfig();
+            await this.saveProjectState();
         });
         
-        intervalInput?.addEventListener('change', (e) => {
-            this.config.updateInterval = parseInt(e.target.value) * 1000;
-            this.saveConfig();
-            if (this.isRunning) {
-                this.stopSync();
-                this.startSync();
-            }
+        projectInput?.addEventListener('blur', async (e) => {
+            this.config.projectName = e.target.value.trim();
+            await this.saveConfig();
+            await this.saveProjectState();
         });
         
         toggleButton?.addEventListener('click', () => {
@@ -192,12 +211,13 @@ class CodeMergeClaudeSync {
     
     updateUIState() {
         const indicator = document.getElementById('cms-status-indicator');
-        const buttonText = document.getElementById('cms-button-text');
         const statusText = document.getElementById('cms-status-text');
         const lastSync = document.getElementById('cms-last-sync');
+        const playIcon = document.getElementById('cms-play-icon');
+        const stopIcon = document.getElementById('cms-stop-icon');
         const toggleButton = document.getElementById('cms-toggle-sync');
         
-        if (!indicator || !buttonText || !statusText) return;
+        if (!indicator || !statusText || !playIcon || !stopIcon) return;
         
         // Atualizar indicador de status
         if (this.syncStatus === 'success') {
@@ -210,15 +230,19 @@ class CodeMergeClaudeSync {
             indicator.className = 'w-2 h-2 rounded-full bg-border-300 transition-colors';
         }
         
-        // Atualizar botão
+        // Atualizar ícones do botão
         if (this.isRunning) {
-            buttonText.textContent = 'Parar Sincronização';
+            playIcon.style.display = 'none';
+            stopIcon.style.display = 'block';
             toggleButton.classList.remove('bg-bg-300', 'hover:bg-bg-400');
             toggleButton.classList.add('bg-accent-secondary-100', 'hover:bg-accent-secondary-200');
+            toggleButton.title = 'Parar sincronização';
         } else {
-            buttonText.textContent = 'Iniciar Sincronização';
+            playIcon.style.display = 'block';
+            stopIcon.style.display = 'none';
             toggleButton.classList.remove('bg-accent-secondary-100', 'hover:bg-accent-secondary-200');
             toggleButton.classList.add('bg-bg-300', 'hover:bg-bg-400');
+            toggleButton.title = 'Iniciar sincronização';
         }
         
         // Atualizar texto de status
@@ -240,7 +264,7 @@ class CodeMergeClaudeSync {
         }
     }
     
-    startSync() {
+    async startSync() {
         if (!this.config.projectName) {
             alert('Configure o nome do projeto antes de iniciar');
             return;
@@ -248,24 +272,26 @@ class CodeMergeClaudeSync {
         
         this.isRunning = true;
         this.syncStatus = 'idle';
+        await this.saveProjectState();
         this.updateUIState();
         
         // Primeira sincronização imediata
         this.performSync();
         
-        // Configurar intervalo
+        // Configurar intervalo fixo de 5 segundos
         this.updateIntervalId = setInterval(() => {
             this.performSync();
         }, this.config.updateInterval);
     }
     
-    stopSync() {
+    async stopSync() {
         this.isRunning = false;
         this.syncStatus = 'idle';
         if (this.updateIntervalId) {
             clearInterval(this.updateIntervalId);
             this.updateIntervalId = null;
         }
+        await this.saveProjectState();
         this.updateUIState();
     }
     
@@ -305,6 +331,8 @@ class CodeMergeClaudeSync {
                 minute: '2-digit' 
             });
             this.syncStatus = 'success';
+            
+            await this.saveProjectState();
             
         } catch (error) {
             console.error('Erro na sincronização:', error);
