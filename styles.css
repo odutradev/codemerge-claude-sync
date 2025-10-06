@@ -1,0 +1,207 @@
+/* CodeMerge Claude Sync Styles */
+
+#codemerge-sync-widget {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+    background: #2d2d2d;
+    color: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    z-index: 10000;
+    border: 1px solid #444;
+}
+
+.cms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.cms-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #fff;
+    font-weight: 600;
+}
+
+#cms-toggle {
+    background: #444;
+    border: none;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+#cms-toggle:hover {
+    background: #555;
+}
+
+.cms-section {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #3a3a3a;
+    border-radius: 8px;
+}
+
+.cms-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #ccc;
+    font-weight: 600;
+}
+
+.cms-input {
+    width: 100%;
+    padding: 10px;
+    background: #2d2d2d;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
+.cms-input:focus {
+    outline: none;
+    border-color: #007acc;
+}
+
+.cms-hint {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.cms-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.cms-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cms-button-primary {
+    background: #28a745;
+    color: white;
+    flex: 2;
+}
+
+.cms-button-primary:hover:not(:disabled) {
+    background: #218838;
+}
+
+.cms-button-secondary {
+    background: #007acc;
+    color: white;
+    width: 100%;
+}
+
+.cms-button-secondary:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.cms-button-toggle {
+    background: #6c757d;
+    color: white;
+    flex: 1;
+}
+
+.cms-button-toggle:hover:not(:disabled) {
+    background: #5a6268;
+}
+
+.cms-button-toggle.active {
+    background: #007acc;
+}
+
+.cms-button-toggle.active:hover {
+    background: #005a9e;
+}
+
+.cms-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cms-status-badge {
+    padding: 8px 12px;
+    background: #3a3a3a;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 8px;
+    border-left: 3px solid #6c757d;
+}
+
+.cms-info-box {
+    font-size: 11px;
+    color: #ccc;
+}
+
+.cms-info-box > div {
+    padding: 6px 0;
+}
+
+#cms-project-file-match {
+    font-weight: 600;
+}
+
+.cms-status {
+    padding: 12px;
+    background: #3a3a3a;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.cms-status-info {
+    border-left: 3px solid #17a2b8;
+}
+
+.cms-status-success {
+    border-left: 3px solid #28a745;
+}
+
+.cms-status-error {
+    border-left: 3px solid #dc3545;
+}
+
+.cms-status-loading {
+    border-left: 3px solid #ffc107;
+}
+
+.cms-info {
+    padding: 10px;
+    background: #1a1a1a;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+}
+
+.cms-info strong {
+    color: #aaa;
+}
