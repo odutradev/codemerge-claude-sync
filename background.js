@@ -1,12 +1,11 @@
-// Background Service Worker - CORS Bypass
-
-let config = {
+const DEFAULT_CONFIG = {
     serverUrl: 'http://localhost:9876',
-    projectName: '',
-    updateInterval: 5000
+    updateInterval: 5000,
+    projectName: ''
 };
 
-// Carregar configuração ao instalar
+let config = { ...DEFAULT_CONFIG };
+
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.get(['config'], (result) => {
         if (result.config) {
@@ -15,67 +14,62 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-// Ouvir mensagens do content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'GET_CONFIG') {
-        sendResponse({ config });
-    } 
-    else if (message.type === 'UPDATE_CONFIG') {
-        config = { ...config, ...message.config };
-        chrome.storage.local.set({ config });
-        sendResponse({ success: true });
-    } 
-    else if (message.type === 'FETCH_URL') {
-        // Fazer fetch sem restrições CORS
-        const { url, options } = message;
-        
-        fetch(url, options || {})
-            .then(response => {
-                const status = response.status;
-                const contentType = response.headers.get('content-type') || '';
-                
-                if (!response.ok) {
-                    sendResponse({ 
-                        success: false, 
-                        error: `HTTP ${status}`,
-                        status: status
-                    });
-                    return;
-                }
-                
-                // Retornar JSON ou texto baseado no content-type
-                if (contentType.includes('application/json')) {
-                    return response.json().then(data => {
-                        sendResponse({ 
-                            success: true, 
-                            data: JSON.stringify(data),
-                            contentType: 'json',
-                            status: status
-                        });
-                    });
-                }
-                
-                return response.text().then(data => {
-                    sendResponse({ 
-                        success: true, 
-                        data: data,
-                        contentType: 'text',
-                        status: status
-                    });
-                });
-            })
-            .catch(error => {
-                sendResponse({ 
-                    success: false, 
-                    error: error.message,
-                    status: 0
-                });
-            });
-        
-        return true; // Mantém canal aberto para resposta assíncrona
+    const handlers = {
+        GET_CONFIG: () => sendResponse({ config }),
+        UPDATE_CONFIG: () => handleConfigUpdate(message, sendResponse),
+        FETCH_URL: () => handleFetch(message, sendResponse)
+    };
+
+    const handler = handlers[message.type];
+    if (handler) {
+        handler();
+        return true;
+    }
+});
+
+function handleConfigUpdate(message, sendResponse) {
+    config = { ...config, ...message.config };
+    chrome.storage.local.set({ config });
+    sendResponse({ success: true });
+}
+
+function handleFetch(message, sendResponse) {
+    const { url, options } = message;
+    
+    fetch(url, options || {})
+        .then(response => processResponse(response, sendResponse))
+        .catch(error => sendResponse({ 
+            success: false, 
+            error: error.message,
+            status: 0
+        }));
+}
+
+function processResponse(response, sendResponse) {
+    const status = response.status;
+    const contentType = response.headers.get('content-type') || '';
+    
+    if (!response.ok) {
+        sendResponse({ 
+            success: false, 
+            error: `HTTP ${status}`,
+            status
+        });
+        return;
     }
     
-    return true;
-});
+    const isJson = contentType.includes('application/json');
+    const parser = isJson ? response.json() : response.text();
+    
+    parser.then(data => {
+        sendResponse({ 
+            success: true, 
+            data: isJson ? JSON.stringify(data) : data,
+            contentType: isJson ? 'json' : 'text',
+            status
+        });
+    });
+}
 
 console.log('🚀 CodeMerge Claude Sync - Background worker iniciado');
