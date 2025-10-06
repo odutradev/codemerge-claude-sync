@@ -1,6 +1,6 @@
 {
-  "projectName": "merged-output",
-  "outputPath": "merged-output.txt",
+  "projectName": "codemerge-claude-sync",
+  "outputPath": "codemerge-claude-sync-merged.txt",
   "watch": false,
   "watchDelay": 1500,
   "useGitignore": true,
