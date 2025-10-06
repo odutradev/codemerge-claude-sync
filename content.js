@@ -1,36 +1,32 @@
-// Content Script - CodeMerge Claude Sync (COM CORS BYPASS)
+// Content Script - CodeMerge Claude Sync (Integrado ao Claude UI)
 
 class CodeMergeClaudeSync {
     constructor() {
         this.config = {
             serverUrl: 'http://localhost:9876',
             projectName: '',
-            updateInterval: 5000,
-            autoUpdate: false
+            updateInterval: 5000
         };
         
         this.isRunning = false;
         this.updateIntervalId = null;
-        this.lastContent = null;
         this.lastHash = null;
-        this.serverStatus = 'disconnected';
-        this.availableProjectFiles = [];
+        this.lastSyncTime = null;
+        this.syncStatus = 'idle'; // 'idle', 'syncing', 'success', 'error'
         
         this.init();
     }
     
     async init() {
         await this.loadConfig();
-        this.createUI();
-        this.setupFileListObserver();
-        this.discoverProjectFiles();
-        console.log('🚀 CodeMerge Claude Sync iniciado (CORS bypass enabled)');
+        this.injectUI();
+        console.log('🚀 CodeMerge Claude Sync iniciado');
     }
     
     async loadConfig() {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                if (response && response.config) {
+                if (response?.config) {
                     this.config = { ...this.config, ...response.config };
                 }
                 resolve();
@@ -43,336 +39,285 @@ class CodeMergeClaudeSync {
             chrome.runtime.sendMessage({ 
                 type: 'UPDATE_CONFIG', 
                 config: this.config 
-            }, (response) => {
-                resolve(response);
-            });
+            }, resolve);
         });
     }
     
-    // Helper: fazer fetch via background worker (sem CORS)
     async fetchViaBackground(url, options = {}) {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({
                 type: 'FETCH_URL',
                 url: url,
                 options: options
-            }, (response) => {
-                resolve(response);
-            });
+            }, resolve);
         });
     }
     
-    createUI() {
+    injectUI() {
+        // Aguardar o container estar disponível
+        const checkInterval = setInterval(() => {
+            const instructionsContainer = document.querySelector('[class*="border-0.5"][class*="border-border-300"][class*="rounded-2xl"]');
+            
+            if (instructionsContainer?.parentElement) {
+                clearInterval(checkInterval);
+                this.createIntegratedUI(instructionsContainer.parentElement);
+            }
+        }, 500);
+        
+        // Timeout de segurança
+        setTimeout(() => clearInterval(checkInterval), 10000);
+    }
+    
+    createIntegratedUI(parentElement) {
         const container = document.createElement('div');
-        container.id = 'codemerge-sync-widget';
+        container.className = 'border-0.5 border-border-300 rounded-2xl transition-all duration-300 ease-out flex flex-col mt-3';
+        container.id = 'codemerge-sync-container';
+        
         container.innerHTML = `
-            <div class="cms-header">
-                <h3>📄 CodeMerge Sync</h3>
-                <button id="cms-toggle">−</button>
+            <div class="w-full px-[1.375rem] py-4 flex flex-row items-center justify-between gap-4 mt-1">
+                <div class="w-full flex flex-col gap-0.5">
+                    <div class="h-6 w-full flex flex-row items-center justify-between gap-4">
+                        <h3 class="text-text-300 font-base-bold">CodeMerge Sync</h3>
+                        <div class="flex flex-row items-center gap-2">
+                            <div id="cms-status-indicator" class="w-2 h-2 rounded-full bg-border-300 transition-colors"></div>
+                        </div>
+                    </div>
+                    <p class="text-text-500 font-small line-clamp-2">
+                        <span class="opacity-60">Sincronização automática com servidor CodeMerge</span>
+                    </p>
+                </div>
             </div>
             
-            <div id="cms-content">
-                <!-- Configuração do Servidor -->
-                <div class="cms-section">
-                    <label class="cms-label">🌐 Servidor CodeMerge:</label>
+            <div class="h-[0.5px] w-full bg-border-300"></div>
+            
+            <div class="w-full px-[1.375rem] py-4 flex flex-col gap-3 mb-1">
+                <div class="flex flex-col gap-2">
+                    <label class="text-text-300 text-[12px] font-medium">Nome do Projeto</label>
                     <input 
-                        id="cms-server-url" 
-                        type="text" 
-                        value="${this.config.serverUrl}"
-                        placeholder="http://localhost:9876"
-                        class="cms-input"
-                    />
-                    <button id="cms-test-connection" class="cms-button cms-button-secondary">
-                        🔌 Testar Conexão
-                    </button>
-                    <div id="cms-server-status" class="cms-status-badge">⚪ Desconectado</div>
-                </div>
-                
-                <!-- Nome do Projeto -->
-                <div class="cms-section">
-                    <label class="cms-label">📦 Nome do Projeto:</label>
-                    <input 
-                        id="cms-project-name" 
+                        id="cms-project-name"
                         type="text" 
                         value="${this.config.projectName}"
                         placeholder="Digite o nome do projeto"
-                        class="cms-input"
+                        class="w-full px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
                     />
-                    <div class="cms-hint">Nome retornado pelo endpoint /health</div>
                 </div>
                 
-                <!-- Intervalo de Atualização -->
-                <div class="cms-section">
-                    <label class="cms-label">⏱️ Intervalo (segundos):</label>
+                <div class="flex flex-col gap-2">
+                    <label class="text-text-300 text-[12px] font-medium">Intervalo (segundos)</label>
                     <input 
-                        id="cms-interval" 
+                        id="cms-interval"
                         type="number" 
                         min="2" 
                         max="300" 
                         value="${this.config.updateInterval / 1000}"
-                        class="cms-input"
+                        class="w-full px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
                     />
                 </div>
                 
-                <!-- Status do Projeto Claude -->
-                <div class="cms-section">
-                    <label class="cms-label">🎯 Status do Projeto:</label>
-                    <div id="cms-project-status" class="cms-info-box">
-                        <div id="cms-project-file-count">Descobrindo arquivos...</div>
-                        <div id="cms-project-file-match"></div>
+                <button 
+                    id="cms-toggle-sync"
+                    class="inline-flex items-center justify-center relative shrink-0 select-none transition duration-300 font-medium h-9 px-4 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 border-0.5 border-border-300 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                    <span id="cms-button-text">Iniciar Sincronização</span>
+                </button>
+                
+                <div class="flex items-center justify-between pt-2 border-t-0.5 border-border-300">
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-text-500 text-[11px]">Status</span>
+                        <span id="cms-status-text" class="text-text-300 text-[12px] font-medium">Aguardando início</span>
                     </div>
-                </div>
-                
-                <!-- Controles -->
-                <div class="cms-controls">
-                    <button id="cms-sync-now" class="cms-button cms-button-primary" disabled>
-                        🚀 Sincronizar Agora
-                    </button>
-                    <button id="cms-toggle-auto" class="cms-button cms-button-toggle">
-                        ⏰ Auto: OFF
-                    </button>
-                </div>
-                
-                <!-- Status Geral -->
-                <div id="cms-status" class="cms-status">
-                    Configure o servidor e nome do projeto para começar
-                </div>
-                
-                <!-- Info -->
-                <div class="cms-info">
-                    <strong>Funcionamento:</strong> A extensão busca código do CodeMerge 
-                    via HTTP e faz UPSERT automático no Claude Project.
-                    <br><small>🔓 CORS bypass via background worker</small>
+                    <div class="flex flex-col gap-0.5 text-right">
+                        <span class="text-text-500 text-[11px]">Última sync</span>
+                        <span id="cms-last-sync" class="text-text-300 text-[12px] font-medium">--:--</span>
+                    </div>
                 </div>
             </div>
         `;
         
-        document.body.appendChild(container);
+        parentElement.appendChild(container);
         this.attachEventListeners();
+        this.updateUIState();
     }
     
     attachEventListeners() {
-        // Toggle widget
-        document.getElementById('cms-toggle').onclick = () => {
-            const content = document.getElementById('cms-content');
-            const button = document.getElementById('cms-toggle');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                button.textContent = '−';
-            } else {
-                content.style.display = 'none';
-                button.textContent = '+';
-            }
-        };
+        const projectInput = document.getElementById('cms-project-name');
+        const intervalInput = document.getElementById('cms-interval');
+        const toggleButton = document.getElementById('cms-toggle-sync');
         
-        // Server URL
-        document.getElementById('cms-server-url').onchange = (e) => {
-            this.config.serverUrl = e.target.value.trim();
-            this.saveConfig();
-        };
-        
-        // Project Name
-        document.getElementById('cms-project-name').onchange = (e) => {
+        projectInput?.addEventListener('change', (e) => {
             this.config.projectName = e.target.value.trim();
             this.saveConfig();
-            this.updateProjectStatus();
-            this.checkCanSync();
-        };
+        });
         
-        // Interval
-        document.getElementById('cms-interval').onchange = (e) => {
+        intervalInput?.addEventListener('change', (e) => {
             this.config.updateInterval = parseInt(e.target.value) * 1000;
             this.saveConfig();
             if (this.isRunning) {
-                this.stopAutoUpdate();
-                this.startAutoUpdate();
-            }
-        };
-        
-        // Test Connection
-        document.getElementById('cms-test-connection').onclick = () => {
-            this.testConnection();
-        };
-        
-        // Sync Now
-        document.getElementById('cms-sync-now').onclick = () => {
-            this.syncNow();
-        };
-        
-        // Toggle Auto
-        document.getElementById('cms-toggle-auto').onclick = () => {
-            this.toggleAutoUpdate();
-        };
-    }
-    
-    async testConnection() {
-        this.updateStatus('Testando conexão...', 'loading');
-        
-        try {
-            // Usar background worker para evitar CORS
-            const healthResponse = await this.fetchViaBackground(
-                `${this.config.serverUrl}/health`,
-                { method: 'GET' }
-            );
-            
-            if (!healthResponse.success) {
-                throw new Error(healthResponse.error || 'Erro desconhecido');
-            }
-            
-            const data = JSON.parse(healthResponse.data);
-            this.serverStatus = 'connected';
-            
-            // Atualizar nome do projeto se não estiver definido
-            if (!this.config.projectName && data.project) {
-                this.config.projectName = data.project;
-                document.getElementById('cms-project-name').value = data.project;
-                await this.saveConfig();
-            }
-            
-            this.updateServerStatus('connected', data);
-            this.updateStatus(`✅ Conectado! Projeto: ${data.project}`, 'success');
-            this.checkCanSync();
-            
-        } catch (error) {
-            this.serverStatus = 'error';
-            this.updateServerStatus('error');
-            this.updateStatus(`❌ Erro: ${error.message}`, 'error');
-        }
-    }
-    
-    updateServerStatus(status, data = null) {
-        const badge = document.getElementById('cms-server-status');
-        
-        if (status === 'connected') {
-            badge.textContent = `🟢 Conectado`;
-            badge.style.background = '#28a74520';
-            badge.style.borderLeft = '3px solid #28a745';
-            
-            if (data) {
-                badge.title = `Projeto: ${data.project}\nEndpoint: ${data.endpoint}\nMerge Ready: ${data.mergeReady}`;
-            }
-        } else if (status === 'error') {
-            badge.textContent = `🔴 Erro`;
-            badge.style.background = '#dc354520';
-            badge.style.borderLeft = '3px solid #dc3545';
-        } else {
-            badge.textContent = `⚪ Desconectado`;
-            badge.style.background = '#6c757d20';
-            badge.style.borderLeft = '3px solid #6c757d';
-        }
-    }
-    
-    discoverProjectFiles() {
-        this.availableProjectFiles = [];
-        
-        const fileThumbnails = document.querySelectorAll('[data-testid="file-thumbnail"]');
-        
-        fileThumbnails.forEach((thumbnail) => {
-            const nameElement = thumbnail.querySelector('h3');
-            const linesElement = thumbnail.querySelector('p');
-            const deleteButton = thumbnail.querySelector('button[data-state="closed"]:last-child');
-            
-            if (nameElement && linesElement) {
-                this.availableProjectFiles.push({
-                    name: nameElement.textContent.trim(),
-                    lines: linesElement.textContent.trim(),
-                    element: thumbnail,
-                    deleteButton: deleteButton
-                });
+                this.stopSync();
+                this.startSync();
             }
         });
         
-        this.updateProjectStatus();
+        toggleButton?.addEventListener('click', () => {
+            if (this.isRunning) {
+                this.stopSync();
+            } else {
+                this.startSync();
+            }
+        });
     }
     
-    updateProjectStatus() {
-        const countElement = document.getElementById('cms-project-file-count');
-        const matchElement = document.getElementById('cms-project-file-match');
+    updateUIState() {
+        const indicator = document.getElementById('cms-status-indicator');
+        const buttonText = document.getElementById('cms-button-text');
+        const statusText = document.getElementById('cms-status-text');
+        const lastSync = document.getElementById('cms-last-sync');
+        const toggleButton = document.getElementById('cms-toggle-sync');
         
-        countElement.textContent = `📁 ${this.availableProjectFiles.length} arquivo(s) no projeto`;
+        if (!indicator || !buttonText || !statusText) return;
         
-        if (this.config.projectName) {
-            const fileName = `${this.config.projectName}-merged.txt`;
-            const existingFile = this.availableProjectFiles.find(f => f.name === fileName);
-            
-            if (existingFile) {
-                matchElement.textContent = `📄 "${fileName}" será SUBSTITUÍDO (${existingFile.lines})`;
-                matchElement.style.color = '#ffc107';
-            } else {
-                matchElement.textContent = `➕ "${fileName}" será ADICIONADO como novo arquivo`;
-                matchElement.style.color = '#28a745';
-            }
+        // Atualizar indicador de status
+        if (this.syncStatus === 'success') {
+            indicator.className = 'w-2 h-2 rounded-full bg-green-500 transition-colors';
+        } else if (this.syncStatus === 'syncing') {
+            indicator.className = 'w-2 h-2 rounded-full bg-yellow-500 transition-colors animate-pulse';
+        } else if (this.syncStatus === 'error') {
+            indicator.className = 'w-2 h-2 rounded-full bg-red-500 transition-colors';
         } else {
-            matchElement.textContent = 'Configure o nome do projeto';
-            matchElement.style.color = '#6c757d';
+            indicator.className = 'w-2 h-2 rounded-full bg-border-300 transition-colors';
+        }
+        
+        // Atualizar botão
+        if (this.isRunning) {
+            buttonText.textContent = 'Parar Sincronização';
+            toggleButton.classList.remove('bg-bg-300', 'hover:bg-bg-400');
+            toggleButton.classList.add('bg-accent-secondary-100', 'hover:bg-accent-secondary-200');
+        } else {
+            buttonText.textContent = 'Iniciar Sincronização';
+            toggleButton.classList.remove('bg-accent-secondary-100', 'hover:bg-accent-secondary-200');
+            toggleButton.classList.add('bg-bg-300', 'hover:bg-bg-400');
+        }
+        
+        // Atualizar texto de status
+        if (this.syncStatus === 'syncing') {
+            statusText.textContent = 'Sincronizando...';
+        } else if (this.syncStatus === 'success') {
+            statusText.textContent = 'Sincronizado';
+        } else if (this.syncStatus === 'error') {
+            statusText.textContent = 'Erro na sincronização';
+        } else if (this.isRunning) {
+            statusText.textContent = 'Aguardando próxima sync';
+        } else {
+            statusText.textContent = 'Aguardando início';
+        }
+        
+        // Atualizar última sync
+        if (lastSync && this.lastSyncTime) {
+            lastSync.textContent = this.lastSyncTime;
         }
     }
     
-    checkCanSync() {
-        const canSync = this.config.serverUrl && this.config.projectName;
-        document.getElementById('cms-sync-now').disabled = !canSync;
-        document.getElementById('cms-toggle-auto').disabled = !canSync;
-    }
-    
-    async syncNow() {
-        if (!this.config.serverUrl || !this.config.projectName) {
-            this.updateStatus('Configure servidor e nome do projeto', 'error');
+    startSync() {
+        if (!this.config.projectName) {
+            alert('Configure o nome do projeto antes de iniciar');
             return;
         }
         
+        this.isRunning = true;
+        this.syncStatus = 'idle';
+        this.updateUIState();
+        
+        // Primeira sincronização imediata
+        this.performSync();
+        
+        // Configurar intervalo
+        this.updateIntervalId = setInterval(() => {
+            this.performSync();
+        }, this.config.updateInterval);
+    }
+    
+    stopSync() {
+        this.isRunning = false;
+        this.syncStatus = 'idle';
+        if (this.updateIntervalId) {
+            clearInterval(this.updateIntervalId);
+            this.updateIntervalId = null;
+        }
+        this.updateUIState();
+    }
+    
+    async performSync() {
+        if (!this.config.projectName) return;
+        
         try {
-            this.updateStatus('Buscando código do CodeMerge...', 'loading');
+            this.syncStatus = 'syncing';
+            this.updateUIState();
             
-            // Usar background worker para evitar CORS
-            const fetchResponse = await this.fetchViaBackground(
-                `${this.config.serverUrl}/${this.config.projectName}`,
-                { method: 'GET' }
+            // Buscar conteúdo do servidor
+            const response = await this.fetchViaBackground(
+                `${this.config.serverUrl}/${this.config.projectName}`
             );
             
-            if (!fetchResponse.success) {
-                if (fetchResponse.status === 503) {
-                    throw new Error('Merge ainda não está pronto no servidor');
-                }
-                throw new Error(fetchResponse.error || 'Erro na requisição');
+            if (!response.success) {
+                throw new Error(response.error || 'Erro ao buscar conteúdo');
             }
             
-            const content = fetchResponse.data;
+            const content = response.data;
             const contentHash = this.hashCode(content);
             
-            // Verificar se conteúdo mudou
+            // Verificar se mudou
             if (contentHash === this.lastHash) {
-                this.updateStatus('✅ Conteúdo já está atualizado', 'success');
+                this.syncStatus = 'success';
+                this.updateUIState();
                 return;
             }
             
-            // Atualizar arquivos do projeto
-            this.discoverProjectFiles();
-            
+            // Atualizar arquivo no Claude
             const fileName = `${this.config.projectName}-merged.txt`;
-            const existingFile = this.availableProjectFiles.find(f => f.name === fileName);
+            await this.updateClaudeFile(fileName, content);
             
-            // Remover arquivo existente se necessário
-            if (existingFile) {
-                this.updateStatus(`Removendo "${fileName}" existente...`, 'loading');
-                await this.removeFile(existingFile);
-                await this.wait(1000);
-            }
-            
-            // Adicionar novo arquivo
-            this.updateStatus(`Adicionando novo "${fileName}"...`, 'loading');
-            await this.addFile(fileName, content);
-            
-            this.lastContent = content;
             this.lastHash = contentHash;
-            
-            this.updateStatus(`✅ Sincronizado! ${new Date().toLocaleTimeString('pt-BR')}`, 'success');
-            
-            setTimeout(() => this.discoverProjectFiles(), 1500);
+            this.lastSyncTime = new Date().toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            this.syncStatus = 'success';
             
         } catch (error) {
             console.error('Erro na sincronização:', error);
-            this.updateStatus(`❌ Erro: ${error.message}`, 'error');
+            this.syncStatus = 'error';
         }
+        
+        this.updateUIState();
+    }
+    
+    async updateClaudeFile(fileName, content) {
+        // Procurar arquivo existente
+        const existingFile = await this.findExistingFile(fileName);
+        
+        // Remover se existir
+        if (existingFile) {
+            await this.removeFile(existingFile);
+            await this.wait(1000);
+        }
+        
+        // Adicionar novo arquivo
+        await this.addFile(fileName, content);
+        await this.wait(500);
+    }
+    
+    async findExistingFile(fileName) {
+        const thumbnails = document.querySelectorAll('[data-testid="file-thumbnail"]');
+        
+        for (const thumbnail of thumbnails) {
+            const nameElement = thumbnail.querySelector('h3');
+            if (nameElement?.textContent.trim() === fileName) {
+                const deleteButton = thumbnail.querySelector('button[data-state="closed"]:last-child');
+                return { element: thumbnail, deleteButton };
+            }
+        }
+        
+        return null;
     }
     
     async removeFile(fileInfo) {
@@ -383,12 +328,11 @@ class CodeMergeClaudeSync {
         fileInfo.deleteButton.click();
         await this.wait(500);
         
-        // Procurar confirmação
+        // Confirmar exclusão
         const confirmButtons = document.querySelectorAll('button');
         for (const button of confirmButtons) {
             const text = button.textContent.toLowerCase();
-            if (text.includes('excluir') || text.includes('delete') || 
-                text.includes('remover') || text.includes('confirmar')) {
+            if (text.includes('excluir') || text.includes('delete')) {
                 button.click();
                 break;
             }
@@ -415,63 +359,6 @@ class CodeMergeClaudeSync {
         uploadInput.dispatchEvent(changeEvent);
     }
     
-    toggleAutoUpdate() {
-        if (this.isRunning) {
-            this.stopAutoUpdate();
-        } else {
-            this.startAutoUpdate();
-        }
-    }
-    
-    startAutoUpdate() {
-        this.isRunning = true;
-        this.updateIntervalId = setInterval(() => {
-            this.syncNow();
-        }, this.config.updateInterval);
-        
-        const button = document.getElementById('cms-toggle-auto');
-        button.textContent = '⏰ Auto: ON';
-        button.classList.add('active');
-        
-        this.updateStatus(`Auto-sync ativado (${this.config.updateInterval / 1000}s)`, 'success');
-        
-        // Primeira sincronização imediata
-        this.syncNow();
-    }
-    
-    stopAutoUpdate() {
-        this.isRunning = false;
-        if (this.updateIntervalId) {
-            clearInterval(this.updateIntervalId);
-            this.updateIntervalId = null;
-        }
-        
-        const button = document.getElementById('cms-toggle-auto');
-        button.textContent = '⏰ Auto: OFF';
-        button.classList.remove('active');
-        
-        this.updateStatus('Auto-sync desativado', 'info');
-    }
-    
-    setupFileListObserver() {
-        const observer = new MutationObserver(() => {
-            setTimeout(() => {
-                this.discoverProjectFiles();
-            }, 800);
-        });
-        
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-    
-    updateStatus(message, type = 'info') {
-        const status = document.getElementById('cms-status');
-        status.textContent = message;
-        status.className = `cms-status cms-status-${type}`;
-    }
-    
     hashCode(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -487,7 +374,7 @@ class CodeMergeClaudeSync {
     }
 }
 
-// Inicializar quando a página carregar
+// Inicializar
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         new CodeMergeClaudeSync();
