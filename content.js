@@ -136,8 +136,6 @@ class CodeMergeClaudeSync {
                 </div>
             </div>
             
-            <div class="h-[0.5px] w-full bg-border-300"></div>
-            
             <div class="w-full px-[1.375rem] py-4 flex flex-col gap-3 mb-1">
                 <div class="flex flex-row gap-2 items-center">
                     <input 
@@ -147,6 +145,15 @@ class CodeMergeClaudeSync {
                         placeholder="Nome do projeto"
                         class="flex-1 px-3 py-2 bg-bg-000 border-0.5 border-border-300 rounded-lg text-text-100 text-[14px] focus:outline-none focus:border-border-200 transition-colors"
                     />
+                    <button 
+                        id="cms-reload-sync"
+                        class="inline-flex items-center justify-center relative shrink-0 select-none transition duration-300 w-10 h-10 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 border-0.5 border-border-300 disabled:opacity-50 disabled:pointer-events-none"
+                        title="Recarregar sincronização"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                    </button>
                     <button 
                         id="cms-toggle-sync"
                         class="inline-flex items-center justify-center relative shrink-0 select-none transition duration-300 w-10 h-10 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 border-0.5 border-border-300 disabled:opacity-50 disabled:pointer-events-none"
@@ -187,6 +194,7 @@ class CodeMergeClaudeSync {
     attachEventListeners() {
         const projectInput = document.getElementById('cms-project-name');
         const toggleButton = document.getElementById('cms-toggle-sync');
+        const reloadButton = document.getElementById('cms-reload-sync');
         
         projectInput?.addEventListener('change', async (e) => {
             this.config.projectName = e.target.value.trim();
@@ -206,6 +214,17 @@ class CodeMergeClaudeSync {
             } else {
                 this.startSync();
             }
+        });
+        
+        reloadButton?.addEventListener('click', async () => {
+            if (!this.config.projectName) {
+                alert('Configure o nome do projeto antes de recarregar');
+                return;
+            }
+            
+            // Força uma sincronização imediata
+            this.lastHash = null; // Reset hash para forçar atualização
+            await this.performSync();
         });
     }
     
