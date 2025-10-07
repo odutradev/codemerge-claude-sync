@@ -8,14 +8,12 @@ class ArtifactUpsertManager {
     async init() {
         await this.loadConfig();
         this.observeInputArea();
-        console.log('🚀 Artifact Upsert Manager iniciado');
     }
 
     async loadConfig() {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
                 if (response?.config?.serverUrl) this.config.serverUrl = response.config.serverUrl;
-                console.log('⚙️ Config carregada:', this.config.serverUrl);
                 resolve();
             });
         });
@@ -31,7 +29,6 @@ class ArtifactUpsertManager {
         });
         this.observer.observe(document.body, { childList: true, subtree: true });
         this.checkForInputArea(document.body);
-        console.log('👁️ Observer ativo - aguardando área de input');
     }
 
     checkForInputArea(node) {
@@ -39,25 +36,15 @@ class ArtifactUpsertManager {
         const sendButton = node.querySelector('button[aria-label="Enviar mensagem"]') ||
                            node.querySelector('button[aria-label="Send Message"]');
         if (!sendButton) return;
-
-        console.log('✨ Botão de enviar detectado');
         const buttonContainer = sendButton.parentElement;
-        if (!buttonContainer) {
-            console.log('⚠️ Container do botão não encontrado');
-            return;
-        }
-        console.log('📦 Container encontrado');
+        if (!buttonContainer) return;
         this.injectUpsertButton(buttonContainer, sendButton);
     }
 
     injectUpsertButton(container, sendButton) {
-        if (container.querySelector('.cms-upsert-button')) {
-            console.log('⏭️ Botão já existe');
-            return;
-        }
+        if (container.querySelector('.cms-upsert-button')) return;
         const upsertButton = this.createUpsertButton();
         container.insertBefore(upsertButton, sendButton);
-        console.log('✅ Botão Upsert injetado ao lado do enviar');
     }
 
     createUpsertButton() {
@@ -94,17 +81,10 @@ class ArtifactUpsertManager {
                     <span class="font-base-bold text-xs">...</span>
                 </div>
             `;
-
-            console.log('📤 Iniciando upsert (todos artefatos)...');
             const files = await this.extractAllArtifactsFromClaude();
             if (!files || files.length === 0) throw new Error('Nenhum artefato encontrado na conversa');
-
-            const totalBytes = files.reduce((acc, f) => acc + (f.content?.length || 0), 0);
-            console.log(`📝 Arquivos extraídos: ${files.length} | Tamanho total: ${totalBytes} bytes`);
             const response = await this.sendUpsert(files);
-
             if (response.success) {
-                console.log('✅ Upsert bem-sucedido:', response);
                 this.showSuccess(button);
                 button.title = `Enviados ${files.length} artefatos`;
                 setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 2000);
@@ -112,20 +92,16 @@ class ArtifactUpsertManager {
                 throw new Error(response.error || 'Erro ao fazer upsert');
             }
         } catch (error) {
-            console.error('❌ Erro no upsert:', error);
             this.showError(button, error.message);
             setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 3000);
         }
     }
 
-    // ===== Conversa Claude → coleta de TODOS os artefatos =====
     async extractAllArtifactsFromClaude() {
         const data = await this.fetchClaudeConversation();
         if (!data) return [];
-
         const messages = Array.isArray(data.chat_messages) ? data.chat_messages
                         : (Array.isArray(data.messages) ? data.messages : []);
-
         const collected = [];
         const nameCount = new Map();
 
@@ -133,42 +109,31 @@ class ArtifactUpsertManager {
             if (!content) return;
             let base = (rawName || 'artifact.txt').toString().trim();
             if (!base) base = 'artifact.txt';
-
-            // deduplica nomes: foo.txt, foo (2).txt, foo (3).txt...
             let name = base;
             const current = (nameCount.get(base) || 0) + 1;
             nameCount.set(base, current);
             if (current > 1) {
                 const dot = base.lastIndexOf('.');
-                if (dot > 0) {
-                    name = `${base.slice(0, dot)} (${current}).${base.slice(dot + 1)}`;
-                } else {
-                    name = `${base} (${current})`;
-                }
+                name = dot > 0
+                    ? `${base.slice(0, dot)} (${current}).${base.slice(dot + 1)}`
+                    : `${base} (${current})`;
             }
             collected.push({ path: name, content: content.toString() });
         };
 
-        // percorre em ordem cronológica (primeiro → último)
         for (let m = 0; m < messages.length; m++) {
             const parts = messages[m]?.content || [];
             for (let p = 0; p < parts.length; p++) {
                 const part = parts[p];
-
-                // 1) artifacts via tool_use
                 if (part?.type === 'tool_use' && /artifacts?/i.test(part?.name || '')) {
                     const items = this.parseArtifactsFromToolInput(part.input);
                     items.forEach(({ title, name, content, text }) => {
                         pushFile(title || name || 'artifact.txt', content || text || '');
                     });
                 }
-
-                // 2) artefatos "inline" do tipo application/vnd.ant.code
                 if (part?.type && /application\/vnd\.ant\.code/i.test(part.type) && (part.content || part.text)) {
                     pushFile(part.title || 'artifact.txt', part.content || part.text || '');
                 }
-
-                // 3) alguns formatos colocam uma lista em part.items
                 if (Array.isArray(part?.items)) {
                     part.items.forEach(it => {
                         if (it?.type && /application\/vnd\.ant\.code/i.test(it.type) && (it.content || it.text)) {
@@ -178,14 +143,11 @@ class ArtifactUpsertManager {
                 }
             }
         }
-
         return collected;
     }
 
     parseArtifactsFromToolInput(input) {
         const out = [];
-        if (!input) return out;
-
         const pushIf = (obj) => {
             if (!obj) return;
             const content = obj.content ?? obj.text ?? obj.body ?? '';
@@ -193,19 +155,13 @@ class ArtifactUpsertManager {
             if (content) out.push({ title, content });
         };
 
-        // objeto único
         if (typeof input === 'object' && !Array.isArray(input)) {
-            // files: [...]
             if (Array.isArray(input.files)) input.files.forEach(pushIf);
-            // items: [...]
             if (Array.isArray(input.items)) input.items.forEach(pushIf);
-            // o próprio objeto pode ser um artefato
             if (input.type || input.content || input.text) pushIf(input);
         }
 
-        // array de objetos
         if (Array.isArray(input)) input.forEach(pushIf);
-
         return out;
     }
 
@@ -215,11 +171,9 @@ class ArtifactUpsertManager {
             const deviceId = document.cookie.split('; ').find(c => c.startsWith('anthropic-device-id='))?.split('=')[1];
             const chatId = window.location.pathname.split('/').pop();
             const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
-
             if (!orgId || !chatId) throw new Error('OrgId ou ChatId não encontrados');
 
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
-
             const response = await fetch(url, {
                 headers: {
                     "accept": "*/*",
@@ -240,15 +194,12 @@ class ArtifactUpsertManager {
                 mode: "cors",
                 credentials: "include"
             });
-
             if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
             return await response.json();
-        } catch (err) {
-            console.error('⚠️ Erro ao buscar conversa do Claude:', err);
+        } catch {
             return null;
         }
     }
-    // ===== Fim: coleta de TODOS os artefatos =====
 
     async sendUpsert(filesArray) {
         return new Promise((resolve) => {
