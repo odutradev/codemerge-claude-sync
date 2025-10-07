@@ -86,7 +86,7 @@ class ArtifactUpsertManager {
         const button = document.createElement('button');
         button.className = 'cms-upsert-button inline-flex items-center justify-center relative shrink-0 can-focus select-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-300 border-transparent transition font-base duration-300 ease-[cubic-bezier(0.165,0.85,0.45,1)] hover:bg-bg-300 aria-checked:bg-bg-400 aria-expanded:bg-bg-400 hover:text-text-100 aria-pressed:text-text-100 aria-checked:text-text-100 aria-expanded:text-text-100 h-8 rounded-md px-3 min-w-[4rem] active:scale-[0.985] whitespace-nowrap mr-2';
         button.type = 'button';
-        button.title = 'Fazer upsert de todos os artefatos da conversa';
+        button.title = 'Fazer upsert de artefatos da conversa';
         button.innerHTML = `
             <div class="flex items-center gap-2">
                 <div class="flex items-center justify-center" style="width: 16px; height: 16px;">
@@ -116,12 +116,32 @@ class ArtifactUpsertManager {
                     <span class="font-base-bold text-xs">...</span>
                 </div>
             `;
-            const files = await this.extractAllArtifactsFromClaude();
-            if (!files || files.length === 0) throw new Error('Nenhum artefato encontrado na conversa');
-            const response = await this.sendUpsert(files);
+            
+            const allFiles = await this.extractAllArtifactsFromClaude();
+            if (!allFiles || allFiles.length === 0) throw new Error('Nenhum artefato encontrado na conversa');
+            
+            button.disabled = false;
+            button.innerHTML = originalContent;
+            
+            const filesToUpload = await this.showFileSelectionModal(allFiles);
+            if (!filesToUpload || filesToUpload.length === 0) return;
+            
+            button.disabled = true;
+            button.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="animate-spin" style="width: 16px; height: 16px;">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="shrink-0" aria-hidden="true">
+                            <path d="M10 3C10.2761 3 10.5 3.22386 10.5 3.5V6.5C10.5 6.77614 10.2761 7 10 7C9.72386 7 9.5 6.77614 9.5 6.5V3.5C9.5 3.22386 9.72386 3 10 3Z"/>
+                        </svg>
+                    </div>
+                    <span class="font-base-bold text-xs">...</span>
+                </div>
+            `;
+            
+            const response = await this.sendUpsert(filesToUpload);
             if (response.success) {
                 this.showSuccess(button);
-                button.title = `Enviados ${files.length} artefatos`;
+                button.title = `Enviados ${filesToUpload.length} artefatos`;
                 setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 2000);
             } else {
                 throw new Error(response.error || 'Erro ao fazer upsert');
@@ -130,6 +150,124 @@ class ArtifactUpsertManager {
             this.showError(button, error.message);
             setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 3000);
         }
+    }
+
+    showFileSelectionModal(files) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-50 flex items-center justify-center';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            
+            const modal = document.createElement('div');
+            modal.className = 'bg-bg-000 border border-border-300 rounded-2xl shadow-2xl w-[600px] max-h-[80vh] flex flex-col';
+            
+            const selectedFiles = new Set(files.map((_, i) => i));
+            
+            modal.innerHTML = `
+                <div class="flex items-center justify-between p-6 border-b border-border-300">
+                    <h2 class="text-text-100 font-base-bold text-lg">Selecionar Artefatos</h2>
+                    <button class="cms-modal-close inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-bg-300 text-text-300 hover:text-text-100 transition">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.14645 5.14645C5.34171 4.95118 5.65829 4.95118 5.85355 5.14645L10 9.29289L14.1464 5.14645C14.3417 4.95118 14.6583 4.95118 14.8536 5.14645C15.0488 5.34171 15.0488 5.65829 14.8536 5.85355L10.7071 10L14.8536 14.1464C15.0488 14.3417 15.0488 14.6583 14.8536 14.8536C14.6583 15.0488 14.3417 15.0488 14.1464 14.8536L10 10.7071L5.85355 14.8536C5.65829 15.0488 5.34171 15.0488 5.14645 14.8536C4.95118 14.6583 4.95118 14.3417 5.14645 14.1464L9.29289 10L5.14645 5.85355C4.95118 5.65829 4.95118 5.34171 5.14645 5.14645Z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-2 px-6 py-3 border-b border-border-300">
+                    <button class="cms-select-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
+                        Selecionar Todos
+                    </button>
+                    <button class="cms-deselect-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
+                        Desselecionar Todos
+                    </button>
+                    <span class="cms-selected-count ml-auto text-text-300 text-xs">
+                        ${files.length} de ${files.length} selecionados
+                    </span>
+                </div>
+                
+                <div class="cms-file-list flex-1 overflow-y-auto px-6 py-4">
+                    ${files.map((file, index) => `
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-bg-200 cursor-pointer transition">
+                            <input type="checkbox" checked class="cms-file-checkbox w-4 h-4 rounded border-2 border-border-300 cursor-pointer" data-index="${index}">
+                            <span class="text-text-100 text-sm font-base flex-1 truncate" title="${file.path}">${file.path}</span>
+                            <span class="text-text-500 text-xs">${this.formatFileSize(file.content.length)}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                
+                <div class="flex items-center justify-end gap-3 p-6 border-t border-border-300">
+                    <button class="cms-modal-cancel inline-flex items-center justify-center px-4 py-2 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 font-base transition">
+                        Cancelar
+                    </button>
+                    <button class="cms-modal-confirm inline-flex items-center justify-center px-4 py-2 rounded-lg bg-accent-secondary-100 hover:bg-accent-secondary-200 text-text-100 font-base-bold transition">
+                        Confirmar (${files.length})
+                    </button>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            const updateCount = () => {
+                const count = selectedFiles.size;
+                const countSpan = modal.querySelector('.cms-selected-count');
+                const confirmBtn = modal.querySelector('.cms-modal-confirm');
+                if (countSpan) countSpan.textContent = `${count} de ${files.length} selecionados`;
+                if (confirmBtn) confirmBtn.textContent = `Confirmar (${count})`;
+            };
+            
+            const checkboxes = modal.querySelectorAll('.cms-file-checkbox');
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const index = parseInt(cb.dataset.index);
+                    if (cb.checked) {
+                        selectedFiles.add(index);
+                    } else {
+                        selectedFiles.delete(index);
+                    }
+                    updateCount();
+                });
+            });
+            
+            modal.querySelector('.cms-select-all')?.addEventListener('click', () => {
+                checkboxes.forEach(cb => {
+                    cb.checked = true;
+                    selectedFiles.add(parseInt(cb.dataset.index));
+                });
+                updateCount();
+            });
+            
+            modal.querySelector('.cms-deselect-all')?.addEventListener('click', () => {
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                    selectedFiles.delete(parseInt(cb.dataset.index));
+                });
+                updateCount();
+            });
+            
+            const close = () => {
+                overlay.remove();
+                resolve(null);
+            };
+            
+            modal.querySelector('.cms-modal-close')?.addEventListener('click', close);
+            modal.querySelector('.cms-modal-cancel')?.addEventListener('click', close);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) close();
+            });
+            
+            modal.querySelector('.cms-modal-confirm')?.addEventListener('click', () => {
+                const selected = files.filter((_, i) => selectedFiles.has(i));
+                overlay.remove();
+                resolve(selected);
+            });
+        });
+    }
+
+    formatFileSize(bytes) {
+        if (bytes < 1024) return `${bytes}B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
     }
 
     async extractAllArtifactsFromClaude() {
