@@ -1,88 +1,70 @@
 class ArtifactUpsertManager {
     constructor() {
-        this.config = {
-            serverUrl: 'http://localhost:9876'
-        };
-        
+        this.config = { serverUrl: 'http://localhost:9876' };
         this.observer = null;
         this.init();
     }
-    
+
     async init() {
         await this.loadConfig();
         this.observeInputArea();
         console.log('🚀 Artifact Upsert Manager iniciado');
     }
-    
+
     async loadConfig() {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                if (response?.config?.serverUrl) {
-                    this.config.serverUrl = response.config.serverUrl;
-                }
+                if (response?.config?.serverUrl) this.config.serverUrl = response.config.serverUrl;
                 console.log('⚙️ Config carregada:', this.config.serverUrl);
                 resolve();
             });
         });
     }
-    
+
     observeInputArea() {
         this.observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) {
-                        this.checkForInputArea(node);
-                    }
+                    if (node.nodeType === 1) this.checkForInputArea(node);
                 });
             });
         });
-        
-        this.observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
+        this.observer.observe(document.body, { childList: true, subtree: true });
         this.checkForInputArea(document.body);
         console.log('👁️ Observer ativo - aguardando área de input');
     }
-    
+
     checkForInputArea(node) {
         if (!node.querySelector) return;
-        
-        const sendButton = node.querySelector('button[aria-label="Enviar mensagem"]') || 
-                          node.querySelector('button[aria-label="Send Message"]');
-        
+        const sendButton = node.querySelector('button[aria-label="Enviar mensagem"]') ||
+                           node.querySelector('button[aria-label="Send Message"]');
         if (!sendButton) return;
-        
+
         console.log('✨ Botão de enviar detectado');
-        
         const buttonContainer = sendButton.parentElement;
         if (!buttonContainer) {
             console.log('⚠️ Container do botão não encontrado');
             return;
         }
-        
         console.log('📦 Container encontrado');
         this.injectUpsertButton(buttonContainer, sendButton);
     }
-    
+
     injectUpsertButton(container, sendButton) {
         if (container.querySelector('.cms-upsert-button')) {
             console.log('⏭️ Botão já existe');
             return;
         }
-        
         const upsertButton = this.createUpsertButton();
         container.insertBefore(upsertButton, sendButton);
         console.log('✅ Botão Upsert injetado ao lado do enviar');
     }
-    
+
     createUpsertButton() {
         const button = document.createElement('button');
         button.className = 'cms-upsert-button inline-flex items-center justify-center relative shrink-0 can-focus select-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-300 border-transparent transition font-base duration-300 ease-[cubic-bezier(0.165,0.85,0.45,1)] hover:bg-bg-300 aria-checked:bg-bg-400 aria-expanded:bg-bg-400 hover:text-text-100 aria-pressed:text-text-100 aria-checked:text-text-100 aria-expanded:text-text-100 h-8 rounded-md px-3 min-w-[4rem] active:scale-[0.985] whitespace-nowrap mr-2';
         button.type = 'button';
-        button.title = 'Fazer upsert do último artefato';
-        
+        button.title = 'Fazer upsert de todos os artefatos da conversa';
         button.innerHTML = `
             <div class="flex items-center gap-2">
                 <div class="flex items-center justify-center" style="width: 16px; height: 16px;">
@@ -94,15 +76,12 @@ class ArtifactUpsertManager {
                 <span class="font-base-bold text-xs">Upsert</span>
             </div>
         `;
-        
         button.addEventListener('click', () => this.handleUpsert(button));
-        
         return button;
     }
-    
+
     async handleUpsert(button) {
         const originalContent = button.innerHTML;
-        
         try {
             button.disabled = true;
             button.innerHTML = `
@@ -115,89 +94,171 @@ class ArtifactUpsertManager {
                     <span class="font-base-bold text-xs">...</span>
                 </div>
             `;
-            
-            console.log('📤 Iniciando upsert...');
-            
-            const artifactData = await this.extractLastArtifact();
-            if (!artifactData) {
-                throw new Error('Nenhum artefato encontrado na conversa');
-            }
-            
-            console.log('📝 Dados extraídos:', { path: artifactData.path, size: artifactData.content.length });
-            
-            const response = await this.sendUpsert(artifactData);
-            
+
+            console.log('📤 Iniciando upsert (todos artefatos)...');
+            const files = await this.extractAllArtifactsFromClaude();
+            if (!files || files.length === 0) throw new Error('Nenhum artefato encontrado na conversa');
+
+            const totalBytes = files.reduce((acc, f) => acc + (f.content?.length || 0), 0);
+            console.log(`📝 Arquivos extraídos: ${files.length} | Tamanho total: ${totalBytes} bytes`);
+            const response = await this.sendUpsert(files);
+
             if (response.success) {
                 console.log('✅ Upsert bem-sucedido:', response);
                 this.showSuccess(button);
-                setTimeout(() => {
-                    button.disabled = false;
-                    button.innerHTML = originalContent;
-                }, 2000);
+                button.title = `Enviados ${files.length} artefatos`;
+                setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 2000);
             } else {
                 throw new Error(response.error || 'Erro ao fazer upsert');
             }
-            
         } catch (error) {
             console.error('❌ Erro no upsert:', error);
             this.showError(button, error.message);
-            setTimeout(() => {
-                button.disabled = false;
-                button.innerHTML = originalContent;
-            }, 3000);
+            setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 3000);
         }
     }
-    
-    async extractLastArtifact() {
-        const artifacts = document.querySelectorAll('[data-testid="artifact-version-trigger"]');
-        if (artifacts.length === 0) {
-            console.log('⚠️ Nenhum artefato encontrado');
-            return null;
-        }
-        
-        const lastArtifact = artifacts[artifacts.length - 1];
-        console.log('🔍 Último artefato encontrado');
-        
-        const headerContainer = lastArtifact.closest('.pr-2');
-        if (!headerContainer) {
-            console.log('⚠️ Header do artefato não encontrado');
-            return null;
-        }
-        
-        const artifactContainer = headerContainer.parentElement;
-        if (!artifactContainer) {
-            console.log('⚠️ Container do artefato não encontrado');
-            return null;
-        }
-        
-        const titleContainer = artifactContainer.previousElementSibling;
-        const titleElement = titleContainer?.querySelector('span.font-base-bold');
-        const fileName = titleElement?.textContent.trim() || 'artifact.txt';
-        
-        const codeElement = artifactContainer.querySelector('code');
-        const content = codeElement?.textContent || '';
-        
-        console.log('📄 Arquivo:', fileName);
-        
-        return {
-            path: fileName,
-            content: content
+
+    // ===== Conversa Claude → coleta de TODOS os artefatos =====
+    async extractAllArtifactsFromClaude() {
+        const data = await this.fetchClaudeConversation();
+        if (!data) return [];
+
+        const messages = Array.isArray(data.chat_messages) ? data.chat_messages
+                        : (Array.isArray(data.messages) ? data.messages : []);
+
+        const collected = [];
+        const nameCount = new Map();
+
+        const pushFile = (rawName, content) => {
+            if (!content) return;
+            let base = (rawName || 'artifact.txt').toString().trim();
+            if (!base) base = 'artifact.txt';
+
+            // deduplica nomes: foo.txt, foo (2).txt, foo (3).txt...
+            let name = base;
+            const current = (nameCount.get(base) || 0) + 1;
+            nameCount.set(base, current);
+            if (current > 1) {
+                const dot = base.lastIndexOf('.');
+                if (dot > 0) {
+                    name = `${base.slice(0, dot)} (${current}).${base.slice(dot + 1)}`;
+                } else {
+                    name = `${base} (${current})`;
+                }
+            }
+            collected.push({ path: name, content: content.toString() });
         };
+
+        // percorre em ordem cronológica (primeiro → último)
+        for (let m = 0; m < messages.length; m++) {
+            const parts = messages[m]?.content || [];
+            for (let p = 0; p < parts.length; p++) {
+                const part = parts[p];
+
+                // 1) artifacts via tool_use
+                if (part?.type === 'tool_use' && /artifacts?/i.test(part?.name || '')) {
+                    const items = this.parseArtifactsFromToolInput(part.input);
+                    items.forEach(({ title, name, content, text }) => {
+                        pushFile(title || name || 'artifact.txt', content || text || '');
+                    });
+                }
+
+                // 2) artefatos "inline" do tipo application/vnd.ant.code
+                if (part?.type && /application\/vnd\.ant\.code/i.test(part.type) && (part.content || part.text)) {
+                    pushFile(part.title || 'artifact.txt', part.content || part.text || '');
+                }
+
+                // 3) alguns formatos colocam uma lista em part.items
+                if (Array.isArray(part?.items)) {
+                    part.items.forEach(it => {
+                        if (it?.type && /application\/vnd\.ant\.code/i.test(it.type) && (it.content || it.text)) {
+                            pushFile(it.title || it.name || 'artifact.txt', it.content || it.text || '');
+                        }
+                    });
+                }
+            }
+        }
+
+        return collected;
     }
-    
-    async sendUpsert(artifactData) {
+
+    parseArtifactsFromToolInput(input) {
+        const out = [];
+        if (!input) return out;
+
+        const pushIf = (obj) => {
+            if (!obj) return;
+            const content = obj.content ?? obj.text ?? obj.body ?? '';
+            const title = obj.title ?? obj.name ?? obj.filename ?? obj.path ?? 'artifact.txt';
+            if (content) out.push({ title, content });
+        };
+
+        // objeto único
+        if (typeof input === 'object' && !Array.isArray(input)) {
+            // files: [...]
+            if (Array.isArray(input.files)) input.files.forEach(pushIf);
+            // items: [...]
+            if (Array.isArray(input.items)) input.items.forEach(pushIf);
+            // o próprio objeto pode ser um artefato
+            if (input.type || input.content || input.text) pushIf(input);
+        }
+
+        // array de objetos
+        if (Array.isArray(input)) input.forEach(pushIf);
+
+        return out;
+    }
+
+    async fetchClaudeConversation() {
+        try {
+            const orgId = document.cookie.split('; ').find(c => c.startsWith('lastActiveOrg='))?.split('=')[1];
+            const deviceId = document.cookie.split('; ').find(c => c.startsWith('anthropic-device-id='))?.split('=')[1];
+            const chatId = window.location.pathname.split('/').pop();
+            const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
+
+            if (!orgId || !chatId) throw new Error('OrgId ou ChatId não encontrados');
+
+            const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
+
+            const response = await fetch(url, {
+                headers: {
+                    "accept": "*/*",
+                    "accept-language": navigator.language || "pt-BR,pt;q=0.9,en;q=0.8",
+                    "anthropic-anonymous-id": anonymousId || "",
+                    "anthropic-client-platform": "web_claude_ai",
+                    "anthropic-client-sha": "unknown",
+                    "anthropic-client-version": "1.0.0",
+                    "anthropic-device-id": deviceId || "",
+                    "content-type": "application/json",
+                    "priority": "u=1, i",
+                    "sec-ch-ua": "\"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"Windows\""
+                },
+                referrer: window.location.href,
+                method: "GET",
+                mode: "cors",
+                credentials: "include"
+            });
+
+            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+            return await response.json();
+        } catch (err) {
+            console.error('⚠️ Erro ao buscar conversa do Claude:', err);
+            return null;
+        }
+    }
+    // ===== Fim: coleta de TODOS os artefatos =====
+
+    async sendUpsert(filesArray) {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({
                 type: 'FETCH_URL',
                 url: `${this.config.serverUrl}/upsert`,
                 options: {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        files: [artifactData]
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: filesArray })
                 }
             }, (response) => {
                 if (response.success) {
@@ -208,15 +269,12 @@ class ArtifactUpsertManager {
                         resolve({ success: true });
                     }
                 } else {
-                    resolve({ 
-                        success: false, 
-                        error: response.error || 'Erro desconhecido' 
-                    });
+                    resolve({ success: false, error: response.error || 'Erro desconhecido' });
                 }
             });
         });
     }
-    
+
     showSuccess(button) {
         button.innerHTML = `
             <div class="flex items-center gap-2">
@@ -229,7 +287,7 @@ class ArtifactUpsertManager {
             </div>
         `;
     }
-    
+
     showError(button, message) {
         button.innerHTML = `
             <div class="flex items-center gap-2">
@@ -247,9 +305,7 @@ class ArtifactUpsertManager {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new ArtifactUpsertManager();
-    });
+    document.addEventListener('DOMContentLoaded', () => { new ArtifactUpsertManager(); });
 } else {
     new ArtifactUpsertManager();
 }
