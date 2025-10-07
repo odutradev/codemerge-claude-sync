@@ -2,12 +2,16 @@ class ArtifactUpsertManager {
     constructor() {
         this.config = { serverUrl: 'http://localhost:9876' };
         this.observer = null;
+        this.containerObservers = new WeakMap();
+        this.heartbeat = null;
         this.init();
     }
 
     async init() {
         await this.loadConfig();
         this.observeInputArea();
+        this.ensureUpsertPresent();
+        this.startHeartbeat();
     }
 
     async loadConfig() {
@@ -20,28 +24,59 @@ class ArtifactUpsertManager {
     }
 
     observeInputArea() {
+        if (this.observer) this.observer.disconnect();
         this.observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) this.checkForInputArea(node);
-                });
-            });
+            let shouldRecheck = false;
+            for (const mutation of mutations) {
+                if (mutation.addedNodes?.length || mutation.removedNodes?.length) shouldRecheck = true;
+            }
+            if (shouldRecheck) {
+                if (this._raf) cancelAnimationFrame(this._raf);
+                this._raf = requestAnimationFrame(() => this.ensureUpsertPresent());
+            }
         });
         this.observer.observe(document.body, { childList: true, subtree: true });
-        this.checkForInputArea(document.body);
     }
 
-    checkForInputArea(node) {
-        if (!node.querySelector) return;
-        const sendButton = node.querySelector('button[aria-label="Enviar mensagem"]') ||
-                           node.querySelector('button[aria-label="Send Message"]');
-        if (!sendButton) return;
-        const buttonContainer = sendButton.parentElement;
-        if (!buttonContainer) return;
-        this.injectUpsertButton(buttonContainer, sendButton);
+    startHeartbeat() {
+        if (this.heartbeat) clearInterval(this.heartbeat);
+        this.heartbeat = setInterval(() => this.ensureUpsertPresent(), 1500);
+    }
+
+    ensureUpsertPresent(root = document) {
+        if (!root?.querySelectorAll) return;
+        const sendButtons = root.querySelectorAll(
+            'button[aria-label="Enviar mensagem"], button[aria-label="Send Message"]'
+        );
+        sendButtons.forEach((sendButton) => {
+            const container = sendButton?.parentElement;
+            if (!container) return;
+            if (container.querySelector('.cms-upsert-button')) {
+                this.observeContainer(container);
+                return;
+            }
+            this.injectUpsertButton(container, sendButton);
+            this.observeContainer(container);
+        });
+    }
+
+    observeContainer(container) {
+        if (this.containerObservers.has(container)) return;
+        const obs = new MutationObserver(() => {
+            const hasUpsert = !!container.querySelector('.cms-upsert-button');
+            const sendButton =
+                container.querySelector('button[aria-label="Enviar mensagem"]') ||
+                container.querySelector('button[aria-label="Send Message"]');
+            if (sendButton && !hasUpsert) {
+                this.injectUpsertButton(container, sendButton);
+            }
+        });
+        obs.observe(container, { childList: true, subtree: false });
+        this.containerObservers.set(container, obs);
     }
 
     injectUpsertButton(container, sendButton) {
+        if (!container || !sendButton) return;
         if (container.querySelector('.cms-upsert-button')) return;
         const upsertButton = this.createUpsertButton();
         container.insertBefore(upsertButton, sendButton);
@@ -104,11 +139,9 @@ class ArtifactUpsertManager {
                         : (Array.isArray(data.messages) ? data.messages : []);
         const collected = [];
         const nameCount = new Map();
-
         const pushFile = (rawName, content) => {
             if (!content) return;
-            let base = (rawName || 'artifact.txt').toString().trim();
-            if (!base) base = 'artifact.txt';
+            let base = (rawName || 'artifact.txt').toString().trim() || 'artifact.txt';
             let name = base;
             const current = (nameCount.get(base) || 0) + 1;
             nameCount.set(base, current);
@@ -120,7 +153,6 @@ class ArtifactUpsertManager {
             }
             collected.push({ path: name, content: content.toString() });
         };
-
         for (let m = 0; m < messages.length; m++) {
             const parts = messages[m]?.content || [];
             for (let p = 0; p < parts.length; p++) {
@@ -154,13 +186,11 @@ class ArtifactUpsertManager {
             const title = obj.title ?? obj.name ?? obj.filename ?? obj.path ?? 'artifact.txt';
             if (content) out.push({ title, content });
         };
-
         if (typeof input === 'object' && !Array.isArray(input)) {
             if (Array.isArray(input.files)) input.files.forEach(pushIf);
             if (Array.isArray(input.items)) input.items.forEach(pushIf);
             if (input.type || input.content || input.text) pushIf(input);
         }
-
         if (Array.isArray(input)) input.forEach(pushIf);
         return out;
     }
@@ -172,7 +202,6 @@ class ArtifactUpsertManager {
             const chatId = window.location.pathname.split('/').pop();
             const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
             if (!orgId || !chatId) throw new Error('OrgId ou ChatId não encontrados');
-
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
             const response = await fetch(url, {
                 headers: {
@@ -212,7 +241,7 @@ class ArtifactUpsertManager {
                     body: JSON.stringify({ files: filesArray })
                 }
             }, (response) => {
-                if (response.success) {
+                if (response?.success) {
                     try {
                         const data = JSON.parse(response.data);
                         resolve(data);
@@ -220,7 +249,7 @@ class ArtifactUpsertManager {
                         resolve({ success: true });
                     }
                 } else {
-                    resolve({ success: false, error: response.error || 'Erro desconhecido' });
+                    resolve({ success: false, error: response?.error || 'Erro desconhecido' });
                 }
             });
         });
