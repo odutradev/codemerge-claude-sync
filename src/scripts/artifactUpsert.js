@@ -4,20 +4,36 @@ class ArtifactUpsertManager {
         this.observer = null;
         this.containerObservers = new WeakMap();
         this.heartbeat = null;
+        this.debug = true;
         this.init();
     }
 
+    log(...args) {
+        if (this.debug) {
+            console.log('[ArtifactUpsert]', ...args);
+        }
+    }
+
+    error(...args) {
+        console.error('[ArtifactUpsert ERROR]', ...args);
+    }
+
     async init() {
+        this.log('Inicializando...');
         await this.loadConfig();
         this.observeInputArea();
         this.ensureUpsertPresent();
         this.startHeartbeat();
+        this.log('Inicializado com sucesso');
     }
 
     async loadConfig() {
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                if (response?.config?.serverUrl) this.config.serverUrl = response.config.serverUrl;
+                if (response?.config?.serverUrl) {
+                    this.config.serverUrl = response.config.serverUrl;
+                    this.log('Config carregada:', this.config);
+                }
                 resolve();
             });
         });
@@ -103,6 +119,7 @@ class ArtifactUpsertManager {
     }
 
     async handleUpsert(button) {
+        this.log('=== INICIANDO UPSERT ===');
         const originalContent = button.innerHTML;
         try {
             button.disabled = true;
@@ -117,14 +134,26 @@ class ArtifactUpsertManager {
                 </div>
             `;
             
+            this.log('Extraindo artefatos...');
             const allFiles = await this.extractAllArtifactsFromClaude();
-            if (!allFiles || allFiles.length === 0) throw new Error('Nenhum artefato encontrado na conversa');
+            this.log('Artefatos extraídos:', allFiles);
+            
+            if (!allFiles || allFiles.length === 0) {
+                this.error('Nenhum artefato encontrado');
+                throw new Error('Nenhum artefato encontrado na conversa');
+            }
             
             button.disabled = false;
             button.innerHTML = originalContent;
             
+            this.log('Abrindo modal de seleção...');
             const filesToUpload = await this.showFileSelectionModal(allFiles);
-            if (!filesToUpload || filesToUpload.length === 0) return;
+            this.log('Arquivos selecionados:', filesToUpload);
+            
+            if (!filesToUpload || filesToUpload.length === 0) {
+                this.log('Usuário cancelou ou não selecionou arquivos');
+                return;
+            }
             
             button.disabled = true;
             button.innerHTML = `
@@ -138,21 +167,29 @@ class ArtifactUpsertManager {
                 </div>
             `;
             
+            this.log('Enviando para servidor...');
             const response = await this.sendUpsert(filesToUpload);
+            this.log('Resposta do servidor:', response);
+            
             if (response.success) {
+                this.log('Upsert realizado com sucesso!');
                 this.showSuccess(button);
                 button.title = `Enviados ${filesToUpload.length} artefatos`;
                 setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 2000);
             } else {
+                this.error('Erro na resposta do servidor:', response);
                 throw new Error(response.error || 'Erro ao fazer upsert');
             }
         } catch (error) {
+            this.error('Erro no handleUpsert:', error);
+            this.error('Stack:', error.stack);
             this.showError(button, error.message);
             setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 3000);
         }
     }
 
     showFileSelectionModal(files) {
+        this.log('Criando modal de seleção');
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
             overlay.className = 'fixed inset-0 z-50 flex items-center justify-center';
@@ -246,6 +283,7 @@ class ArtifactUpsertManager {
             });
             
             const close = () => {
+                this.log('Modal fechado sem confirmação');
                 overlay.remove();
                 resolve(null);
             };
@@ -258,6 +296,7 @@ class ArtifactUpsertManager {
             
             modal.querySelector('.cms-modal-confirm')?.addEventListener('click', () => {
                 const selected = files.filter((_, i) => selectedFiles.has(i));
+                this.log('Arquivos confirmados:', selected);
                 overlay.remove();
                 resolve(selected);
             });
@@ -271,50 +310,81 @@ class ArtifactUpsertManager {
     }
 
     async extractAllArtifactsFromClaude() {
-        const data = await this.fetchClaudeConversation();
-        if (!data) return [];
-        
-        const messages = Array.isArray(data.chat_messages) ? data.chat_messages
-                        : (Array.isArray(data.messages) ? data.messages : []);
-        
-        const collected = [];
-        const seenPaths = new Set();
-        
-        for (const message of messages) {
-            if (!message?.content) continue;
+        this.log('Iniciando extração de artefatos');
+        try {
+            const data = await this.fetchClaudeConversation();
+            if (!data) {
+                this.error('fetchClaudeConversation retornou null');
+                return [];
+            }
             
-            const parts = Array.isArray(message.content) ? message.content : [message.content];
+            this.log('Dados da conversa recebidos:', data);
             
-            for (const part of parts) {
-                if (typeof part === 'string') {
-                    this.extractFilesFromText(part, collected, seenPaths);
-                } else if (part?.text) {
-                    this.extractFilesFromText(part.text, collected, seenPaths);
-                }
+            const messages = Array.isArray(data.chat_messages) ? data.chat_messages
+                            : (Array.isArray(data.messages) ? data.messages : []);
+            
+            this.log('Total de mensagens:', messages.length);
+            
+            const collected = [];
+            const seenPaths = new Set();
+            
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                if (!message?.content) continue;
                 
-                if (part?.type === 'tool_result' && part?.content) {
-                    const toolContent = Array.isArray(part.content) ? part.content : [part.content];
-                    for (const item of toolContent) {
-                        if (typeof item === 'string') {
-                            this.extractFilesFromToolResult(item, collected, seenPaths);
-                        } else if (item?.text) {
-                            this.extractFilesFromToolResult(item.text, collected, seenPaths);
+                const parts = Array.isArray(message.content) ? message.content : [message.content];
+                this.log(`Processando mensagem ${i}, ${parts.length} partes`);
+                
+                for (let j = 0; j < parts.length; j++) {
+                    const part = parts[j];
+                    
+                    if (typeof part === 'string') {
+                        this.log(`  Parte ${j}: string`);
+                        this.extractFilesFromText(part, collected, seenPaths);
+                    } else if (part?.text) {
+                        this.log(`  Parte ${j}: objeto com text`);
+                        this.extractFilesFromText(part.text, collected, seenPaths);
+                    }
+                    
+                    if (part?.type === 'tool_result' && part?.content) {
+                        this.log(`  Parte ${j}: tool_result`);
+                        const toolContent = Array.isArray(part.content) ? part.content : [part.content];
+                        for (const item of toolContent) {
+                            if (typeof item === 'string') {
+                                this.extractFilesFromToolResult(item, collected, seenPaths);
+                            } else if (item?.text) {
+                                this.extractFilesFromToolResult(item.text, collected, seenPaths);
+                            }
                         }
                     }
                 }
             }
+            
+            this.log('Total de arquivos coletados:', collected.length);
+            this.log('Arquivos:', collected);
+            
+            return collected;
+        } catch (error) {
+            this.error('Erro em extractAllArtifactsFromClaude:', error);
+            this.error('Stack:', error.stack);
+            return [];
         }
-        
-        return collected;
     }
 
     extractFilesFromText(text, collected, seenPaths) {
+        this.log('    Procurando links computer:// no texto');
         const computerLinkRegex = /computer:\/\/\/mnt\/user-data\/outputs\/([^\s)\]"']+)/g;
         const matches = [...text.matchAll(computerLinkRegex)];
         
+        this.log(`    Encontrados ${matches.length} links`);
+        
         for (const match of matches) {
             const filename = match[1];
-            if (seenPaths.has(filename)) continue;
+            if (seenPaths.has(filename)) {
+                this.log(`    Arquivo já visto: ${filename}`);
+                continue;
+            }
+            this.log(`    Novo arquivo encontrado: ${filename}`);
             seenPaths.add(filename);
             
             collected.push({
@@ -326,6 +396,7 @@ class ArtifactUpsertManager {
     }
 
     extractFilesFromToolResult(text, collected, seenPaths) {
+        this.log('    Extraindo de tool_result');
         const lines = text.split('\n');
         let currentFile = null;
         let isCapturingContent = false;
@@ -337,6 +408,7 @@ class ArtifactUpsertManager {
                 if (pathMatch) {
                     if (currentFile && content.length > 0) {
                         if (!seenPaths.has(currentFile)) {
+                            this.log(`    Arquivo de tool_result: ${currentFile}`);
                             collected.push({
                                 path: currentFile,
                                 content: content.join('\n')
@@ -356,6 +428,7 @@ class ArtifactUpsertManager {
         }
         
         if (currentFile && content.length > 0 && !seenPaths.has(currentFile)) {
+            this.log(`    Último arquivo de tool_result: ${currentFile}`);
             collected.push({
                 path: currentFile,
                 content: content.join('\n')
@@ -365,13 +438,26 @@ class ArtifactUpsertManager {
     }
 
     async fetchClaudeConversation() {
+        this.log('Buscando conversa do Claude...');
         try {
             const orgId = document.cookie.split('; ').find(c => c.startsWith('lastActiveOrg='))?.split('=')[1];
             const deviceId = document.cookie.split('; ').find(c => c.startsWith('anthropic-device-id='))?.split('=')[1];
             const chatId = window.location.pathname.split('/').pop();
             const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
-            if (!orgId || !chatId) throw new Error('OrgId ou ChatId não encontrados');
+            
+            this.log('orgId:', orgId);
+            this.log('chatId:', chatId);
+            this.log('deviceId:', deviceId);
+            this.log('anonymousId:', anonymousId);
+            
+            if (!orgId || !chatId) {
+                this.error('OrgId ou ChatId não encontrados');
+                throw new Error('OrgId ou ChatId não encontrados');
+            }
+            
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
+            this.log('URL da requisição:', url);
+            
             const response = await fetch(url, {
                 headers: {
                     "accept": "*/*",
@@ -392,14 +478,26 @@ class ArtifactUpsertManager {
                 mode: "cors",
                 credentials: "include"
             });
-            if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-            return await response.json();
-        } catch {
+            
+            this.log('Status da resposta:', response.status);
+            
+            if (!response.ok) {
+                this.error(`Erro HTTP: ${response.status}`);
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            this.log('Dados recebidos com sucesso');
+            return data;
+        } catch (error) {
+            this.error('Erro em fetchClaudeConversation:', error);
+            this.error('Stack:', error.stack);
             return null;
         }
     }
 
     async sendUpsert(filesArray) {
+        this.log('Enviando upsert para servidor:', filesArray);
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({
                 type: 'FETCH_URL',
@@ -410,14 +508,18 @@ class ArtifactUpsertManager {
                     body: JSON.stringify({ files: filesArray })
                 }
             }, (response) => {
+                this.log('Resposta do chrome.runtime:', response);
                 if (response?.success) {
                     try {
                         const data = JSON.parse(response.data);
+                        this.log('Dados parseados:', data);
                         resolve(data);
-                    } catch {
+                    } catch (error) {
+                        this.error('Erro ao parsear resposta:', error);
                         resolve({ success: true });
                     }
                 } else {
+                    this.error('Resposta de erro:', response);
                     resolve({ success: false, error: response?.error || 'Erro desconhecido' });
                 }
             });
