@@ -19,7 +19,7 @@ class ArtifactUpsertManager {
     }
 
     async init() {
-        this.log('Inicializando...');
+        this.log('Inicializando v2...');
         await this.loadConfig();
         this.observeInputArea();
         this.ensureUpsertPresent();
@@ -29,13 +29,17 @@ class ArtifactUpsertManager {
 
     async loadConfig() {
         return new Promise((resolve) => {
-            chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                if (response?.config?.serverUrl) {
-                    this.config.serverUrl = response.config.serverUrl;
-                    this.log('Config carregada:', this.config);
-                }
+            try {
+                chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
+                    if (response?.config?.serverUrl) {
+                        this.config.serverUrl = response.config.serverUrl;
+                        this.log('Config carregada:', this.config);
+                    }
+                    resolve();
+                });
+            } catch (e) {
                 resolve();
-            });
+            }
         });
     }
 
@@ -136,22 +140,20 @@ class ArtifactUpsertManager {
             
             this.log('Extraindo artefatos...');
             const allFiles = await this.extractAllArtifactsFromClaude();
-            this.log('Artefatos extraídos:', allFiles);
+            this.log('Total extraído:', allFiles?.length || 0);
             
             if (!allFiles || allFiles.length === 0) {
-                this.error('Nenhum artefato encontrado');
                 throw new Error('Nenhum artefato encontrado na conversa');
             }
             
             button.disabled = false;
             button.innerHTML = originalContent;
             
-            this.log('Abrindo modal de seleção...');
+            this.log('Abrindo modal...');
             const filesToUpload = await this.showFileSelectionModal(allFiles);
-            this.log('Arquivos selecionados:', filesToUpload);
             
             if (!filesToUpload || filesToUpload.length === 0) {
-                this.log('Usuário cancelou ou não selecionou arquivos');
+                this.log('Cancelado pelo usuário');
                 return;
             }
             
@@ -169,27 +171,22 @@ class ArtifactUpsertManager {
             
             this.log('Enviando para servidor...');
             const response = await this.sendUpsert(filesToUpload);
-            this.log('Resposta do servidor:', response);
             
             if (response.success) {
-                this.log('Upsert realizado com sucesso!');
                 this.showSuccess(button);
                 button.title = `Enviados ${filesToUpload.length} artefatos`;
                 setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 2000);
             } else {
-                this.error('Erro na resposta do servidor:', response);
                 throw new Error(response.error || 'Erro ao fazer upsert');
             }
         } catch (error) {
-            this.error('Erro no handleUpsert:', error);
-            this.error('Stack:', error.stack);
+            this.error('Erro:', error);
             this.showError(button, error.message);
             setTimeout(() => { button.disabled = false; button.innerHTML = originalContent; }, 3000);
         }
     }
 
     showFileSelectionModal(files) {
-        this.log('Criando modal de seleção');
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
             overlay.className = 'fixed inset-0 z-50 flex items-center justify-center';
@@ -283,7 +280,6 @@ class ArtifactUpsertManager {
             });
             
             const close = () => {
-                this.log('Modal fechado sem confirmação');
                 overlay.remove();
                 resolve(null);
             };
@@ -296,7 +292,6 @@ class ArtifactUpsertManager {
             
             modal.querySelector('.cms-modal-confirm')?.addEventListener('click', () => {
                 const selected = files.filter((_, i) => selectedFiles.has(i));
-                this.log('Arquivos confirmados:', selected);
                 overlay.remove();
                 resolve(selected);
             });
@@ -310,194 +305,181 @@ class ArtifactUpsertManager {
     }
 
     async extractAllArtifactsFromClaude() {
-        this.log('Iniciando extração de artefatos');
+        this.log('Extraindo artefatos...');
         try {
-            const data = await this.fetchClaudeConversation();
-            if (!data) {
-                this.error('fetchClaudeConversation retornou null');
+            const conversationData = await this.fetchClaudeConversation();
+            
+            if (!conversationData) {
+                this.error('Dados da conversa não disponíveis');
                 return [];
             }
             
-            this.log('Dados da conversa recebidos:', data);
+            const messages = conversationData.chat_messages || conversationData.messages || [];
+            this.log(`Analisando ${messages.length} mensagens`);
             
-            const messages = Array.isArray(data.chat_messages) ? data.chat_messages
-                            : (Array.isArray(data.messages) ? data.messages : []);
-            
-            this.log('Total de mensagens:', messages.length);
-            
-            const collected = [];
+            const files = [];
             const seenPaths = new Set();
             
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
+            for (const message of messages) {
                 if (!message?.content) continue;
                 
-                const parts = Array.isArray(message.content) ? message.content : [message.content];
-                this.log(`Processando mensagem ${i}, ${parts.length} partes`);
+                const contentParts = Array.isArray(message.content) ? message.content : [message.content];
                 
-                for (let j = 0; j < parts.length; j++) {
-                    const part = parts[j];
-                    
-                    if (typeof part === 'string') {
-                        this.log(`  Parte ${j}: string`);
-                        this.extractFilesFromText(part, collected, seenPaths);
-                    } else if (part?.text) {
-                        this.log(`  Parte ${j}: objeto com text`);
-                        this.extractFilesFromText(part.text, collected, seenPaths);
+                for (const part of contentParts) {
+                    if (part?.type === 'tool_use' && part?.name === 'create_file') {
+                        let filePath = part.input?.path;
+                        const fileContent = part.input?.file_text || part.input?.content;
+                        
+                        if (filePath && fileContent) {
+                            filePath = filePath.replace(/^\/mnt\/user-data\/outputs\//, '');
+
+                            if (!seenPaths.has(filePath)) {
+                                this.log(`Arquivo encontrado (tool_use): ${filePath}`);
+                                files.push({ path: filePath, content: fileContent });
+                                seenPaths.add(filePath);
+                            }
+                        }
                     }
                     
-                    if (part?.type === 'tool_result' && part?.content) {
-                        this.log(`  Parte ${j}: tool_result`);
+                    if (part?.type === 'tool_result') {
                         const toolContent = Array.isArray(part.content) ? part.content : [part.content];
+                        
                         for (const item of toolContent) {
-                            if (typeof item === 'string') {
-                                this.extractFilesFromToolResult(item, collected, seenPaths);
-                            } else if (item?.text) {
-                                this.extractFilesFromToolResult(item.text, collected, seenPaths);
+                            const text = typeof item === 'string' ? item : item?.text || '';
+                            
+                            const createdMatch = text.match(/(?:Created file|File created):\s*(.+?)(?:\n|$)/);
+                            if (createdMatch) {
+                                const rawPath = createdMatch[1].trim();
+                                const filePath = rawPath.replace(/^\/mnt\/user-data\/outputs\//, '');
+                                
+                                if (!seenPaths.has(filePath)) {
+                                    const contentMatch = text.match(/```[\w]*\n([\s\S]*?)\n```/);
+                                    const fileContent = contentMatch ? contentMatch[1] : '';
+                                    
+                                    if (fileContent) {
+                                        this.log(`Arquivo encontrado (tool_result): ${filePath}`);
+                                        files.push({ path: filePath, content: fileContent });
+                                        seenPaths.add(filePath);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    const textContent = typeof part === 'string' ? part : (part?.text || '');
+                    if (textContent) {
+                        const linkRegex = /computer:\/\/\/mnt\/user-data\/outputs\/([^\s)\]"']+)/g;
+                        const links = [...textContent.matchAll(linkRegex)];
+                        
+                        for (const match of links) {
+                            const filePath = match[1];
+                            if (!seenPaths.has(filePath)) {
+                                this.log(`Link encontrado: ${filePath}`);
+                                files.push({ path: filePath, content: '', needsFetch: true });
+                                seenPaths.add(filePath);
                             }
                         }
                     }
                 }
             }
             
-            this.log('Total de arquivos coletados:', collected.length);
-            this.log('Arquivos:', collected);
+            const uniqueFilesMap = new Map();
+            files.forEach(f => uniqueFilesMap.set(f.path, f));
+            const uniqueFiles = Array.from(uniqueFilesMap.values());
             
-            return collected;
+            this.log(`Total de arquivos únicos: ${uniqueFiles.length}`);
+
+            for (const file of uniqueFiles) {
+                if (file.needsFetch) {
+                    this.log(`Buscando conteúdo para: ${file.path}`);
+                    const content = await this.fetchFileContent(file.path);
+                    file.content = content || '';
+                    delete file.needsFetch;
+                }
+            }
+            
+            return uniqueFiles.filter(f => f.content.length > 0);
+            
         } catch (error) {
-            this.error('Erro em extractAllArtifactsFromClaude:', error);
-            this.error('Stack:', error.stack);
+            this.error('Erro ao extrair artefatos:', error);
             return [];
         }
     }
 
-    extractFilesFromText(text, collected, seenPaths) {
-        this.log('    Procurando links computer:// no texto');
-        const computerLinkRegex = /computer:\/\/\/mnt\/user-data\/outputs\/([^\s)\]"']+)/g;
-        const matches = [...text.matchAll(computerLinkRegex)];
-        
-        this.log(`    Encontrados ${matches.length} links`);
-        
-        for (const match of matches) {
-            const filename = match[1];
-            if (seenPaths.has(filename)) {
-                this.log(`    Arquivo já visto: ${filename}`);
-                continue;
-            }
-            this.log(`    Novo arquivo encontrado: ${filename}`);
-            seenPaths.add(filename);
+    async fetchFileContent(filePath) {
+        try {
+            const orgId = document.cookie.split('; ').find(c => c.startsWith('lastActiveOrg='))?.split('=')[1];
+            const chatId = window.location.pathname.split('/').pop();
             
-            collected.push({
-                path: filename,
-                content: '',
-                needsFetch: true
-            });
-        }
-    }
-
-    extractFilesFromToolResult(text, collected, seenPaths) {
-        this.log('    Extraindo de tool_result');
-        const lines = text.split('\n');
-        let currentFile = null;
-        let isCapturingContent = false;
-        let content = [];
-        
-        for (const line of lines) {
-            if (line.includes('Created file:') || line.includes('File created:')) {
-                const pathMatch = line.match(/(?:Created file|File created):\s*([^\s]+)/);
-                if (pathMatch) {
-                    if (currentFile && content.length > 0) {
-                        if (!seenPaths.has(currentFile)) {
-                            this.log(`    Arquivo de tool_result: ${currentFile}`);
-                            collected.push({
-                                path: currentFile,
-                                content: content.join('\n')
-                            });
-                            seenPaths.add(currentFile);
-                        }
-                    }
-                    currentFile = pathMatch[1].replace(/^\/mnt\/user-data\/outputs\//, '');
-                    content = [];
-                    isCapturingContent = false;
-                }
-            } else if (line.includes('```') && currentFile) {
-                isCapturingContent = !isCapturingContent;
-            } else if (isCapturingContent && currentFile) {
-                content.push(line);
+            if (!orgId || !chatId) {
+                this.error('OrgId ou ChatId não encontrados');
+                return '';
             }
-        }
-        
-        if (currentFile && content.length > 0 && !seenPaths.has(currentFile)) {
-            this.log(`    Último arquivo de tool_result: ${currentFile}`);
-            collected.push({
-                path: currentFile,
-                content: content.join('\n')
+            
+            const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}/outputs/${filePath}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'accept': '*/*',
+                    'anthropic-client-platform': 'web_claude_ai'
+                }
             });
-            seenPaths.add(currentFile);
+            
+            if (!response.ok) {
+                this.error(`Erro ao buscar arquivo ${filePath}: ${response.status}`);
+                return '';
+            }
+            
+            return await response.text();
+            
+        } catch (error) {
+            this.error(`Erro ao buscar conteúdo de ${filePath}:`, error);
+            return '';
         }
     }
 
     async fetchClaudeConversation() {
-        this.log('Buscando conversa do Claude...');
         try {
             const orgId = document.cookie.split('; ').find(c => c.startsWith('lastActiveOrg='))?.split('=')[1];
             const deviceId = document.cookie.split('; ').find(c => c.startsWith('anthropic-device-id='))?.split('=')[1];
             const chatId = window.location.pathname.split('/').pop();
             const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
             
-            this.log('orgId:', orgId);
-            this.log('chatId:', chatId);
-            this.log('deviceId:', deviceId);
-            this.log('anonymousId:', anonymousId);
-            
             if (!orgId || !chatId) {
                 this.error('OrgId ou ChatId não encontrados');
-                throw new Error('OrgId ou ChatId não encontrados');
+                return null;
             }
             
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
-            this.log('URL da requisição:', url);
             
             const response = await fetch(url, {
                 headers: {
                     "accept": "*/*",
-                    "accept-language": navigator.language || "pt-BR,pt;q=0.9,en;q=0.8",
                     "anthropic-anonymous-id": anonymousId || "",
                     "anthropic-client-platform": "web_claude_ai",
-                    "anthropic-client-sha": "unknown",
-                    "anthropic-client-version": "1.0.0",
-                    "anthropic-device-id": deviceId || "",
-                    "content-type": "application/json",
-                    "priority": "u=1, i",
-                    "sec-ch-ua": "\"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
-                    "sec-ch-ua-mobile": "?0",
-                    "sec-ch-ua-platform": "\"Windows\""
+                    "anthropic-device-id": deviceId || ""
                 },
-                referrer: window.location.href,
                 method: "GET",
                 mode: "cors",
                 credentials: "include"
             });
             
-            this.log('Status da resposta:', response.status);
-            
             if (!response.ok) {
                 this.error(`Erro HTTP: ${response.status}`);
-                throw new Error(`Erro HTTP: ${response.status}`);
+                return null;
             }
             
-            const data = await response.json();
-            this.log('Dados recebidos com sucesso');
-            return data;
+            return await response.json();
+            
         } catch (error) {
-            this.error('Erro em fetchClaudeConversation:', error);
-            this.error('Stack:', error.stack);
+            this.error('Erro ao buscar conversa:', error);
             return null;
         }
     }
 
     async sendUpsert(filesArray) {
-        this.log('Enviando upsert para servidor:', filesArray);
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({
                 type: 'FETCH_URL',
@@ -508,18 +490,14 @@ class ArtifactUpsertManager {
                     body: JSON.stringify({ files: filesArray })
                 }
             }, (response) => {
-                this.log('Resposta do chrome.runtime:', response);
                 if (response?.success) {
                     try {
                         const data = JSON.parse(response.data);
-                        this.log('Dados parseados:', data);
                         resolve(data);
-                    } catch (error) {
-                        this.error('Erro ao parsear resposta:', error);
+                    } catch {
                         resolve({ success: true });
                     }
                 } else {
-                    this.error('Resposta de erro:', response);
                     resolve({ success: false, error: response?.error || 'Erro desconhecido' });
                 }
             });
