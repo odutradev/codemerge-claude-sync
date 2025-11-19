@@ -1,0 +1,16 @@
+{
+  "name": "codemerge-claude-sync",
+  "version": "1.0.6",
+  "description": "Extensão que sincroniza automaticamente código do CodeMerge com Claude Projects.",
+  "license": "ISC",
+  "author": "",
+  "main": "background.js",
+  "scripts": {
+    "publish": "node publish.js"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.2.3"
+  }
+}
