@@ -273,64 +273,95 @@ class ArtifactUpsertManager {
     async extractAllArtifactsFromClaude() {
         const data = await this.fetchClaudeConversation();
         if (!data) return [];
+        
         const messages = Array.isArray(data.chat_messages) ? data.chat_messages
                         : (Array.isArray(data.messages) ? data.messages : []);
+        
         const collected = [];
-        const nameCount = new Map();
-        const pushFile = (rawName, content) => {
-            if (!content) return;
-            let base = (rawName || 'artifact.txt').toString().trim() || 'artifact.txt';
-            let name = base;
-            const current = (nameCount.get(base) || 0) + 1;
-            nameCount.set(base, current);
-            if (current > 1) {
-                const dot = base.lastIndexOf('.');
-                name = dot > 0
-                    ? `${base.slice(0, dot)} (${current}).${base.slice(dot + 1)}`
-                    : `${base} (${current})`;
-            }
-            collected.push({ path: name, content: content.toString() });
-        };
-        for (let m = 0; m < messages.length; m++) {
-            const parts = messages[m]?.content || [];
-            for (let p = 0; p < parts.length; p++) {
-                const part = parts[p];
-                if (part?.type === 'tool_use' && /artifacts?/i.test(part?.name || '')) {
-                    const items = this.parseArtifactsFromToolInput(part.input);
-                    items.forEach(({ title, name, content, text }) => {
-                        pushFile(title || name || 'artifact.txt', content || text || '');
-                    });
+        const seenPaths = new Set();
+        
+        for (const message of messages) {
+            if (!message?.content) continue;
+            
+            const parts = Array.isArray(message.content) ? message.content : [message.content];
+            
+            for (const part of parts) {
+                if (typeof part === 'string') {
+                    this.extractFilesFromText(part, collected, seenPaths);
+                } else if (part?.text) {
+                    this.extractFilesFromText(part.text, collected, seenPaths);
                 }
-                if (part?.type && /application\/vnd\.ant\.code/i.test(part.type) && (part.content || part.text)) {
-                    pushFile(part.title || 'artifact.txt', part.content || part.text || '');
-                }
-                if (Array.isArray(part?.items)) {
-                    part.items.forEach(it => {
-                        if (it?.type && /application\/vnd\.ant\.code/i.test(it.type) && (it.content || it.text)) {
-                            pushFile(it.title || it.name || 'artifact.txt', it.content || it.text || '');
+                
+                if (part?.type === 'tool_result' && part?.content) {
+                    const toolContent = Array.isArray(part.content) ? part.content : [part.content];
+                    for (const item of toolContent) {
+                        if (typeof item === 'string') {
+                            this.extractFilesFromToolResult(item, collected, seenPaths);
+                        } else if (item?.text) {
+                            this.extractFilesFromToolResult(item.text, collected, seenPaths);
                         }
-                    });
+                    }
                 }
             }
         }
+        
         return collected;
     }
 
-    parseArtifactsFromToolInput(input) {
-        const out = [];
-        const pushIf = (obj) => {
-            if (!obj) return;
-            const content = obj.content ?? obj.text ?? obj.body ?? '';
-            const title = obj.title ?? obj.name ?? obj.filename ?? obj.path ?? 'artifact.txt';
-            if (content) out.push({ title, content });
-        };
-        if (typeof input === 'object' && !Array.isArray(input)) {
-            if (Array.isArray(input.files)) input.files.forEach(pushIf);
-            if (Array.isArray(input.items)) input.items.forEach(pushIf);
-            if (input.type || input.content || input.text) pushIf(input);
+    extractFilesFromText(text, collected, seenPaths) {
+        const computerLinkRegex = /computer:\/\/\/mnt\/user-data\/outputs\/([^\s)\]"']+)/g;
+        const matches = [...text.matchAll(computerLinkRegex)];
+        
+        for (const match of matches) {
+            const filename = match[1];
+            if (seenPaths.has(filename)) continue;
+            seenPaths.add(filename);
+            
+            collected.push({
+                path: filename,
+                content: '',
+                needsFetch: true
+            });
         }
-        if (Array.isArray(input)) input.forEach(pushIf);
-        return out;
+    }
+
+    extractFilesFromToolResult(text, collected, seenPaths) {
+        const lines = text.split('\n');
+        let currentFile = null;
+        let isCapturingContent = false;
+        let content = [];
+        
+        for (const line of lines) {
+            if (line.includes('Created file:') || line.includes('File created:')) {
+                const pathMatch = line.match(/(?:Created file|File created):\s*([^\s]+)/);
+                if (pathMatch) {
+                    if (currentFile && content.length > 0) {
+                        if (!seenPaths.has(currentFile)) {
+                            collected.push({
+                                path: currentFile,
+                                content: content.join('\n')
+                            });
+                            seenPaths.add(currentFile);
+                        }
+                    }
+                    currentFile = pathMatch[1].replace(/^\/mnt\/user-data\/outputs\//, '');
+                    content = [];
+                    isCapturingContent = false;
+                }
+            } else if (line.includes('```') && currentFile) {
+                isCapturingContent = !isCapturingContent;
+            } else if (isCapturingContent && currentFile) {
+                content.push(line);
+            }
+        }
+        
+        if (currentFile && content.length > 0 && !seenPaths.has(currentFile)) {
+            collected.push({
+                path: currentFile,
+                content: content.join('\n')
+            });
+            seenPaths.add(currentFile);
+        }
     }
 
     async fetchClaudeConversation() {
