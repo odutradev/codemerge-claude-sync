@@ -19,7 +19,7 @@ class ArtifactUpsertManager {
     }
 
     async init() {
-        this.log('Inicializando v2...');
+        this.log('Inicializando v3...');
         await this.loadConfig();
         this.observeInputArea();
         this.ensureUpsertPresent();
@@ -186,6 +186,10 @@ class ArtifactUpsertManager {
         }
     }
 
+    isMarkdownFile(filePath) {
+        return filePath.toLowerCase().endsWith('.md');
+    }
+
     showFileSelectionModal(files) {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
@@ -195,7 +199,22 @@ class ArtifactUpsertManager {
             const modal = document.createElement('div');
             modal.className = 'bg-bg-000 border border-border-300 rounded-2xl shadow-2xl w-[600px] max-h-[80vh] flex flex-col';
             
-            const selectedFiles = new Set(files.map((_, i) => i));
+            const selectedFiles = new Set();
+            const mdFiles = new Set();
+            
+            files.forEach((file, i) => {
+                if (this.isMarkdownFile(file.path)) {
+                    mdFiles.add(i);
+                } else {
+                    selectedFiles.add(i);
+                }
+            });
+            
+            let includeMd = false;
+            
+            const totalFiles = files.length;
+            const mdCount = mdFiles.size;
+            const nonMdCount = totalFiles - mdCount;
             
             modal.innerHTML = `
                 <div class="flex items-center justify-between p-6 border-b border-border-300">
@@ -207,26 +226,44 @@ class ArtifactUpsertManager {
                     </button>
                 </div>
                 
-                <div class="flex items-center gap-2 px-6 py-3 border-b border-border-300">
-                    <button class="cms-select-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
-                        Selecionar Todos
-                    </button>
-                    <button class="cms-deselect-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
-                        Desselecionar Todos
-                    </button>
-                    <span class="cms-selected-count ml-auto text-text-300 text-xs">
-                        ${files.length} de ${files.length} selecionados
-                    </span>
+                <div class="flex flex-col gap-2 px-6 py-3 border-b border-border-300">
+                    <div class="flex items-center gap-2">
+                        <button class="cms-select-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
+                            Selecionar Todos
+                        </button>
+                        <button class="cms-deselect-all inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-bg-300 hover:bg-bg-400 text-text-100 text-xs font-base transition">
+                            Desselecionar Todos
+                        </button>
+                        <span class="cms-selected-count ml-auto text-text-300 text-xs">
+                            ${selectedFiles.size} de ${totalFiles} selecionados
+                        </span>
+                    </div>
+                    ${mdCount > 0 ? `
+                    <div class="flex items-center gap-2 pt-2 border-t border-border-400">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="cms-include-md" class="w-4 h-4 rounded border-2 border-border-300 cursor-pointer">
+                            <span class="text-text-300 text-xs">
+                                Incluir arquivos Markdown (${mdCount} arquivo${mdCount > 1 ? 's' : ''})
+                            </span>
+                        </label>
+                    </div>
+                    ` : ''}
                 </div>
                 
                 <div class="cms-file-list flex-1 overflow-y-auto px-6 py-4">
-                    ${files.map((file, index) => `
-                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-bg-200 cursor-pointer transition">
-                            <input type="checkbox" checked class="cms-file-checkbox w-4 h-4 rounded border-2 border-border-300 cursor-pointer" data-index="${index}">
-                            <span class="text-text-100 text-sm font-base flex-1 truncate" title="${file.path}">${file.path}</span>
+                    ${files.map((file, index) => {
+                        const isMd = this.isMarkdownFile(file.path);
+                        const isChecked = !isMd;
+                        return `
+                        <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-bg-200 cursor-pointer transition ${isMd ? 'cms-md-file opacity-50' : ''}">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} class="cms-file-checkbox w-4 h-4 rounded border-2 border-border-300 cursor-pointer" data-index="${index}" data-is-md="${isMd}">
+                            <span class="text-text-100 text-sm font-base flex-1 truncate" title="${file.path}">
+                                ${file.path}
+                                ${isMd ? '<span class="text-text-500 text-xs ml-2">(md)</span>' : ''}
+                            </span>
                             <span class="text-text-500 text-xs">${this.formatFileSize(file.content.length)}</span>
                         </label>
-                    `).join('')}
+                    `}).join('')}
                 </div>
                 
                 <div class="flex items-center justify-end gap-3 p-6 border-t border-border-300">
@@ -234,7 +271,7 @@ class ArtifactUpsertManager {
                         Cancelar
                     </button>
                     <button class="cms-modal-confirm inline-flex items-center justify-center px-4 py-2 rounded-lg bg-accent-secondary-100 hover:bg-accent-secondary-200 text-text-100 font-base-bold transition">
-                        Confirmar (${files.length})
+                        Confirmar (${selectedFiles.size})
                     </button>
                 </div>
             `;
@@ -246,7 +283,7 @@ class ArtifactUpsertManager {
                 const count = selectedFiles.size;
                 const countSpan = modal.querySelector('.cms-selected-count');
                 const confirmBtn = modal.querySelector('.cms-modal-confirm');
-                if (countSpan) countSpan.textContent = `${count} de ${files.length} selecionados`;
+                if (countSpan) countSpan.textContent = `${count} de ${totalFiles} selecionados`;
                 if (confirmBtn) confirmBtn.textContent = `Confirmar (${count})`;
             };
             
@@ -263,10 +300,35 @@ class ArtifactUpsertManager {
                 });
             });
             
+            const includeMdCheckbox = modal.querySelector('#cms-include-md');
+            if (includeMdCheckbox) {
+                includeMdCheckbox.addEventListener('change', () => {
+                    includeMd = includeMdCheckbox.checked;
+                    const mdFileLabels = modal.querySelectorAll('.cms-md-file');
+                    checkboxes.forEach(cb => {
+                        if (cb.dataset.isMd === 'true') {
+                            cb.checked = includeMd;
+                            const index = parseInt(cb.dataset.index);
+                            if (includeMd) {
+                                selectedFiles.add(index);
+                            } else {
+                                selectedFiles.delete(index);
+                            }
+                        }
+                    });
+                    mdFileLabels.forEach(label => {
+                        label.style.opacity = includeMd ? '1' : '0.5';
+                    });
+                    updateCount();
+                });
+            }
+            
             modal.querySelector('.cms-select-all')?.addEventListener('click', () => {
                 checkboxes.forEach(cb => {
-                    cb.checked = true;
-                    selectedFiles.add(parseInt(cb.dataset.index));
+                    if (cb.dataset.isMd === 'false' || includeMd) {
+                        cb.checked = true;
+                        selectedFiles.add(parseInt(cb.dataset.index));
+                    }
                 });
                 updateCount();
             });
@@ -304,37 +366,76 @@ class ArtifactUpsertManager {
         return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
     }
 
+    normalizeFilePath(path) {
+        path = path.replace(/^\/mnt\/user-data\/outputs\//, '');
+        path = path.replace(/^\/home\/claude\//, '');
+        
+        return path;
+    }
+
     async extractAllArtifactsFromClaude() {
-        this.log('Extraindo artefatos...');
+        this.log('=== DEBUG: INICIANDO EXTRAÇÃO ===');
         try {
             const conversationData = await this.fetchClaudeConversation();
             
+            console.log('┌─────────────────────────────────────┐');
+            console.log('📋 DEBUG: DADOS DA CONVERSA RETORNADOS');
+            console.log('└─────────────────────────────────────┘');
+            console.log('Tipo:', typeof conversationData);
+            console.log('É null/undefined?', conversationData === null || conversationData === undefined);
+            console.log('Objeto completo:', conversationData);
+            console.log('Keys do objeto:', conversationData ? Object.keys(conversationData) : 'N/A');
+            console.log('└─────────────────────────────────────┘');
+            
             if (!conversationData) {
-                this.error('Dados da conversa não disponíveis');
+                this.error('DEBUG: Dados da conversa não disponíveis');
                 return [];
             }
             
             const messages = conversationData.chat_messages || conversationData.messages || [];
-            this.log(`Analisando ${messages.length} mensagens`);
+            console.log('┌─────────────────────────────────────┐');
+            console.log('📨 DEBUG: MENSAGENS ENCONTRADAS');
+            console.log('└─────────────────────────────────────┘');
+            console.log('Total de mensagens:', messages.length);
+            console.log('Primeiras 3 mensagens:', messages.slice(0, 3));
+            console.log('└─────────────────────────────────────┘');
             
             const files = [];
             const seenPaths = new Set();
             
-            for (const message of messages) {
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
                 if (!message?.content) continue;
                 
-                const contentParts = Array.isArray(message.content) ? message.content : [message.content];
+                console.log(`\n--- DEBUG: Mensagem ${i + 1}/${messages.length} ---`);
+                console.log('Sender:', message.sender);
+                console.log('Content type:', typeof message.content);
+                console.log('Content is array?', Array.isArray(message.content));
                 
-                for (const part of contentParts) {
+                const contentParts = Array.isArray(message.content) ? message.content : [message.content];
+                console.log('Content parts:', contentParts.length);
+                
+                for (let j = 0; j < contentParts.length; j++) {
+                    const part = contentParts[j];
+                    console.log(`  Part ${j + 1}:`, {
+                        type: part?.type,
+                        hasInput: !!part?.input,
+                        hasContent: !!part?.content,
+                        hasText: !!part?.text
+                    });
+                    
                     if (part?.type === 'tool_use' && part?.name === 'create_file') {
+                        console.log('    ✅ TOOL_USE ENCONTRADO!');
+                        console.log('    Input:', part.input);
+                        
                         let filePath = part.input?.path;
                         const fileContent = part.input?.file_text || part.input?.content;
                         
                         if (filePath && fileContent) {
-                            filePath = filePath.replace(/^\/mnt\/user-data\/outputs\//, '');
+                            filePath = this.normalizeFilePath(filePath);
 
                             if (!seenPaths.has(filePath)) {
-                                this.log(`Arquivo encontrado (tool_use): ${filePath}`);
+                                console.log(`    📄 Arquivo adicionado: ${filePath} (${fileContent.length} bytes)`);
                                 files.push({ path: filePath, content: fileContent });
                                 seenPaths.add(filePath);
                             }
@@ -342,6 +443,7 @@ class ArtifactUpsertManager {
                     }
                     
                     if (part?.type === 'tool_result') {
+                        console.log('    ✅ TOOL_RESULT ENCONTRADO!');
                         const toolContent = Array.isArray(part.content) ? part.content : [part.content];
                         
                         for (const item of toolContent) {
@@ -350,14 +452,14 @@ class ArtifactUpsertManager {
                             const createdMatch = text.match(/(?:Created file|File created):\s*(.+?)(?:\n|$)/);
                             if (createdMatch) {
                                 const rawPath = createdMatch[1].trim();
-                                const filePath = rawPath.replace(/^\/mnt\/user-data\/outputs\//, '');
+                                const filePath = this.normalizeFilePath(rawPath);
                                 
                                 if (!seenPaths.has(filePath)) {
                                     const contentMatch = text.match(/```[\w]*\n([\s\S]*?)\n```/);
                                     const fileContent = contentMatch ? contentMatch[1] : '';
                                     
                                     if (fileContent) {
-                                        this.log(`Arquivo encontrado (tool_result): ${filePath}`);
+                                        console.log(`    📄 Arquivo adicionado (tool_result): ${filePath}`);
                                         files.push({ path: filePath, content: fileContent });
                                         seenPaths.add(filePath);
                                     }
@@ -371,10 +473,14 @@ class ArtifactUpsertManager {
                         const linkRegex = /computer:\/\/\/mnt\/user-data\/outputs\/([^\s)\]"']+)/g;
                         const links = [...textContent.matchAll(linkRegex)];
                         
+                        if (links.length > 0) {
+                            console.log(`    🔗 ${links.length} links encontrados`);
+                        }
+                        
                         for (const match of links) {
-                            const filePath = match[1];
+                            const filePath = this.normalizeFilePath(match[1]);
                             if (!seenPaths.has(filePath)) {
-                                this.log(`Link encontrado: ${filePath}`);
+                                console.log(`    🔎 Link adicionado: ${filePath}`);
                                 files.push({ path: filePath, content: '', needsFetch: true });
                                 seenPaths.add(filePath);
                             }
@@ -387,21 +493,34 @@ class ArtifactUpsertManager {
             files.forEach(f => uniqueFilesMap.set(f.path, f));
             const uniqueFiles = Array.from(uniqueFilesMap.values());
             
-            this.log(`Total de arquivos únicos: ${uniqueFiles.length}`);
+            console.log('\n┌─────────────────────────────────────┐');
+            console.log('📊 DEBUG: RESUMO DA EXTRAÇÃO');
+            console.log('└─────────────────────────────────────┘');
+            console.log('Total de arquivos únicos:', uniqueFiles.length);
+            console.log('Lista de arquivos:');
+            uniqueFiles.forEach((f, i) => {
+                console.log(`  ${i + 1}. ${f.path} - ${f.content.length} bytes ${f.needsFetch ? '(PRECISA FETCH)' : ''}`);
+            });
+            console.log('└─────────────────────────────────────┘\n');
 
             for (const file of uniqueFiles) {
                 if (file.needsFetch) {
-                    this.log(`Buscando conteúdo para: ${file.path}`);
+                    console.log(`📥 Buscando conteúdo para: ${file.path}`);
                     const content = await this.fetchFileContent(file.path);
                     file.content = content || '';
                     delete file.needsFetch;
+                    console.log(`  ✅ Conteúdo obtido: ${file.content.length} bytes`);
                 }
             }
             
-            return uniqueFiles.filter(f => f.content.length > 0);
+            const finalFiles = uniqueFiles.filter(f => f.content.length > 0);
+            console.log(`\n✅ Total final de arquivos com conteúdo: ${finalFiles.length}`);
+            
+            return finalFiles;
             
         } catch (error) {
-            this.error('Erro ao extrair artefatos:', error);
+            this.error('DEBUG: Erro ao extrair artefatos:', error);
+            console.error('Stack trace completo:', error.stack);
             return [];
         }
     }
@@ -411,12 +530,15 @@ class ArtifactUpsertManager {
             const orgId = document.cookie.split('; ').find(c => c.startsWith('lastActiveOrg='))?.split('=')[1];
             const chatId = window.location.pathname.split('/').pop();
             
+            console.log(`📁 Fetch file - OrgId: ${orgId}, ChatId: ${chatId}, Path: ${filePath}`);
+            
             if (!orgId || !chatId) {
                 this.error('OrgId ou ChatId não encontrados');
                 return '';
             }
             
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}/outputs/${filePath}`;
+            console.log(`📡 Fetch URL: ${url}`);
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -427,12 +549,16 @@ class ArtifactUpsertManager {
                 }
             });
             
+            console.log(`📥 Fetch response status: ${response.status}`);
+            
             if (!response.ok) {
                 this.error(`Erro ao buscar arquivo ${filePath}: ${response.status}`);
                 return '';
             }
             
-            return await response.text();
+            const content = await response.text();
+            console.log(`✅ Conteúdo recebido: ${content.length} bytes`);
+            return content;
             
         } catch (error) {
             this.error(`Erro ao buscar conteúdo de ${filePath}:`, error);
@@ -447,12 +573,23 @@ class ArtifactUpsertManager {
             const chatId = window.location.pathname.split('/').pop();
             const anonymousId = localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
             
+            console.log('\n┌─────────────────────────────────────┐');
+            console.log('🌐 DEBUG: FETCH CONVERSA - INFORMAÇÕES');
+            console.log('└─────────────────────────────────────┘');
+            console.log('OrgId:', orgId);
+            console.log('DeviceId:', deviceId);
+            console.log('ChatId:', chatId);
+            console.log('AnonymousId:', anonymousId);
+            
             if (!orgId || !chatId) {
                 this.error('OrgId ou ChatId não encontrados');
+                console.log('└─────────────────────────────────────┘\n');
                 return null;
             }
             
             const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
+            console.log('URL da requisição:', url);
+            console.log('└─────────────────────────────────────┘');
             
             const response = await fetch(url, {
                 headers: {
@@ -466,20 +603,49 @@ class ArtifactUpsertManager {
                 credentials: "include"
             });
             
+            console.log('\n📡 Resposta HTTP:');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('Headers:', Object.fromEntries(response.headers.entries()));
+            
             if (!response.ok) {
                 this.error(`Erro HTTP: ${response.status}`);
+                const errorText = await response.text();
+                console.log('Corpo do erro:', errorText);
+                console.log('└─────────────────────────────────────┘\n');
                 return null;
             }
             
-            return await response.json();
+            const data = await response.json();
+            console.log('\n✅ Dados recebidos com sucesso');
+            console.log('└─────────────────────────────────────┘\n');
+            
+            return data;
             
         } catch (error) {
             this.error('Erro ao buscar conversa:', error);
+            console.error('Stack trace:', error.stack);
+            console.log('└─────────────────────────────────────┘\n');
             return null;
         }
     }
 
     async sendUpsert(filesArray) {
+        console.log('\n┌─────────────────────────────────────┐');
+        console.log('📤 DEBUG: ENVIANDO UPSERT PARA SERVIDOR');
+        console.log('└─────────────────────────────────────┘');
+        console.log('URL:', `${this.config.serverUrl}/upsert`);
+        console.log('Arquivos a enviar:', filesArray.length);
+        console.log('Detalhes dos arquivos:');
+        filesArray.forEach((f, i) => {
+            console.log(`  ${i + 1}. ${f.path} - ${f.content.length} bytes`);
+        });
+        
+        const payload = { files: filesArray };
+        console.log('\n📦 Payload JSON:');
+        console.log(JSON.stringify(payload, null, 2).substring(0, 500) + '...');
+        console.log('└─────────────────────────────────────┘\n');
+        
         return new Promise((resolve) => {
             chrome.runtime.sendMessage({
                 type: 'FETCH_URL',
@@ -487,17 +653,30 @@ class ArtifactUpsertManager {
                 options: {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ files: filesArray })
+                    body: JSON.stringify(payload)
                 }
             }, (response) => {
+                console.log('\n┌─────────────────────────────────────┐');
+                console.log('📥 RESPOSTA DO SERVIDOR');
+                console.log('└─────────────────────────────────────┘');
+                console.log('Resposta completa:', response);
+                console.log('Success:', response?.success);
+                console.log('Status:', response?.status);
+                console.log('Error:', response?.error);
+                console.log('Data:', response?.data);
+                console.log('└─────────────────────────────────────┘\n');
+                
                 if (response?.success) {
                     try {
                         const data = JSON.parse(response.data);
+                        console.log('✅ Upsert bem-sucedido:', data);
                         resolve(data);
                     } catch {
+                        console.log('✅ Upsert bem-sucedido (sem JSON)');
                         resolve({ success: true });
                     }
                 } else {
+                    console.error('❌ Erro no upsert:', response?.error);
                     resolve({ success: false, error: response?.error || 'Erro desconhecido' });
                 }
             });

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeMerge Sidebar</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+    <div class="sidebar-container">
+        <div class="config-section">
+            <div class="input-group">
+                <div class="input-with-status">
+                    <input 
+                        type="text" 
+                        id="server-url" 
+                        placeholder="http://localhost:9876"
+                        class="server-input"
+                    />
+                    <div id="status-indicator" class="status-indicator idle"></div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="fetch-structure" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                    Carregar
+                </button>
+                <button id="sync-selected" class="btn btn-success" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                    Sincronizar
+                </button>
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+        </div>
+
+        <div class="controls-section">
+            <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Buscar arquivos..."
+                    class="search-input"
+                />
+            </div>
+
+            <div class="selection-controls">
+                <button id="select-all" class="btn-link">Selecionar todos</button>
+                <span class="separator">|</span>
+                <button id="deselect-all" class="btn-link">Desselecionar todos</button>
+            </div>
+
+            <div class="file-stats">
+                <span id="selected-count">0 arquivos selecionados</span>
+                <span class="separator">•</span>
+                <span id="total-lines">0 linhas</span>
+            </div>
+        </div>
+
+        <div class="file-tree-container">
+            <div id="file-tree" class="file-tree"></div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+</body>
+</html>

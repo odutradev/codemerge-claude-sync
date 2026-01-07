@@ -1,19 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "CodeMerge Claude Sync",
-  "version": "1.1.0",
-  "description": "Sincroniza automaticamente código do CodeMerge com Claude Projects",
+  "name": "CodeMerge Sidebar",
+  "version": "1.1.2",
+  "description": "Selecione e sincronize arquivos do CodeMerge com Claude Projects e Gemini via sidebar",
   "permissions": [
     "storage",
-    "activeTab"
+    "sidePanel"
   ],
   "host_permissions": [
     "https://claude.ai/*",
+    "https://gemini.google.com/*",
     "http://localhost:*/*",
     "http://127.0.0.1:*/*"
   ],
   "background": {
     "service_worker": "src/background.js"
+  },
+  "side_panel": {
+    "default_path": "src/sidebar/sidebar.html"
+  },
+  "action": {
+    "default_title": "CodeMerge Sync"
   },
   "content_scripts": [
     {
@@ -21,16 +28,16 @@
         "https://claude.ai/project/*"
       ],
       "js": [
-        "src/scripts/upsertFile.js"
+        "src/scripts/projectHelper.js"
       ],
       "run_at": "document_idle"
     },
     {
       "matches": [
-        "https://claude.ai/*"
+        "https://gemini.google.com/*"
       ],
       "js": [
-        "src/scripts/artifactUpsert.js"
+        "src/scripts/geminiHelper.js"
       ],
       "run_at": "document_idle"
     }

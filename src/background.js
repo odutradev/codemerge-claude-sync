@@ -1,7 +1,5 @@
 const DEFAULT_CONFIG = {
-    serverUrl: 'http://localhost:9876',
-    updateInterval: 5000,
-    projectName: ''
+    serverUrl: 'http://localhost:9876'
 };
 
 let config = { ...DEFAULT_CONFIG };
@@ -12,6 +10,10 @@ chrome.runtime.onInstalled.addListener(() => {
             config = { ...config, ...result.config };
         }
     });
+});
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -72,4 +74,4 @@ function processResponse(response, sendResponse) {
     });
 }
 
-console.log('🚀 CodeMerge Claude Sync - Background worker iniciado');
+console.log('CodeMerge Sidebar - Background worker iniciado');

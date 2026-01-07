@@ -1,0 +1,3 @@
+# 📁 INSTRUÇÃO PARA CRIAÇÃO DE ARQUIVOS
+
+**IMPORTANTE:** Ao criar qualquer arquivo de código, SEMPRE especifique o **path completo** incluindo a estrutura de pastas (ex: `src/components/Button.tsx`, `config/database.js`, `utils/helpers.py`). Nunca crie arquivos apenas com o nome sem o caminho. Use a ferramenta `create_file` para cada arquivo individual ao invés de apenas mostrar o código em blocos de texto. A extensão CodeMerge Claude Sync depende desses paths completos para salvar os arquivos corretamente no projeto local.
