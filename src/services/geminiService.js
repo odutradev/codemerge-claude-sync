@@ -4,9 +4,10 @@ const geminiService = (() => {
         const googleWizGlobalData = window.WIZ_global_data || {};
         
         const currentUrlPath = window.location.pathname;
-        const conversationIdMatch = currentUrlPath.match(/\/app\/([a-zA-Z0-9_]+)/);
+        const isGem = currentUrlPath.includes('/gem');
         
-        let conversationIdentifier = conversationIdMatch ? conversationIdMatch[1] : null;
+        const pathSegments = currentUrlPath.split('/').filter(segment => segment.length > 0);
+        let conversationIdentifier = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : null;
 
         if (conversationIdentifier && !conversationIdentifier.startsWith('c_')) {
             conversationIdentifier = 'c_' + conversationIdentifier;
@@ -17,6 +18,7 @@ const geminiService = (() => {
             sessionId: googleWizGlobalData.FdrFJe,
             backendLevel: googleWizGlobalData.cfb2h || "boq_assistant-bard-web-server_20260106.06_p0",
             authToken: googleWizGlobalData.SNlM0e,
+            isGem
         };
     };
 
@@ -31,7 +33,7 @@ const geminiService = (() => {
 
         const queryParameters = new URLSearchParams({
             rpcids: rpcIdentifier,
-            'source-path': `/app/${sessionData.conversationId}`,
+            'source-path': window.location.pathname,
             bl: sessionData.backendLevel,
             'f.sid': sessionData.sessionId,
             hl: 'pt-BR',
