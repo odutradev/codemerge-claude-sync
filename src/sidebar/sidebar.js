@@ -22,7 +22,8 @@ class CodeMergeSidebar {
             chrome.storage.local.get(['config'], (result) => {
                 if (result.config?.serverUrl) {
                     this.config.serverUrl = result.config.serverUrl;
-                    document.getElementById('server-url').value = this.config.serverUrl;
+                    const urlInput = document.getElementById('server-url');
+                    if (urlInput) urlInput.value = this.config.serverUrl;
                 }
                 resolve();
             });
@@ -36,45 +37,67 @@ class CodeMergeSidebar {
     }
 
     attachEventListeners() {
-        document.getElementById('server-url').addEventListener('change', (e) => {
-            this.config.serverUrl = e.target.value.trim();
-            this.saveConfig();
-        });
+        const serverUrlInput = document.getElementById('server-url');
+        if (serverUrlInput) {
+            serverUrlInput.addEventListener('change', (e) => {
+                this.config.serverUrl = e.target.value.trim();
+                this.saveConfig();
+            });
+        }
 
-        document.getElementById('fetch-structure').addEventListener('click', () => {
-            this.fetchStructure();
-        });
+        const fetchBtn = document.getElementById('fetch-structure');
+        if (fetchBtn) {
+            fetchBtn.addEventListener('click', () => {
+                this.fetchStructure();
+            });
+        }
 
-        document.getElementById('select-all').addEventListener('click', () => {
-            this.selectAll();
-        });
+        const selectAllBtn = document.getElementById('select-all');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                this.selectAll();
+            });
+        }
 
-        document.getElementById('deselect-all').addEventListener('click', () => {
-            this.deselectAll();
-        });
+        const deselectAllBtn = document.getElementById('deselect-all');
+        if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', () => {
+                this.deselectAll();
+            });
+        }
 
-        document.getElementById('sync-selected').addEventListener('click', () => {
-            this.syncSelected();
-        });
+        const syncSelectedBtn = document.getElementById('sync-selected');
+        if (syncSelectedBtn) {
+            syncSelectedBtn.addEventListener('click', () => {
+                this.syncSelected();
+            });
+        }
 
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            this.filterFiles(e.target.value);
-        });
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterFiles(e.target.value);
+            });
+        }
     }
 
     setStatus(status) {
         const indicator = document.getElementById('status-indicator');
-        indicator.className = `status-indicator ${status}`;
+        if (indicator) {
+            indicator.className = `status-indicator ${status}`;
+        }
     }
 
     showMessage(message, type = 'success') {
         const messageEl = document.getElementById('status-message');
-        messageEl.textContent = message;
-        messageEl.className = `status-message ${type} show`;
-        
-        setTimeout(() => {
-            messageEl.classList.remove('show');
-        }, 3000);
+        if (messageEl) {
+            messageEl.textContent = message;
+            messageEl.className = `status-message ${type} show`;
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 5000); // Aumentado para 5s para dar tempo de ler erros
+        }
     }
 
     async fetchStructure() {
@@ -124,6 +147,8 @@ class CodeMergeSidebar {
 
     renderFileTree(root) {
         const treeContainer = document.getElementById('file-tree');
+        if (!treeContainer) return;
+        
         treeContainer.innerHTML = '';
         
         const tree = this.createTreeNode(root);
@@ -331,14 +356,20 @@ class CodeMergeSidebar {
             .filter(f => this.selectedPaths.has(f.path))
             .reduce((sum, f) => sum + (f.lines || 0), 0);
         
-        document.getElementById('selected-count').textContent = 
-            `${count} arquivo${count !== 1 ? 's' : ''} selecionado${count !== 1 ? 's' : ''}`;
+        const countEl = document.getElementById('selected-count');
+        if (countEl) {
+            countEl.textContent = `${count} arquivo${count !== 1 ? 's' : ''} selecionado${count !== 1 ? 's' : ''}`;
+        }
         
-        document.getElementById('total-lines').textContent = 
-            `${totalLines.toLocaleString('pt-BR')} linha${totalLines !== 1 ? 's' : ''}`;
+        const linesEl = document.getElementById('total-lines');
+        if (linesEl) {
+            linesEl.textContent = `${totalLines.toLocaleString('pt-BR')} linha${totalLines !== 1 ? 's' : ''}`;
+        }
         
         const syncButton = document.getElementById('sync-selected');
-        syncButton.disabled = count === 0;
+        if (syncButton) {
+            syncButton.disabled = count === 0;
+        }
     }
 
     filterFiles(searchTerm) {
@@ -386,7 +417,6 @@ class CodeMergeSidebar {
             this.setStatus('loading');
             
             const selectedPathsArray = Array.from(this.selectedPaths);
-            console.log('[Sidebar] Paths:', selectedPathsArray);
             
             console.log('[Sidebar] 1. Buscando conteúdo do servidor...');
             const response = await this.fetchViaBackground(
@@ -398,27 +428,16 @@ class CodeMergeSidebar {
                 }
             );
 
-            console.log('[Sidebar] Resposta do servidor:', {
-                success: response.success,
-                hasData: !!response.data,
-                dataLength: response.data?.length
-            });
-
             if (!response.success) {
                 throw new Error(response.error || 'Erro ao buscar conteúdo');
             }
 
             const content = response.data;
-            console.log('[Sidebar] Conteúdo recebido:', content.substring(0, 200) + '...');
+            console.log('[Sidebar] Conteúdo recebido, tamanho:', content.length);
             
             console.log('[Sidebar] 2. Obtendo aba ativa...');
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
-            
-            console.log('[Sidebar] Aba ativa:', {
-                id: activeTab?.id,
-                url: activeTab?.url
-            });
             
             if (!activeTab) {
                 throw new Error('Nenhuma aba ativa encontrada');
@@ -427,11 +446,7 @@ class CodeMergeSidebar {
             const isGemini = activeTab.url.includes('gemini.google.com');
             const isClaude = activeTab.url.includes('claude.ai/project/');
             
-            console.log('[Sidebar] Detecção de plataforma:', {
-                isGemini,
-                isClaude,
-                url: activeTab.url
-            });
+            console.log('[Sidebar] Plataforma:', isGemini ? 'Gemini' : isClaude ? 'Claude' : 'Desconhecida', activeTab.url);
             
             if (!isGemini && !isClaude) {
                 throw new Error('Abra uma página do Gemini ou Claude Projects');
@@ -440,25 +455,33 @@ class CodeMergeSidebar {
             const messageType = isGemini ? 'ADD_FILE_GEMINI' : 'ADD_FILE';
             console.log('[Sidebar] 3. Enviando mensagem:', messageType);
             
-            const messageResponse = await chrome.tabs.sendMessage(activeTab.id, {
-                type: messageType,
-                fileName: 'codemerge-selected.txt',
-                content: content
-            });
+            try {
+                const messageResponse = await chrome.tabs.sendMessage(activeTab.id, {
+                    type: messageType,
+                    fileName: 'codemerge-selected.txt',
+                    content: content
+                });
 
-            console.log('[Sidebar] Resposta da mensagem:', messageResponse);
+                console.log('[Sidebar] Resposta da mensagem:', messageResponse);
 
-            if (messageResponse && messageResponse.success === false) {
-                throw new Error(messageResponse.error || 'Erro ao enviar arquivo');
+                if (messageResponse && messageResponse.success === false) {
+                    throw new Error(messageResponse.error || 'Erro ao enviar arquivo');
+                }
+
+                this.setStatus('success');
+                this.showMessage(`${this.selectedPaths.size} arquivos sincronizados com sucesso`);
+                console.log('[Sidebar] ✅ SINCRONIZAÇÃO CONCLUÍDA');
+            } catch (msgError) {
+                // Tratamento específico para erro de conexão (script não injetado ou extensão recarregada)
+                if (msgError.message.includes('Could not establish connection') || 
+                    msgError.message.includes('Receiving end does not exist')) {
+                    throw new Error('⚠️ Conexão perdida. Por favor, recarregue a página (F5) para ativar a extensão.');
+                }
+                throw msgError;
             }
-
-            this.setStatus('success');
-            this.showMessage(`${this.selectedPaths.size} arquivos sincronizados com sucesso`);
-            console.log('[Sidebar] ✅ SINCRONIZAÇÃO CONCLUÍDA');
             
         } catch (error) {
             console.error('[Sidebar] ❌ ERRO NA SINCRONIZAÇÃO:', error);
-            console.error('[Sidebar] Stack:', error.stack);
             this.setStatus('error');
             this.showMessage(error.message, 'error');
         }
