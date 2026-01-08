@@ -1,5 +1,6 @@
 class CodeMergeSidebar {
     constructor() {
+        console.log('[Sidebar] Constructor chamado');
         this.config = {
             serverUrl: 'http://localhost:9876'
         };
@@ -7,14 +8,290 @@ class CodeMergeSidebar {
         this.selectedPaths = new Set();
         this.flatFileList = [];
         this.collapsedDirs = new Set();
+        this.currentView = 'sync';
+        this.artifacts = [];
+        this.selectedArtifacts = new Set();
         
         this.init();
     }
 
     async init() {
+        console.log('[Sidebar] Inicializando...');
         await this.loadConfig();
-        this.attachEventListeners();
-        this.updateUI();
+        
+        setTimeout(() => {
+            this.attachToggleListeners();
+            this.attachEventListeners();
+            this.attachArtifactsListeners();
+            this.updateUI();
+            console.log('[Sidebar] Inicialização completa');
+        }, 100);
+    }
+
+    attachToggleListeners() {
+        const toggleSync = document.getElementById('toggle-sync');
+        const toggleArtifacts = document.getElementById('toggle-artifacts');
+
+        console.log('[Sidebar] Anexando listeners de toggle', {
+            toggleSync: !!toggleSync,
+            toggleArtifacts: !!toggleArtifacts
+        });
+
+        if (toggleSync) {
+            toggleSync.addEventListener('click', (e) => {
+                console.log('[Sidebar] Toggle Sync clicado');
+                e.preventDefault();
+                this.switchView('sync');
+            });
+        }
+
+        if (toggleArtifacts) {
+            toggleArtifacts.addEventListener('click', (e) => {
+                console.log('[Sidebar] Toggle Artifacts clicado');
+                e.preventDefault();
+                this.switchView('artifacts');
+            });
+        }
+    }
+
+    switchView(view) {
+        console.log('[Sidebar] Alternando para view:', view);
+        this.currentView = view;
+
+        const syncView = document.getElementById('sync-view');
+        const artifactsView = document.getElementById('artifacts-view');
+        const toggleSync = document.getElementById('toggle-sync');
+        const toggleArtifacts = document.getElementById('toggle-artifacts');
+
+        console.log('[Sidebar] Elementos encontrados:', {
+            syncView: !!syncView,
+            artifactsView: !!artifactsView,
+            toggleSync: !!toggleSync,
+            toggleArtifacts: !!toggleArtifacts
+        });
+
+        if (view === 'sync') {
+            if (syncView) syncView.classList.add('active');
+            if (artifactsView) artifactsView.classList.remove('active');
+            if (toggleSync) toggleSync.classList.add('active');
+            if (toggleArtifacts) toggleArtifacts.classList.remove('active');
+        } else {
+            if (syncView) syncView.classList.remove('active');
+            if (artifactsView) artifactsView.classList.add('active');
+            if (toggleSync) toggleSync.classList.remove('active');
+            if (toggleArtifacts) toggleArtifacts.classList.add('active');
+        }
+
+        console.log('[Sidebar] View alternada para:', view);
+    }
+
+    attachArtifactsListeners() {
+        const fetchBtn = document.getElementById('fetch-gemini-artifacts');
+        const selectAllBtn = document.getElementById('select-all-artifacts');
+        const deselectAllBtn = document.getElementById('deselect-all-artifacts');
+        const syncBtn = document.getElementById('sync-artifacts');
+
+        fetchBtn?.addEventListener('click', () => {
+            this.fetchGeminiArtifacts();
+        });
+
+        selectAllBtn?.addEventListener('click', () => {
+            this.selectAllArtifacts();
+        });
+
+        deselectAllBtn?.addEventListener('click', () => {
+            this.deselectAllArtifacts();
+        });
+
+        syncBtn?.addEventListener('click', () => {
+            this.syncArtifacts();
+        });
+    }
+
+    async fetchGeminiArtifacts() {
+        try {
+            this.setStatus('loading');
+            console.log('[Sidebar] 🔍 Iniciando busca de artefatos...');
+
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            const activeTab = tabs[0];
+
+            if (!activeTab || !activeTab.url.includes('gemini.google.com')) {
+                throw new Error('Abra uma página do Gemini para buscar artefatos');
+            }
+
+            console.log('[Sidebar] 📤 Enviando mensagem para o Gemini...');
+
+            const response = await chrome.tabs.sendMessage(activeTab.id, {
+                type: 'GET_GEMINI_ARTIFACTS'
+            });
+
+            console.log('[Sidebar] 📥 Resposta recebida:', response);
+
+            if (!response || !response.success) {
+                throw new Error(response?.error || 'Erro ao buscar artefatos');
+            }
+
+            this.artifacts = response.artifacts || [];
+
+            if (this.artifacts.length === 0) {
+                throw new Error('Nenhum artefato encontrado na conversa');
+            }
+
+            this.selectAllArtifacts();
+            this.renderArtifacts();
+            this.setStatus('success');
+            this.showMessage(`${this.artifacts.length} artefatos encontrados`);
+            console.log('[Sidebar] ✅ Artefatos renderizados com sucesso');
+
+        } catch (error) {
+            console.error('[Sidebar] ❌ Erro ao buscar artefatos:', error);
+            this.setStatus('error');
+            this.showMessage(error.message, 'error');
+        }
+    }
+
+    renderArtifacts() {
+        const container = document.getElementById('artifacts-list');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (this.artifacts.length === 0) {
+            container.innerHTML = '<p class="info-text">Nenhum artefato encontrado</p>';
+            return;
+        }
+
+        this.artifacts.forEach((artifact, index) => {
+            const item = document.createElement('div');
+            item.className = 'artifact-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.index = index;
+            checkbox.checked = this.selectedArtifacts.has(index);
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.selectedArtifacts.add(index);
+                } else {
+                    this.selectedArtifacts.delete(index);
+                }
+                this.updateArtifactsCount();
+            });
+
+            const content = document.createElement('div');
+            content.className = 'artifact-content';
+
+            const header = document.createElement('div');
+            header.className = 'artifact-header';
+
+            const name = document.createElement('span');
+            name.className = 'artifact-name';
+            name.textContent = artifact.name;
+
+            const language = document.createElement('span');
+            language.className = 'artifact-language';
+            language.textContent = artifact.language || 'text';
+
+            header.appendChild(name);
+            header.appendChild(language);
+
+            if (artifact.title && artifact.title !== 'Sem Título') {
+                const title = document.createElement('div');
+                title.className = 'artifact-title';
+                title.textContent = artifact.title;
+                content.appendChild(title);
+            }
+
+            const stats = document.createElement('div');
+            stats.className = 'artifact-stats';
+            const lines = artifact.code.split('\n').length;
+            stats.textContent = `${lines} linhas • ${artifact.code.length} caracteres`;
+
+            content.appendChild(header);
+            content.appendChild(stats);
+
+            item.appendChild(checkbox);
+            item.appendChild(content);
+
+            container.appendChild(item);
+        });
+
+        this.updateArtifactsCount();
+    }
+
+    selectAllArtifacts() {
+        this.artifacts.forEach((_, index) => {
+            this.selectedArtifacts.add(index);
+        });
+
+        const checkboxes = document.querySelectorAll('#artifacts-list input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = true);
+
+        this.updateArtifactsCount();
+    }
+
+    deselectAllArtifacts() {
+        this.selectedArtifacts.clear();
+
+        const checkboxes = document.querySelectorAll('#artifacts-list input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+
+        this.updateArtifactsCount();
+    }
+
+    updateArtifactsCount() {
+        const count = this.selectedArtifacts.size;
+
+        const countEl = document.getElementById('artifacts-count');
+        if (countEl) {
+            countEl.textContent = `${count} de ${this.artifacts.length} artefatos selecionados`;
+        }
+
+        const syncBtn = document.getElementById('sync-artifacts');
+        if (syncBtn) {
+            syncBtn.disabled = count === 0;
+        }
+    }
+
+    async syncArtifacts() {
+        if (this.selectedArtifacts.size === 0) {
+            this.showMessage('Nenhum artefato selecionado', 'error');
+            return;
+        }
+
+        try {
+            this.setStatus('loading');
+
+            const selectedFiles = Array.from(this.selectedArtifacts).map(index => {
+                const artifact = this.artifacts[index];
+                return {
+                    path: artifact.name,
+                    content: artifact.code
+                };
+            });
+
+            const response = await this.fetchViaBackground(
+                `${this.config.serverUrl}/upsert`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: selectedFiles })
+                }
+            );
+
+            if (!response.success) {
+                throw new Error(response.error || 'Erro ao enviar artefatos');
+            }
+
+            this.setStatus('success');
+            this.showMessage(`${selectedFiles.length} artefatos enviados com sucesso`);
+
+        } catch (error) {
+            console.error('Erro ao sincronizar artefatos:', error);
+            this.setStatus('error');
+            this.showMessage(error.message, 'error');
+        }
     }
 
     async loadConfig() {
@@ -96,7 +373,7 @@ class CodeMergeSidebar {
             
             setTimeout(() => {
                 messageEl.classList.remove('show');
-            }, 5000); // Aumentado para 5s para dar tempo de ler erros
+            }, 5000);
         }
     }
 
@@ -472,7 +749,6 @@ class CodeMergeSidebar {
                 this.showMessage(`${this.selectedPaths.size} arquivos sincronizados com sucesso`);
                 console.log('[Sidebar] ✅ SINCRONIZAÇÃO CONCLUÍDA');
             } catch (msgError) {
-                // Tratamento específico para erro de conexão (script não injetado ou extensão recarregada)
                 if (msgError.message.includes('Could not establish connection') || 
                     msgError.message.includes('Receiving end does not exist')) {
                     throw new Error('⚠️ Conexão perdida. Por favor, recarregue a página (F5) para ativar a extensão.');

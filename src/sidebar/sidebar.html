@@ -8,71 +8,127 @@
 </head>
 <body>
     <div class="sidebar-container">
-        <div class="config-section">
-            <div class="input-group">
-                <div class="input-with-status">
-                    <input 
-                        type="text" 
-                        id="server-url" 
-                        placeholder="http://localhost:9876"
-                        class="server-input"
-                    />
-                    <div id="status-indicator" class="status-indicator idle"></div>
-                </div>
+        <div class="sidebar-header">
+            <h1>CodeMerge Sync</h1>
+            <div class="status-bar">
+                <div id="status-indicator" class="status-indicator idle"></div>
+                <span id="status-message" class="status-message"></span>
             </div>
-            
-            <div class="action-buttons">
-                <button id="fetch-structure" class="btn btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                    </svg>
-                    Carregar
-                </button>
-                <button id="sync-selected" class="btn btn-success" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-                        <polyline points="16 6 12 2 8 6"/>
-                        <line x1="12" y1="2" x2="12" y2="15"/>
-                    </svg>
-                    Sincronizar
-                </button>
-            </div>
-
-            <div id="status-message" class="status-message"></div>
         </div>
 
-        <div class="controls-section">
-            <div class="search-box">
+        <div class="toggle-container">
+            <button id="toggle-sync" class="toggle-button active" data-view="sync">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
                 </svg>
+                <span>Sincronizar</span>
+            </button>
+            <button id="toggle-artifacts" class="toggle-button" data-view="artifacts">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+                    <path d="M13 2v7h7"/>
+                </svg>
+                <span>Artifacts</span>
+            </button>
+        </div>
+
+        <div id="sync-view" class="view-content active">
+            <div class="config-section">
+                <label for="server-url">URL do Servidor</label>
+                <input 
+                    type="text" 
+                    id="server-url" 
+                    value="http://localhost:9876"
+                    placeholder="http://localhost:9876"
+                />
+            </div>
+
+            <div class="actions-section">
+                <button id="fetch-structure" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Carregar Estrutura
+                </button>
+            </div>
+
+            <div class="search-section">
                 <input 
                     type="text" 
                     id="search-input" 
                     placeholder="Buscar arquivos..."
-                    class="search-input"
                 />
             </div>
 
-            <div class="selection-controls">
-                <button id="select-all" class="btn-link">Selecionar todos</button>
-                <span class="separator">|</span>
-                <button id="deselect-all" class="btn-link">Desselecionar todos</button>
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span id="selected-count">0 arquivos selecionados</span>
+                </div>
+                <div class="stat-item">
+                    <span id="total-lines">0 linhas</span>
+                </div>
             </div>
 
-            <div class="file-stats">
-                <span id="selected-count">0 arquivos selecionados</span>
-                <span class="separator">•</span>
-                <span id="total-lines">0 linhas</span>
+            <div class="file-tree-container">
+                <div id="file-tree" class="file-tree"></div>
+            </div>
+
+            <div class="footer-actions">
+                <button id="select-all" class="btn btn-secondary">Selecionar Todos</button>
+                <button id="deselect-all" class="btn btn-secondary">Desselecionar Todos</button>
+                <button id="sync-selected" class="btn btn-primary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Sincronizar Selecionados
+                </button>
             </div>
         </div>
 
-        <div class="file-tree-container">
-            <div id="file-tree" class="file-tree"></div>
+        <div id="artifacts-view" class="view-content">
+            <div class="info-section">
+                <p class="info-text">
+                    Envie os artefatos alterados da conversa do Gemini para o servidor CodeMerge.
+                </p>
+            </div>
+
+            <div class="actions-section">
+                <button id="fetch-gemini-artifacts" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Buscar Artefatos
+                </button>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span id="artifacts-count">0 artefatos encontrados</span>
+                </div>
+            </div>
+
+            <div class="artifacts-list-container">
+                <div id="artifacts-list" class="artifacts-list"></div>
+            </div>
+
+            <div class="footer-actions">
+                <button id="select-all-artifacts" class="btn btn-secondary">Selecionar Todos</button>
+                <button id="deselect-all-artifacts" class="btn btn-secondary">Desselecionar Todos</button>
+                <button id="sync-artifacts" class="btn btn-primary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 3C10.2761 3 10.5 3.22386 10.5 3.5V12.2929L13.1464 9.64645C13.3417 9.45118 13.6583 9.45118 13.8536 9.64645C14.0488 9.84171 14.0488 10.1583 13.8536 10.3536L10.3536 13.8536C10.1583 14.0488 9.84171 14.0488 9.64645 13.8536L6.14645 10.3536C5.95118 10.1583 5.95118 9.84171 6.14645 9.64645C6.34171 9.45118 6.65829 9.45118 6.85355 9.64645L9.5 12.2929V3.5C9.5 3.22386 9.72386 3 10 3Z"/>
+                        <path d="M4 14.5C4.27614 14.5 4.5 14.7239 4.5 15V15.5C4.5 15.7761 4.72386 16 5 16H15C15.2761 16 15.5 15.7761 15.5 15.5V15C15.5 14.7239 15.7239 14.5 16 14.5C16.2761 14.5 16.5 14.7239 16.5 15V15.5C16.5 16.3284 15.8284 17 15 17H5C4.17157 17 3.5 16.3284 3.5 15.5V15C3.5 14.7239 3.72386 14.5 4 14.5Z"/>
+                    </svg>
+                    Enviar para CodeMerge
+                </button>
+            </div>
         </div>
     </div>
 
-    <script src="sidebar.js"></script>
+    <script type="module" src="sidebar.js"></script>
 </body>
 </html>
