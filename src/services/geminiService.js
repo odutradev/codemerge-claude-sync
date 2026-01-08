@@ -1,92 +1,134 @@
 const geminiService = (() => {
-    const getSession = () => {
-        const wiz = window.WIZ_global_data || {};
-        const match = window.location.pathname.match(/\/app\/([a-zA-Z0-9_]+)/);
-        let id = match ? match[1] : null;
-        if (id && !id.startsWith('c_')) id = 'c_' + id;
+    
+    const getSessionAuthenticationData = () => {
+        const googleWizGlobalData = window.WIZ_global_data || {};
+        
+        const currentUrlPath = window.location.pathname;
+        const conversationIdMatch = currentUrlPath.match(/\/app\/([a-zA-Z0-9_]+)/);
+        
+        let conversationIdentifier = conversationIdMatch ? conversationIdMatch[1] : null;
+
+        if (conversationIdentifier && !conversationIdentifier.startsWith('c_')) {
+            conversationIdentifier = 'c_' + conversationIdentifier;
+        }
 
         return {
-            id,
-            sid: wiz.FdrFJe,
-            bl: wiz.cfb2h || "boq_assistant-bard-web-server_20260106.06_p0",
-            at: wiz.SNlM0e,
+            conversationId: conversationIdentifier,
+            sessionId: googleWizGlobalData.FdrFJe,
+            backendLevel: googleWizGlobalData.cfb2h || "boq_assistant-bard-web-server_20260106.06_p0",
+            authToken: googleWizGlobalData.SNlM0e,
         };
     };
 
-    const request = async (rpc, payload) => {
-        const ses = getSession();
-        if (!ses.at) throw new Error("Auth token missing.");
+    const sendBatchExecuteRequest = async (rpcIdentifier, payloadData) => {
+        const sessionData = getSessionAuthenticationData();
+
+        if (!sessionData.authToken) {
+            throw new Error("Token de autenticação não encontrado.");
+        }
         
-        const qs = new URLSearchParams({
-            rpcids: rpc,
-            'source-path': `/app/${ses.id}`,
-            bl: ses.bl,
-            'f.sid': ses.sid,
+        const requestIdentifier = Date.now().toString().slice(-7);
+
+        const queryParameters = new URLSearchParams({
+            rpcids: rpcIdentifier,
+            'source-path': `/app/${sessionData.conversationId}`,
+            bl: sessionData.backendLevel,
+            'f.sid': sessionData.sessionId,
             hl: 'pt-BR',
-            _reqid: Date.now().toString().slice(-7),
+            _reqid: requestIdentifier,
             rt: 'c'
         });
 
-        const body = new URLSearchParams();
-        body.append('f.req', JSON.stringify([[[rpc, JSON.stringify(payload), null, "generic"]]]));
-        body.append('at', ses.at);
+        const batchExecuteData = [
+            [[rpcIdentifier, JSON.stringify(payloadData), null, "generic"]]
+        ];
 
-        const res = await fetch(`https://gemini.google.com/_/BardChatUi/data/batchexecute?${qs}`, {
+        const requestBody = new URLSearchParams();
+        requestBody.append('f.req', JSON.stringify(batchExecuteData));
+        requestBody.append('at', sessionData.authToken);
+
+        const networkResponse = await fetch(`https://gemini.google.com/_/BardChatUi/data/batchexecute?${queryParameters}`, {
             method: "POST",
             headers: { 
                 "content-type": "application/x-www-form-urlencoded;charset=UTF-8", 
                 "x-same-domain": "1" 
             },
-            body: body,
+            body: requestBody,
             mode: "cors",
             credentials: "include"
         });
 
-        if (!res.ok) throw new Error(res.statusText);
+        if (!networkResponse.ok) {
+            throw new Error(networkResponse.statusText);
+        }
         
-        const txt = (await res.text()).replace(/^\)\]\}'\n/, '');
-        for (const line of txt.split('\n')) {
-            if (line.includes('wrb.fr') && line.includes(rpc)) {
+        const rawResponseText = await networkResponse.text();
+        const cleanedResponseText = rawResponseText.replace(/^\)\]\}'\n/, '');
+        const responseLines = cleanedResponseText.split('\n');
+
+        for (const line of responseLines) {
+            if (line.includes('wrb.fr') && line.includes(rpcIdentifier)) {
                 try {
-                    const json = JSON.parse(line);
-                    if (json?.[0]?.[2]) return JSON.parse(json[0][2]);
-                } catch (_) {}
+                    const parsedJsonLine = JSON.parse(line);
+                    if (parsedJsonLine?.[0]?.[2]) {
+                        return JSON.parse(parsedJsonLine[0][2]);
+                    }
+                } catch (parseError) {}
             }
         }
-        throw new Error("Payload not found.");
+        throw new Error("Payload de dados não encontrado na resposta do servidor.");
     };
 
-    const extractAttachments = (data) => {
-        const files = [], seen = new Set();
-        const traverse = (o) => {
-            if (!o || typeof o !== 'object') return;
-            if (Array.isArray(o) && o.length >= 5) {
-                const [name, id, title, , content] = o;
-                if (typeof name === 'string' && typeof content === 'string' && content.includes('```') && (name.includes('.') || name.startsWith('c_'))) {
-                    if (!seen.has(content)) {
-                        seen.add(content);
-                        const lang = content.split('\n')[0].replace(/```/g, '').trim();
-                        files.push({
-                            id,
-                            name,
-                            lang: lang || 'text',
-                            title: title || 'Untitled',
-                            code: content.replace(/^```.*\n/, '').replace(/\n```$/, '')
-                        });
+    const extractCodeAttachmentsFromConversation = (conversationData) => {
+        const extractedFiles = [];
+        const processedContentSet = new Set();
+
+        const recursivelyTraverseObject = (currentObject) => {
+            if (!currentObject || typeof currentObject !== 'object') return;
+
+            if (Array.isArray(currentObject) && currentObject.length >= 5) {
+                const [fileName, fileId, title, , fileContent] = currentObject;
+
+                const isFileNameString = typeof fileName === 'string';
+                const isContentString = typeof fileContent === 'string';
+
+                if (isFileNameString && isContentString && fileContent.includes('```')) {
+                    if (fileName.includes('.') || fileName.startsWith('c_')) {
+                        
+                        if (!processedContentSet.has(fileContent)) {
+                            processedContentSet.add(fileContent);
+
+                            const language = fileContent.split('\n')[0].replace(/```/g, '').trim();
+                            const cleanCode = fileContent.replace(/^```.*\n/, '').replace(/\n```$/, '');
+
+                            extractedFiles.push({
+                                id: fileId,
+                                name: fileName,
+                                language: language || 'text',
+                                title: title || 'Sem Título',
+                                code: cleanCode
+                            });
+                        }
+                        return;
                     }
-                    return;
                 }
             }
-            Object.values(o).forEach(traverse);
+
+            Object.values(currentObject).forEach(recursivelyTraverseObject);
         };
-        traverse(data);
-        return files;
+
+        recursivelyTraverseObject(conversationData);
+        return extractedFiles;
     };
 
     return {
-        getFiles: async () => {
-            const data = await request("hNvQHb", [getSession().id, 50, null, 0, [1], [4], null, 1]);
-            return extractAttachments(data?.[0]);
+        getAllFiles: async () => {
+            const sessionData = getSessionAuthenticationData();
+            const requestPayload = [sessionData.conversationId, 50, null, 0, [1], [4], null, 1];
+            
+            const responseData = await sendBatchExecuteRequest("hNvQHb", requestPayload);
+            
+            return extractCodeAttachmentsFromConversation(responseData?.[0]);
         }
     };
 })();
