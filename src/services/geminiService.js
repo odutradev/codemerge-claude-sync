@@ -1,7 +1,7 @@
 const geminiService = (() => {
     
     const getSessionAuthenticationData = () => {
-        const googleWizGlobalData = window.WIZ_global_data || {};
+        const googleWizGlobalData = localStorage.getItem("WIZ_global_data");
         
         const currentUrlPath = window.location.pathname;
         const isGem = currentUrlPath.includes('/gem');
@@ -135,4 +135,4 @@ const geminiService = (() => {
     };
 })();
 
-export default geminiService;
+console.log('[GeminiService] Service loaded and ready');

@@ -37,6 +37,7 @@
         "https://gemini.google.com/*"
       ],
       "js": [
+        "src/services/geminiService.js",
         "src/scripts/geminiHelper.js",
         "src/scripts/geminiArtifactsHelper.js"
       ],
