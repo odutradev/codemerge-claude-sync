@@ -45,7 +45,8 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });
 
         } catch (error) {
-            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            console.log(error)
+            setMessage({ open: true, text: `Erro2: ${error.message}`, type: 'error' });
         } finally {
             setLoading(false);
         }
