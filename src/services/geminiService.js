@@ -3,6 +3,11 @@ const geminiService = (() => {
     const getSessionAuthenticationData = () => {
         const googleWizGlobalData = JSON.parse(localStorage.getItem("WIZ_global_data"));
         
+        if (!googleWizGlobalData) {
+            console.error('[GeminiService] WIZ_global_data não encontrado no localStorage');
+            return {};
+        }
+
         const currentUrlPath = window.location.pathname;
         const isGem = currentUrlPath.includes('/gem');
         
@@ -24,10 +29,9 @@ const geminiService = (() => {
 
     const sendBatchExecuteRequest = async (rpcIdentifier, payloadData) => {
         const sessionData = getSessionAuthenticationData();
-        console.log(sessionData)
-
+        
         if (!sessionData.authToken) {
-            throw new Error("Token de autenticação não encontrado.");
+            throw new Error("Token de autenticação não encontrado. Tente recarregar a página do Gemini.");
         }
         
         const requestIdentifier = Date.now().toString().slice(-7);
@@ -62,7 +66,7 @@ const geminiService = (() => {
         });
 
         if (!networkResponse.ok) {
-            throw new Error(networkResponse.statusText);
+            throw new Error(`Erro na requisição: ${networkResponse.statusText}`);
         }
         
         const rawResponseText = await networkResponse.text();
@@ -132,6 +136,10 @@ const geminiService = (() => {
     return {
         getAllFiles: async () => {
             const sessionData = getSessionAuthenticationData();
+            if (!sessionData.conversationId) {
+                throw new Error("ID da conversa não encontrado. Certifique-se de estar em um chat do Gemini.");
+            }
+
             const requestPayload = [sessionData.conversationId, 50, null, 0, [1], [4], null, 1];
             
             const responseData = await sendBatchExecuteRequest("hNvQHb", requestPayload);
@@ -142,3 +150,5 @@ const geminiService = (() => {
 })();
 
 console.log('[GeminiService] Service loaded and ready');
+
+export default geminiService;

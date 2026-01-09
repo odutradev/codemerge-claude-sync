@@ -42,8 +42,7 @@
       ],
       "js": [
         "src/services/geminiService.js",
-        "src/scripts/geminiHelper.js",
-        "src/scripts/geminiArtifactsHelper.js"
+        "src/scripts/geminiHelper.js"
       ],
       "run_at": "document_idle"
     },
