@@ -82,7 +82,7 @@ const geminiService = (() => {
         throw new Error("Payload de dados não encontrado na resposta do servidor.");
     };
 
-    const extractCodeAttachmentsFromConversation = (conversationData) => {
+    const extractCodeAttachmentsFromConversation = (conversationData, conversationId) => {
         const extractedFiles = [];
         const processedContentSet = new Set();
 
@@ -104,9 +104,14 @@ const geminiService = (() => {
                             const language = fileContent.split('\n')[0].replace(/```/g, '').trim();
                             const cleanCode = fileContent.replace(/^```.*\n/, '').replace(/\n```$/, '');
 
+                            let finalFileName = fileName;
+                            if (conversationId && finalFileName.startsWith(conversationId + '_')) {
+                                finalFileName = finalFileName.replace(conversationId + '_', '');
+                            }
+
                             extractedFiles.push({
                                 id: fileId,
-                                name: fileName,
+                                name: finalFileName,
                                 language: language || 'text',
                                 title: title || 'Sem Título',
                                 code: cleanCode
@@ -131,7 +136,7 @@ const geminiService = (() => {
             
             const responseData = await sendBatchExecuteRequest("hNvQHb", requestPayload);
             
-            return extractCodeAttachmentsFromConversation(responseData?.[0]);
+            return extractCodeAttachmentsFromConversation(responseData?.[0], sessionData.conversationId);
         }
     };
 })();
