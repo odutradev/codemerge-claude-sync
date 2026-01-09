@@ -4,12 +4,10 @@ import {
     Button, 
     TextField, 
     Typography, 
-    Divider, 
     Paper,
     CircularProgress,
     Alert,
-    Snackbar,
-    Grid
+    Snackbar
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -22,6 +20,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [stats, setStats] = useState({ files: 0, lines: 0 });
+    const [lastUpdated, setLastUpdated] = useState(null);
 
     const handleFetchStructure = async () => {
         setLoading(true);
@@ -31,8 +30,8 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
             
             const data = JSON.parse(response.data);
             setProjectStructure(data.root);
+            setLastUpdated(new Date());
             
-            // Auto-select all on first load
             const allFiles = flattenStructure(data.root);
             const newSet = new Set(allFiles.map(f => f.path));
             setSelectedPaths(newSet);
@@ -125,23 +124,24 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
             <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">URL do Servidor</Typography>
-                <TextField 
-                    fullWidth 
-                    size="small" 
-                    variant="outlined" 
-                    value={config.serverUrl}
-                    onChange={(e) => onConfigChange({ serverUrl: e.target.value })}
-                    sx={{ mb: 1 }}
-                />
-                <Button 
-                    variant="outlined" 
-                    startIcon={<RefreshIcon />} 
-                    onClick={handleFetchStructure}
-                    disabled={loading}
-                    fullWidth
-                >
-                    Buscar Estrutura
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField 
+                        fullWidth 
+                        size="small" 
+                        variant="outlined" 
+                        value={config.serverUrl}
+                        onChange={(e) => onConfigChange({ serverUrl: e.target.value })}
+                    />
+                    <Button 
+                        variant="outlined" 
+                        onClick={handleFetchStructure}
+                        disabled={loading}
+                        sx={{ minWidth: 'auto', px: 2 }}
+                        title="Buscar Estrutura"
+                    >
+                        {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
+                    </Button>
+                </Box>
             </Box>
 
             {projectStructure && (
@@ -165,18 +165,19 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                     </Paper>
 
                     <Box sx={{ mt: 'auto' }}>
-                        <Grid container spacing={1} sx={{ mb: 1 }}>
-                             <Grid size={{ xs: 6 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 1.5, flexWrap: 'wrap' }}>
+                             <Typography variant="caption" color="text.secondary">
+                                Arquivos: {stats.files}
+                             </Typography>
+                             <Typography variant="caption" color="text.secondary">
+                                Linhas: {stats.lines.toLocaleString()}
+                             </Typography>
+                             {lastUpdated && (
                                 <Typography variant="caption" color="text.secondary">
-                                    Arquivos: {stats.files}
+                                    Atualizado: {lastUpdated.toLocaleTimeString()}
                                 </Typography>
-                             </Grid>
-                             <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
-                                <Typography variant="caption" color="text.secondary">
-                                    Linhas: {stats.lines.toLocaleString()}
-                                </Typography>
-                             </Grid>
-                        </Grid>
+                             )}
+                        </Box>
                         
                         <Button
                             variant="contained"
