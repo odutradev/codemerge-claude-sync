@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { 
     Box, 
     Button, 
@@ -7,7 +7,8 @@ import {
     Paper,
     CircularProgress,
     Alert,
-    Snackbar
+    Snackbar,
+    InputAdornment
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -15,27 +16,27 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FileTreeItem from './FileTreeItem';
 
 const pulseGreen = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
 `;
 
 const pulseRed = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+`;
+
+const pulseOrange = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
+`;
+
+const dotBreathing = keyframes`
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
 `;
 
 const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
@@ -46,13 +47,15 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [stats, setStats] = useState({ files: 0, lines: 0 });
     const [lastUpdated, setLastUpdated] = useState(null);
-    const [serverStatus, setServerStatus] = useState('checking');
+    const [serverStatus, setServerStatus] = useState('checking'); 
+    const [isChecking, setIsChecking] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
         const checkHealth = async () => {
             if (!config.serverUrl) return;
             
+            if (isMounted) setIsChecking(true);
             try {
                 const response = await fetchViaBackground(`${config.serverUrl}/health`);
                 if (isMounted) {
@@ -64,6 +67,10 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                 }
             } catch (error) {
                 if (isMounted) setServerStatus('disconnected');
+            } finally {
+                setTimeout(() => {
+                    if (isMounted) setIsChecking(false);
+                }, 450);
             }
         };
 
@@ -174,6 +181,41 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         }
     };
 
+    const getStatusProps = () => {
+        if (isChecking) {
+            return {
+                color: 'warning.main',
+                borderColor: '#ed6c02',
+                borderAnimation: `${pulseOrange} 1.5s infinite`,
+                dotAnimation: `${dotBreathing} 1s infinite`
+            };
+        }
+        if (serverStatus === 'connected') {
+            return {
+                color: 'success.main',
+                borderColor: '#4caf50',
+                borderAnimation: `${pulseGreen} 3s infinite`,
+                dotAnimation: `${dotBreathing} 3s infinite`
+            };
+        }
+        if (serverStatus === 'disconnected') {
+            return {
+                color: 'error.main',
+                borderColor: '#f44336',
+                borderAnimation: `${pulseRed} 2s infinite`,
+                dotAnimation: `${dotBreathing} 2s infinite`
+            };
+        }
+        return {
+            color: 'text.disabled',
+            borderColor: undefined,
+            borderAnimation: 'none',
+            dotAnimation: 'none'
+        };
+    };
+
+    const statusProps = getStatusProps();
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
             <Box sx={{ mb: 2 }}>
@@ -185,23 +227,36 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                         variant="outlined" 
                         value={config.serverUrl}
                         onChange={(e) => onConfigChange({ serverUrl: e.target.value })}
-                        error={serverStatus === 'disconnected'}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Box
+                                        sx={{
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: '50%',
+                                            bgcolor: statusProps.color,
+                                            animation: statusProps.dotAnimation,
+                                            transition: 'background-color 0.3s ease'
+                                        }}
+                                    />
+                                </InputAdornment>
+                            )
+                        }}
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: 1,
                                 transition: 'all 0.3s ease',
-                                animation: serverStatus === 'connected' 
-                                    ? `${pulseGreen} 2s infinite` 
-                                    : (serverStatus === 'disconnected' ? `${pulseRed} 2s infinite` : 'none'),
+                                animation: statusProps.borderAnimation,
                                 '& fieldset': {
-                                    borderColor: serverStatus === 'connected' ? '#4caf50' : undefined,
+                                    borderColor: statusProps.borderColor,
                                     transition: 'border-color 0.3s'
                                 },
                                 '&:hover fieldset': {
-                                    borderColor: serverStatus === 'connected' ? '#66bb6a' : undefined,
+                                    borderColor: statusProps.borderColor,
                                 },
                                 '&.Mui-focused fieldset': {
-                                    borderColor: serverStatus === 'connected' ? '#81c784' : undefined,
+                                    borderColor: statusProps.borderColor,
                                 },
                             }
                         }}
