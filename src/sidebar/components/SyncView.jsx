@@ -155,7 +155,33 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                         sx={{ mb: 2 }}
                     />
                     
-                    <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', mb: 2, p: 1 }}>
+                    <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                            flexGrow: 1, 
+                            overflow: 'auto', 
+                            mb: 2, 
+                            p: 1,
+                            // Scrollbar styling
+                            '&::-webkit-scrollbar': {
+                                width: '8px',
+                                height: '8px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                background: 'transparent', 
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                                borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+                            },
+                            '&::-webkit-scrollbar-corner': {
+                                background: 'transparent',
+                            }
+                        }}
+                    >
                         <FileTreeItem 
                             node={projectStructure} 
                             selectedPaths={selectedPaths}
