@@ -1,7 +1,7 @@
 const geminiService = (() => {
     
     const getSessionAuthenticationData = () => {
-        const googleWizGlobalData = localStorage.getItem("WIZ_global_data");
+        const googleWizGlobalData = JSON.parse(localStorage.getItem("WIZ_global_data"));
         
         const currentUrlPath = window.location.pathname;
         const isGem = currentUrlPath.includes('/gem');
@@ -24,6 +24,7 @@ const geminiService = (() => {
 
     const sendBatchExecuteRequest = async (rpcIdentifier, payloadData) => {
         const sessionData = getSessionAuthenticationData();
+        console.log(sessionData)
 
         if (!sessionData.authToken) {
             throw new Error("Token de autenticação não encontrado.");
