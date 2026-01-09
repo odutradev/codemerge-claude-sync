@@ -46,6 +46,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     
     const [serverStatus, setServerStatus] = useState('checking'); 
@@ -121,6 +122,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
 
     const handleFetchArtifacts = async () => {
         setLoading(true);
+        setFetching(true);
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
@@ -144,6 +146,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
         } finally {
             setLoading(false);
+            setFetching(false);
         }
     };
 
@@ -219,7 +222,12 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
                 Buscar Artefatos
             </Button>
 
-            {artifacts.length > 0 ? (
+            {fetching ? (
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" color="text.secondary">Buscando artefatos...</Typography>
+                </Box>
+            ) : artifacts.length > 0 ? (
                 <>
                     <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
                         <List dense>
