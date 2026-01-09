@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Box, 
     Button, 
@@ -40,6 +40,17 @@ const dotBreathing = keyframes`
   50% { transform: scale(1.2); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 `;
+
+const flattenStructure = (node) => {
+    let files = [];
+    if (node.type === 'file') files.push(node);
+    if (node.children) {
+        node.children.forEach(child => {
+            files = [...files, ...flattenStructure(child)];
+        });
+    }
+    return files;
+};
 
 const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
     const [projectStructure, setProjectStructure] = useState(null);
@@ -85,7 +96,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         };
     }, [config.serverUrl, fetchViaBackground]);
 
-    const handleFetchStructure = async () => {
+    const handleFetchStructure = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetchViaBackground(`${config.serverUrl}/structure`);
@@ -104,18 +115,14 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [config.serverUrl, fetchViaBackground]);
 
-    const flattenStructure = (node) => {
-        let files = [];
-        if (node.type === 'file') files.push(node);
-        if (node.children) {
-            node.children.forEach(child => {
-                files = [...files, ...flattenStructure(child)];
-            });
+    // Carregamento automático da estrutura ao conectar
+    useEffect(() => {
+        if (serverStatus === 'connected' && !projectStructure && !loading) {
+            handleFetchStructure();
         }
-        return files;
-    };
+    }, [serverStatus, projectStructure, handleFetchStructure, loading]);
 
     const handleToggleSelection = (node, isSelected) => {
         const newSelected = new Set(selectedPaths);
