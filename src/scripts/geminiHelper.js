@@ -1,3 +1,5 @@
+import geminiService from '../services/geminiService';
+
 console.log('[GeminiHelper] Content script carregado - PostMessage Mode');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -7,11 +9,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }
+
+    if (message.type === 'GET_GEMINI_ARTIFACTS') {
+        console.log('[GeminiHelper] Solicitando arquivos ao GeminiService...');
+        geminiService.getAllFiles()
+            .then(artifacts => {
+                console.log(`[GeminiHelper] ${artifacts.length} artefatos encontrados.`);
+                sendResponse({ success: true, artifacts });
+            })
+            .catch(error => {
+                console.error('[GeminiHelper] Erro ao buscar artefatos:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
 });
 
 async function handleAddFileGemini(fileName, content) {
     console.log(`[GeminiHelper] 🚀 Enviando para injector: ${fileName} (${content.length} bytes)`);
-    
     return new Promise((resolve, reject) => {
         const messageListener = (event) => {
             if (event.source !== window) return;
@@ -39,13 +54,13 @@ async function handleAddFileGemini(fileName, content) {
         }, 5000);
 
         window.addEventListener('message', messageListener);
-
+        
         window.postMessage({
             type: 'GEMINI_UPLOAD_FILE',
             fileName,
             content
         }, '*');
-
+        
         console.log('[GeminiHelper] 📤 Mensagem enviada para injector');
     });
 }
