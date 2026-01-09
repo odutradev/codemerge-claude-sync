@@ -2,3 +2,4 @@ package-lock.json
 node_modules
 builds
 codemerge-claude-sync-merged.txt
+dist
