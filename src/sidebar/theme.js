@@ -4,15 +4,15 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#da7756', // Accent color similar to original accent-secondary-100
+      main: '#da7756', 
     },
     background: {
-      default: '#1a1a1a', // bg-000 approx
-      paper: '#262626',   // bg-200 approx
+      default: '#1a1a1a', 
+      paper: '#262626',   
     },
     text: {
-      primary: '#ffffff', // text-100
-      secondary: '#a1a1a1', // text-300
+      primary: '#ffffff', 
+      secondary: '#a1a1a1', 
     },
   },
   typography: {

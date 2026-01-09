@@ -68,7 +68,6 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         setSelectedPaths(newSelected);
     };
 
-    // Atualiza estatísticas sempre que a seleção muda
     useEffect(() => {
         if (!projectStructure) return;
         const allFiles = flattenStructure(projectStructure);
@@ -83,7 +82,6 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         try {
             const selectedPathsArray = Array.from(selectedPaths);
             
-            // 1. Busca conteúdo
             const response = await fetchViaBackground(
                 `${config.serverUrl}/selective-content`,
                 {
@@ -96,7 +94,6 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             const content = response.data;
 
-            // 2. Envia para aba ativa
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
             

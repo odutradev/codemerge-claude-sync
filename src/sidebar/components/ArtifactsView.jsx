@@ -41,7 +41,6 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             
             setArtifacts(response.artifacts || []);
-            // Select all by default
             setSelectedIndices(new Set((response.artifacts || []).map((_, i) => i)));
             setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });
 

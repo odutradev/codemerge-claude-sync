@@ -8,7 +8,6 @@ const App = () => {
     const [config, setConfig] = useState({ serverUrl: 'http://localhost:9876' });
 
     useEffect(() => {
-        // Carregar config inicial
         if (chrome && chrome.runtime) {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
                 if (response?.config) {
@@ -21,7 +20,6 @@ const App = () => {
     const handleConfigChange = (newConfig) => {
         const updated = { ...config, ...newConfig };
         setConfig(updated);
-        // Persistir
         if (chrome && chrome.runtime) {
             chrome.runtime.sendMessage({ type: 'UPDATE_CONFIG', config: updated });
         }

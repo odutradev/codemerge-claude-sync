@@ -27,7 +27,6 @@ const getFileIcon = (filename) => {
 const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
   const [expanded, setExpanded] = useState(false);
   
-  // Verifica se o diretório deve estar expandido base na busca
   useEffect(() => {
     if (searchTerm && searchTerm.length > 0) {
       setExpanded(true);
@@ -36,7 +35,6 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
 
   const isSelected = selectedPaths.has(node.path);
   
-  // Função auxiliar para verificar seleção parcial de diretórios
   const isIndeterminate = () => {
     if (node.type !== 'directory') return false;
     const allChildrenPaths = getAllChildrenPaths(node);
@@ -64,7 +62,6 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
     return false;
   };
 
-  // Helper recursivo para visibilidade (não renderizar componentes desnecessários é melhor, mas CSS display none é mais simples para manter estado)
   const checkVisibility = (n, term) => {
     if (n.name.toLowerCase().includes(term.toLowerCase())) return true;
     if (n.children) return n.children.some(c => checkVisibility(c, term));

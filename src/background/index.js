@@ -13,7 +13,6 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.action.onClicked.addListener((tab) => {
-    // Abre o side panel na janela atual
     chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
@@ -27,7 +26,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const handler = handlers[message.type];
     if (handler) {
         handler();
-        return true; // Mantém o canal de mensagem aberto para resposta assíncrona
+        return true; 
     }
 });
 
