@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Box, 
     Button, 
@@ -15,6 +15,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FileTreeItem from './FileTreeItem';
 
+// Keyframes para o efeito "Ripple" da borda
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
   70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
@@ -33,6 +34,7 @@ const pulseOrange = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
 `;
 
+// Keyframe para o efeito de "Respiração" da bolinha
 const dotBreathing = keyframes`
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.2); opacity: 0.7; }
@@ -70,7 +72,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
             } finally {
                 setTimeout(() => {
                     if (isMounted) setIsChecking(false);
-                }, 450);
+                }, 500);
             }
         };
 
@@ -264,7 +266,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                     <Button 
                         variant="outlined" 
                         onClick={handleFetchStructure}
-                        disabled={loading}
+                        disabled={loading || isChecking || serverStatus !== 'connected'}
                         sx={{ minWidth: 'auto', px: 2 }}
                         title="Buscar Estrutura"
                     >
