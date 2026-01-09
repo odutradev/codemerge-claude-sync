@@ -86,15 +86,17 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
   };
 
   return (
-    <Box sx={{ pl: level > 0 ? 1.5 : 0 }}>
+    <Box>
       <Box 
         onClick={handleItemClick}
         sx={{ 
           display: 'flex', 
           alignItems: 'center', 
           py: 0.5, 
+          pr: 1,
+          pl: 1 + (level * 1.5),
+          width: '100%',
           cursor: 'pointer',
-          borderRadius: 1,
           transition: 'background-color 0.2s',
           '&:hover': { bgcolor: 'action.hover' },
           bgcolor: isSelected || isPartiallySelected ? 'rgba(218, 119, 86, 0.15)' : 'transparent'

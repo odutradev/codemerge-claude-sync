@@ -21,6 +21,35 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [stats, setStats] = useState({ files: 0, lines: 0 });
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [serverStatus, setServerStatus] = useState('checking');
+
+    useEffect(() => {
+        let isMounted = true;
+        const checkHealth = async () => {
+            if (!config.serverUrl) return;
+            
+            try {
+                const response = await fetchViaBackground(`${config.serverUrl}/health`);
+                if (isMounted) {
+                    if (response.success) {
+                        setServerStatus('connected');
+                    } else {
+                        setServerStatus('disconnected');
+                    }
+                }
+            } catch (error) {
+                if (isMounted) setServerStatus('disconnected');
+            }
+        };
+
+        checkHealth();
+        const interval = setInterval(checkHealth, 5000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [config.serverUrl, fetchViaBackground]);
 
     const handleFetchStructure = async () => {
         setLoading(true);
@@ -131,6 +160,21 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                         variant="outlined" 
                         value={config.serverUrl}
                         onChange={(e) => onConfigChange({ serverUrl: e.target.value })}
+                        error={serverStatus === 'disconnected'}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                    borderColor: serverStatus === 'connected' ? '#4caf50' : undefined,
+                                    transition: 'border-color 0.3s'
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: serverStatus === 'connected' ? '#66bb6a' : undefined,
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: serverStatus === 'connected' ? '#81c784' : undefined,
+                                },
+                            }
+                        }}
                     />
                     <Button 
                         variant="outlined" 
@@ -161,8 +205,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                             flexGrow: 1, 
                             overflow: 'auto', 
                             mb: 2, 
-                            p: 1,
-                            // Scrollbar styling
+                            p: 0,
                             '&::-webkit-scrollbar': {
                                 width: '8px',
                                 height: '8px',
