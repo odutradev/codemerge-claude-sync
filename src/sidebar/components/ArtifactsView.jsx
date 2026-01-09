@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Box, 
     Button, 
@@ -14,15 +14,110 @@ import {
     Snackbar,
     Alert
 } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
-import CodeIcon from '@mui/icons-material/Code';
+
+const pulseGreen = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+`;
+
+const pulseRed = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+`;
+
+const pulseOrange = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
+`;
+
+const dotBreathing = keyframes`
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+`;
 
 const ArtifactsView = ({ config, fetchViaBackground }) => {
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
+    
+    const [serverStatus, setServerStatus] = useState('checking'); 
+    const [isChecking, setIsChecking] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        const checkHealth = async () => {
+            if (!config.serverUrl) return;
+            
+            if (isMounted) setIsChecking(true);
+            try {
+                const response = await fetchViaBackground(`${config.serverUrl}/health`);
+                if (isMounted) {
+                    if (response.success) {
+                        setServerStatus('connected');
+                    } else {
+                        setServerStatus('disconnected');
+                    }
+                }
+            } catch (error) {
+                if (isMounted) setServerStatus('disconnected');
+            } finally {
+                setTimeout(() => {
+                    if (isMounted) setIsChecking(false);
+                }, 500);
+            }
+        };
+
+        checkHealth();
+        const interval = setInterval(checkHealth, 5000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [config.serverUrl, fetchViaBackground]);
+
+    const getStatusProps = () => {
+        if (isChecking) {
+            return {
+                color: 'warning.main',
+                pulseAnimation: `${pulseOrange} 1.5s infinite`,
+                dotAnimation: `${dotBreathing} 1s infinite`,
+                text: 'Verificando...'
+            };
+        }
+        if (serverStatus === 'connected') {
+            return {
+                color: 'success.main',
+                pulseAnimation: `${pulseGreen} 3s infinite`,
+                dotAnimation: `${dotBreathing} 3s infinite`,
+                text: 'Online'
+            };
+        }
+        if (serverStatus === 'disconnected') {
+            return {
+                color: 'error.main',
+                pulseAnimation: `${pulseRed} 2s infinite`,
+                dotAnimation: `${dotBreathing} 2s infinite`,
+                text: 'Offline'
+            };
+        }
+        return {
+            color: 'text.disabled',
+            pulseAnimation: 'none',
+            dotAnimation: 'none',
+            text: 'Desconhecido'
+        };
+    };
+
+    const statusProps = getStatusProps();
 
     const handleFetchArtifacts = async () => {
         setLoading(true);
@@ -46,7 +141,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
 
         } catch (error) {
             console.log(error)
-            setMessage({ open: true, text: `Erro2: ${error.message}`, type: 'error' });
+            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -92,6 +187,27 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                    Status do servidor
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                        {statusProps.text}
+                    </Typography>
+                    <Box
+                        sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            bgcolor: statusProps.color,
+                            animation: `${statusProps.dotAnimation}, ${statusProps.pulseAnimation}`,
+                            transition: 'background-color 0.3s ease'
+                        }}
+                    />
+                </Box>
+            </Box>
+
             <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
@@ -148,7 +264,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
                         color="primary"
                         startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
                         onClick={handleSync}
-                        disabled={loading || selectedIndices.size === 0}
+                        disabled={loading || selectedIndices.size === 0 || serverStatus !== 'connected'}
                         fullWidth
                     >
                         Fazer Upsert Local ({selectedIndices.size})
