@@ -33,15 +33,6 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
     }
   }, [searchTerm]);
 
-  const isSelected = selectedPaths.has(node.path);
-  
-  const isIndeterminate = () => {
-    if (node.type !== 'directory') return false;
-    const allChildrenPaths = getAllChildrenPaths(node);
-    const selectedChildren = allChildrenPaths.filter(p => selectedPaths.has(p));
-    return selectedChildren.length > 0 && selectedChildren.length < allChildrenPaths.length;
-  };
-
   const getAllChildrenPaths = (n) => {
     let paths = [];
     if (n.type === 'file') paths.push(n.path);
@@ -52,6 +43,13 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
     }
     return paths;
   };
+
+  const allDescendants = getAllChildrenPaths(node);
+  const selectedDescendantsCount = allDescendants.filter(p => selectedPaths.has(p)).length;
+  
+  const isFullySelected = allDescendants.length > 0 && selectedDescendantsCount === allDescendants.length;
+  const isPartiallySelected = selectedDescendantsCount > 0 && selectedDescendantsCount < allDescendants.length;
+  const isSelected = selectedPaths.has(node.path) || isFullySelected;
 
   const isVisible = () => {
     if (!searchTerm) return true;
@@ -70,17 +68,45 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
 
   if (!isVisible()) return null;
 
-  const handleToggle = () => setExpanded(!expanded);
+  const handleExpandClick = (e) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
 
-  const handleCheckboxChange = () => {
-    onToggleSelection(node, !isSelected);
+  const handleItemClick = (e) => {
+    if (e.target.closest('.expand-icon')) return;
+    const shouldSelect = selectedDescendantsCount === 0;
+    onToggleSelection(node, shouldSelect);
+  };
+
+  const handleCheckboxChange = (e) => {
+    e.stopPropagation();
+    const shouldSelect = selectedDescendantsCount === 0;
+    onToggleSelection(node, shouldSelect);
   };
 
   return (
     <Box sx={{ pl: level > 0 ? 1.5 : 0 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5, '&:hover': { bgcolor: 'action.hover' } }}>
+      <Box 
+        onClick={handleItemClick}
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          py: 0.5, 
+          cursor: 'pointer',
+          borderRadius: 1,
+          transition: 'background-color 0.2s',
+          '&:hover': { bgcolor: 'action.hover' },
+          bgcolor: isSelected || isPartiallySelected ? 'rgba(218, 119, 86, 0.15)' : 'transparent'
+        }}
+      >
         {node.type === 'directory' ? (
-          <IconButton size="small" onClick={handleToggle} sx={{ p: 0.5, mr: 0.5 }}>
+          <IconButton 
+            className="expand-icon"
+            size="small" 
+            onClick={handleExpandClick} 
+            sx={{ p: 0.5, mr: 0.5 }}
+          >
             {expanded ? <KeyboardArrowDownIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
           </IconButton>
         ) : (
@@ -90,7 +116,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
         <Checkbox
           size="small"
           checked={isSelected}
-          indeterminate={isIndeterminate()}
+          indeterminate={isPartiallySelected}
           onChange={handleCheckboxChange}
           sx={{ p: 0.5 }}
         />
