@@ -100,7 +100,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
                 fullWidth
                 sx={{ mb: 2 }}
             >
-                Buscar Artefatos (Gemini)
+                Buscar Artefatos
             </Button>
 
             {artifacts.length > 0 ? (
