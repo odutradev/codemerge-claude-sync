@@ -1,12 +1,29 @@
-export const removeComments = (code) => {
+export const processCode = (code, options = {}) => {
     if (typeof code !== 'string') return code;
 
-    return code
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/^(?!\s*https?:\/\/)\s*\/\/.*$/gm, '')
-        .replace(/(\s|[^\w\s:])\/\/.*$/gm, '$1')
-        .replace(/\{\s*\}/g, '')
+    let processed = code;
+
+    if (options.removeComments) {
+        processed = processed
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/^(?!\s*https?:\/\/)\s*\/\/.*$/gm, '')
+            .replace(/(\s|[^\w\s:])\/\/.*$/gm, '$1');
+    }
+
+    if (options.removeLogs) {
+        processed = processed.replace(/^\s*console\.(log|debug|info|warn|error)\(.*\);?\s*$/gm, '');
+    }
+
+    if (options.removeEmptyLines) {
+        processed = processed.replace(/^\s*[\r\n]/gm, '');
+    }
+
+    processed = processed
+        .replace(/\{\s*\}/g, '{}')
         .replace(/[ \t]+$/gm, '')
-        .replace(/^\s*[\r\n]/gm, '')
         .trim();
+
+    return processed;
 };
+
+export const removeComments = (code) => processCode(code, { removeComments: true, removeEmptyLines: true });

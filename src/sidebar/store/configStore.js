@@ -8,7 +8,9 @@ const DEFAULT_CONFIG = {
     compactMode: false,
     verbosity: 'all',
     persistSelection: true,
-    removeComments: false,
+    removeComments: false, 
+    removeEmptyLines: true,
+    removeLogs: false,
 };
 
 const useConfigStore = create((set, get) => ({
@@ -57,6 +59,16 @@ const useConfigStore = create((set, get) => ({
         get().syncToBackground();
     },
 
+    setRemoveEmptyLines: (enabled) => {
+        set({ removeEmptyLines: enabled });
+        get().syncToBackground();
+    },
+
+    setRemoveLogs: (enabled) => {
+        set({ removeLogs: enabled });
+        get().syncToBackground();
+    },
+
     resetConfig: () => {
         set(DEFAULT_CONFIG);
         get().syncToBackground();
@@ -74,7 +86,9 @@ const useConfigStore = create((set, get) => ({
                         compactMode: response.config.compactMode ?? state.compactMode,
                         verbosity: response.config.verbosity || state.verbosity,
                         persistSelection: response.config.persistSelection ?? state.persistSelection,
-                        removeComments: response.config.removeComments ?? state.removeComments
+                        removeComments: response.config.removeComments ?? state.removeComments,
+                        removeEmptyLines: response.config.removeEmptyLines ?? state.removeEmptyLines,
+                        removeLogs: response.config.removeLogs ?? state.removeLogs
                     }));
                 }
             });
@@ -83,27 +97,20 @@ const useConfigStore = create((set, get) => ({
 
     syncToBackground: () => {
         if (chrome && chrome.runtime) {
-            const { 
-                serverUrl, 
-                checkInterval, 
-                themeMode, 
-                primaryColor, 
-                compactMode, 
-                verbosity, 
-                persistSelection,
-                removeComments
-            } = get();
+            const config = get();
             chrome.runtime.sendMessage({
                 type: 'UPDATE_CONFIG',
                 config: { 
-                    serverUrl, 
-                    checkInterval, 
-                    themeMode, 
-                    primaryColor, 
-                    compactMode, 
-                    verbosity, 
-                    persistSelection,
-                    removeComments
+                    serverUrl: config.serverUrl,
+                    checkInterval: config.checkInterval,
+                    themeMode: config.themeMode,
+                    primaryColor: config.primaryColor,
+                    compactMode: config.compactMode,
+                    verbosity: config.verbosity,
+                    persistSelection: config.persistSelection,
+                    removeComments: config.removeComments,
+                    removeEmptyLines: config.removeEmptyLines,
+                    removeLogs: config.removeLogs
                 }
             });
         }

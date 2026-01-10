@@ -23,7 +23,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
-import { removeComments } from '../../utils/codeProcessor';
+import { processCode } from '../../utils/codeProcessor';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -43,12 +43,6 @@ const pulseOrange = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
 `;
 
-const dotBreathing = keyframes`
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-`;
-
 const flattenStructure = (node) => {
     let files = [];
     if (node.type === 'file') files.push(node);
@@ -57,7 +51,7 @@ const flattenStructure = (node) => {
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments: removeCommentsEnabled, setRemoveComments } = useConfigStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
     const { selections, setProjectSelection, hasStoredSelection } = useSelectionStore();
     
     const [projectStructure, setProjectStructure] = useState(null);
@@ -65,8 +59,6 @@ const SyncView = ({ fetchViaBackground }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
-    const [stats, setStats] = useState({ files: 0, lines: 0 });
-    const [lastUpdated, setLastUpdated] = useState(null);
     const [serverStatus, setServerStatus] = useState('checking'); 
     const [isChecking, setIsChecking] = useState(false);
 
@@ -106,7 +98,6 @@ const SyncView = ({ fetchViaBackground }) => {
             setProjectStructure(data.root);
             const newProjectId = data.project || 'default-project';
             setProjectId(newProjectId);
-            setLastUpdated(new Date());
             if (!persistSelection || !hasStoredSelection(newProjectId)) {
                 const allFiles = flattenStructure(data.root);
                 const defaultSelection = allFiles.filter(f => !f.name.toLowerCase().endsWith('.md')).map(f => f.path);
@@ -136,7 +127,7 @@ const SyncView = ({ fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             let content = response.data;
 
-            if (removeCommentsEnabled) {
+            if (removeComments) {
                 content = content.split('STARTOFFILE:').map((part, i) => {
                     if (i === 0) return part;
                     const lines = part.split('\n');
@@ -144,7 +135,14 @@ const SyncView = ({ fetchViaBackground }) => {
                     const bodyAndFooter = lines.slice(1).join('\n');
                     const marker = '----------------------------------------\nENDOFFILE:';
                     const [body, ...footerParts] = bodyAndFooter.split(marker);
-                    return `${header}\n${removeComments(body)}${marker}${footerParts.join(marker)}`;
+                    
+                    const cleanedBody = processCode(body, { 
+                        removeComments: true, 
+                        removeEmptyLines, 
+                        removeLogs 
+                    });
+
+                    return `${header}\n${cleanedBody}\n${marker}${footerParts.join(marker)}`;
                 }).join('STARTOFFILE:');
             }
 
@@ -195,9 +193,9 @@ const SyncView = ({ fetchViaBackground }) => {
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
                                 placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                            <Tooltip title="Limpeza de código">
-                                <IconButton size="small" onClick={() => setRemoveComments(!removeCommentsEnabled)} color={removeCommentsEnabled ? "primary" : "default"} sx={{ ml: 1 }}>
-                                    {removeCommentsEnabled ? <CodeOffIcon fontSize="small" /> : <CodeIcon fontSize="small" />}
+                            <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
+                                <IconButton size="small" onClick={() => setRemoveComments(!removeComments)} color={removeComments ? "primary" : "default"} sx={{ ml: 1 }}>
+                                    {removeComments ? <CodeOffIcon fontSize="small" /> : <CodeIcon fontSize="small" />}
                                 </IconButton>
                             </Tooltip>
                             <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>

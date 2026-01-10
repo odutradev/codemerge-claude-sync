@@ -14,10 +14,10 @@ import {
     Alert,
     createTheme,
     ThemeProvider,
-    CssBaseline
+    CssBaseline,
+    FormControlLabel,
+    Checkbox
 } from '@mui/material';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import TimerIcon from '@mui/icons-material/Timer';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -35,57 +35,19 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import CodeIcon from '@mui/icons-material/Code';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
-const DEFAULT_CONFIG = {
-    serverUrl: 'http://localhost:9876',
-    checkInterval: 5000,
-    themeMode: 'system',
-    primaryColor: '#da7756',
-    compactMode: false,
-    verbosity: 'all',
-    persistSelection: true,
-    removeComments: false,
-};
-
-const useConfigStore = create((set, get) => ({
-    ...DEFAULT_CONFIG,
-    setServerUrl: (url) => set({ serverUrl: url }),
-    setCheckInterval: (interval) => {
-        const val = parseInt(interval, 10);
-        if (!isNaN(val) && val > 0) set({ checkInterval: val });
-    },
-    setThemeMode: (mode) => set({ themeMode: mode }),
-    setPrimaryColor: (color) => set({ primaryColor: color }),
-    setCompactMode: (mode) => set({ compactMode: mode }),
-    setVerbosity: (level) => set({ verbosity: level }),
-    setPersistSelection: (enabled) => set({ persistSelection: enabled }),
-    setRemoveComments: (enabled) => set({ removeComments: enabled }),
-    resetConfig: () => set(DEFAULT_CONFIG),
-    syncToBackground: () => {
-        if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({ type: 'UPDATE_CONFIG', config: get() });
-        }
-    }
-}));
-
-const useSelectionStore = create(
-    persist(
-        (set) => ({
-            selections: {},
-            timestamps: {},
-            clearAllSelections: () => set({ selections: {}, timestamps: {} }),
-        }),
-        { name: 'codemerge-selection-storage' }
-    )
-);
+import useConfigStore from '../../store/configStore';
+import useSelectionStore from '../../store/selectionStore';
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'];
 
 const SettingsView = () => {
     const { 
-        checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection, removeComments,
+        checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection, 
+        removeComments, removeEmptyLines, removeLogs,
         setCheckInterval, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity,
-        setPersistSelection, setRemoveComments, resetConfig
+        setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs, resetConfig
     } = useConfigStore();
 
     const { clearAllSelections } = useSelectionStore();
@@ -103,16 +65,11 @@ const SettingsView = () => {
     const handleCompactChange = (event, newMode) => { if (newMode !== null) setCompactMode(newMode === 'compact'); };
     const handleVerbosityChange = (event, newLevel) => { if (newLevel !== null) setVerbosity(newLevel); };
     const handlePersistChange = (event, newValue) => { if (newValue !== null) setPersistSelection(newValue === 'on'); };
-    const handleCommentsChange = (event, newValue) => { if (newValue !== null) setRemoveComments(newValue === 'on'); };
+    const handleCleaningToggle = (event, newValue) => { if (newValue !== null) setRemoveComments(newValue === 'on'); };
 
     const handleReset = () => {
         resetConfig();
         setMessage({ open: true, text: 'Configurações restauradas', type: 'success' });
-    };
-
-    const handleClearCache = () => {
-        clearAllSelections();
-        setMessage({ open: true, text: 'Cache de seleções limpo', type: 'success' });
     };
 
     return (
@@ -132,18 +89,10 @@ const SettingsView = () => {
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Densidade da Lista</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Densidade</Typography>
                     <ToggleButtonGroup value={compactMode ? 'compact' : 'normal'} exclusive onChange={handleCompactChange} size="small" fullWidth>
                         <ToggleButton value="normal"><ViewHeadlineIcon fontSize="small" sx={{ mr: 1 }} />Normal</ToggleButton>
                         <ToggleButton value="compact"><ViewCompactIcon fontSize="small" sx={{ mr: 1 }} />Compacto</ToggleButton>
-                    </ToggleButtonGroup>
-                </Box>
-
-                <Box sx={{ mb: 3 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Limpeza de Código</Typography>
-                    <ToggleButtonGroup value={removeComments ? 'on' : 'off'} exclusive onChange={handleCommentsChange} size="small" fullWidth>
-                        <ToggleButton value="off"><CodeIcon fontSize="small" sx={{ mr: 1 }} />Preservar</ToggleButton>
-                        <ToggleButton value="on"><CodeOffIcon fontSize="small" sx={{ mr: 1 }} />Limpar Comentários</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
 
@@ -153,14 +102,6 @@ const SettingsView = () => {
                         <ToggleButton value="all"><NotificationsIcon fontSize="small" sx={{ mr: 1 }} />Tudo</ToggleButton>
                         <ToggleButton value="errors"><ErrorOutlineIcon fontSize="small" sx={{ mr: 1 }} />Erros</ToggleButton>
                         <ToggleButton value="silent"><NotificationsOffIcon fontSize="small" sx={{ mr: 1 }} />Mudo</ToggleButton>
-                    </ToggleButtonGroup>
-                </Box>
-
-                <Box sx={{ mb: 3 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Manter Seleção</Typography>
-                    <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={handlePersistChange} size="small" fullWidth>
-                        <ToggleButton value="off"><PushPinOutlinedIcon fontSize="small" sx={{ mr: 1 }} />Desativado</ToggleButton>
-                        <ToggleButton value="on"><PushPinIcon fontSize="small" sx={{ mr: 1 }} />Ativado</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
 
@@ -187,12 +128,58 @@ const SettingsView = () => {
             </Paper>
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-                <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>Dados & Armazenamento</Typography>
-                <Button variant="outlined" color="warning" startIcon={<DeleteSweepIcon />} onClick={handleClearCache} fullWidth size="small" sx={{ mb: 2 }}>Limpar Cache de Seleções</Button>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                    <AutoFixHighIcon fontSize="small" sx={{ mr: 1 }} /> Limpeza de Código
+                </Typography>
+
+                <Box sx={{ mb: 2 }}>
+                    <ToggleButtonGroup 
+                        value={removeComments ? 'on' : 'off'} 
+                        exclusive 
+                        onChange={handleCleaningToggle} 
+                        size="small" 
+                        fullWidth
+                    >
+                        <ToggleButton value="off">Não Limpar</ToggleButton>
+                        <ToggleButton value="on" color="primary">Limpar</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, opacity: removeComments ? 1 : 0.5, pointerEvents: removeComments ? 'auto' : 'none' }}>
+                    <FormControlLabel
+                        control={<Checkbox size="small" checked={true} disabled />}
+                        label={<Typography variant="caption">Remover Comentários (Base)</Typography>}
+                    />
+                    <FormControlLabel
+                        control={<Checkbox size="small" checked={removeEmptyLines} onChange={(e) => setRemoveEmptyLines(e.target.checked)} />}
+                        label={<Typography variant="caption">Remover Linhas Vazias</Typography>}
+                    />
+                    <FormControlLabel
+                        control={<Checkbox size="small" checked={removeLogs} onChange={(e) => setRemoveLogs(e.target.checked)} />}
+                        label={<Typography variant="caption">Remover Console Logs</Typography>}
+                    />
+                </Box>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>Dados & Sincronização</Typography>
+                
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Persistência</Typography>
+                    <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={handlePersistChange} size="small" fullWidth>
+                        <ToggleButton value="off"><PushPinOutlinedIcon fontSize="small" sx={{ mr: 1 }} />Volátil</ToggleButton>
+                        <ToggleButton value="on"><PushPinIcon fontSize="small" sx={{ mr: 1 }} />Manter Seleção</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Button variant="outlined" color="warning" startIcon={<DeleteSweepIcon />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache limpo', type: 'success' }); }} fullWidth size="small" sx={{ mb: 2 }}>Limpar Cache de Seleções</Button>
+                
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Intervalo de Checagem (ms)</Typography>
+                
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Check Interval (ms)</Typography>
                 <TextField fullWidth variant="outlined" size="small" type="number" value={checkInterval} onChange={(e) => setCheckInterval(e.target.value)}
                     InputProps={{ startAdornment: (<InputAdornment position="start"><TimerIcon fontSize="small" /></InputAdornment>), }} sx={{ mb: 2 }} />
+                
                 <Button variant="outlined" color="error" startIcon={<RestartAltIcon />} onClick={handleReset} fullWidth size="small">Restaurar Padrões</Button>
             </Paper>
 

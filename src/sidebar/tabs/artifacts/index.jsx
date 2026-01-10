@@ -22,7 +22,7 @@ import CodeOffIcon from '@mui/icons-material/CodeOff';
 import CodeIcon from '@mui/icons-material/Code';
 import FileIcon from '../../components/fileIcon';
 import useConfigStore from '../../store/configStore';
-import { removeComments } from '../../utils/codeProcessor';
+import { processCode } from '../../utils/codeProcessor';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -42,14 +42,8 @@ const pulseOrange = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
 `;
 
-const dotBreathing = keyframes`
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-`;
-
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, verbosity, compactMode, removeComments: removeCommentsEnabled, setRemoveComments } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, compactMode, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -131,8 +125,12 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             const selectedFiles = Array.from(selectedIndices).map(index => {
                 const artifact = artifacts[index];
                 let content = artifact.code;
-                if (removeCommentsEnabled) {
-                    content = removeComments(content);
+                if (removeComments) {
+                    content = processCode(content, { 
+                        removeComments: true, 
+                        removeEmptyLines, 
+                        removeLogs 
+                    });
                 }
                 return { path: artifact.name, content };
             });
@@ -177,13 +175,13 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                 >
                     Buscar Artefatos
                 </Button>
-                <Tooltip title={removeCommentsEnabled ? "Limpeza de código ativa" : "Limpeza de código inativa"}>
+                <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
                     <IconButton 
-                        color={removeCommentsEnabled ? "primary" : "default"}
-                        onClick={() => setRemoveComments(!removeCommentsEnabled)}
+                        color={removeComments ? "primary" : "default"}
+                        onClick={() => setRemoveComments(!removeComments)}
                         sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
                     >
-                        {removeCommentsEnabled ? <CodeOffIcon /> : <CodeIcon />}
+                        {removeComments ? <CodeOffIcon /> : <CodeIcon />}
                     </IconButton>
                 </Tooltip>
             </Box>
