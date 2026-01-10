@@ -7,13 +7,10 @@ import {
     InputAdornment, 
     ToggleButton, 
     ToggleButtonGroup,
-    IconButton,
-    Switch,
-    FormControlLabel
+    IconButton
 } from '@mui/material';
 import useConfigStore from '../../store/configStore';
 import TimerIcon from '@mui/icons-material/Timer';
-import DnsIcon from '@mui/icons-material/Dns';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
@@ -34,13 +31,11 @@ const PREDEFINED_COLORS = [
 
 const SettingsView = () => {
     const { 
-        serverUrl, 
         checkInterval, 
         themeMode, 
         primaryColor,
         compactMode,
         verbosity,
-        setServerUrl, 
         setCheckInterval,
         setThemeMode,
         setPrimaryColor,
@@ -53,6 +48,12 @@ const SettingsView = () => {
     const handleThemeChange = (event, newMode) => {
         if (newMode !== null) {
             setThemeMode(newMode);
+        }
+    };
+
+    const handleCompactChange = (event, newMode) => {
+        if (newMode !== null) {
+            setCompactMode(newMode === 'compact');
         }
     };
 
@@ -104,23 +105,23 @@ const SettingsView = () => {
                      <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                         Densidade da Lista
                     </Typography>
-                    <FormControlLabel
-                        control={
-                            <Switch 
-                                checked={compactMode} 
-                                onChange={(e) => setCompactMode(e.target.checked)} 
-                                size="small"
-                            />
-                        }
-                        label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {compactMode ? <ViewCompactIcon fontSize="small" /> : <ViewHeadlineIcon fontSize="small" />}
-                                <Typography variant="body2">
-                                    {compactMode ? "Modo Compacto" : "Modo Normal"}
-                                </Typography>
-                            </Box>
-                        }
-                    />
+                    <ToggleButtonGroup
+                        value={compactMode ? 'compact' : 'normal'}
+                        exclusive
+                        onChange={handleCompactChange}
+                        aria-label="list density"
+                        size="small"
+                        fullWidth
+                    >
+                        <ToggleButton value="normal">
+                            <ViewHeadlineIcon fontSize="small" sx={{ mr: 1 }} />
+                            Normal
+                        </ToggleButton>
+                        <ToggleButton value="compact">
+                            <ViewCompactIcon fontSize="small" sx={{ mr: 1 }} />
+                            Compacto
+                        </ToggleButton>
+                    </ToggleButtonGroup>
                 </Box>
 
                 <Box sx={{ mb: 3 }}>
@@ -210,26 +211,6 @@ const SettingsView = () => {
                 <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
                     Conexão & Sistema
                 </Typography>
-
-                <Box sx={{ mb: 3 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                        URL do Servidor
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        value={serverUrl}
-                        onChange={(e) => setServerUrl(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <DnsIcon fontSize="small" />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                </Box>
 
                 <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
