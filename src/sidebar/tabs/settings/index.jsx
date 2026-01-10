@@ -20,6 +20,7 @@ import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import packageJson from '../../../../package.json';
 
 const PREDEFINED_COLORS = [
     '#da7756',
@@ -235,7 +236,7 @@ const SettingsView = () => {
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>
-                CodeMerge Sync v2.2.0
+                CodeMerge Sync v{packageJson.version}
             </Typography>
         </Box>
     );
