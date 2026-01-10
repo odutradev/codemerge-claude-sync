@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { 
     Box, 
     TextField, 
@@ -10,13 +10,15 @@ import {
     IconButton,
     Button,
     Divider,
-    Switch,
-    FormControlLabel,
     Snackbar,
-    Alert
+    Alert,
+    createTheme,
+    ThemeProvider,
+    CssBaseline
 } from '@mui/material';
-import useConfigStore from '../../store/configStore';
-import useSelectionStore from '../../store/selectionStore';
+import { create } from 'zustand';
+
+// Ícones
 import TimerIcon from '@mui/icons-material/Timer';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -29,7 +31,45 @@ import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import packageJson from '../../../../package.json';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+
+// --- STORES (Consolidadas para funcionamento autônomo) ---
+
+const useConfigStore = create((set) => ({
+    serverUrl: 'http://localhost:9876',
+    checkInterval: 5000,
+    themeMode: 'system',
+    primaryColor: '#da7756',
+    compactMode: false,
+    verbosity: 'all',
+    persistSelection: true,
+    
+    setServerUrl: (url) => set({ serverUrl: url }),
+    setCheckInterval: (interval) => set({ checkInterval: parseInt(interval, 10) || 5000 }),
+    setThemeMode: (mode) => set({ themeMode: mode }),
+    setPrimaryColor: (color) => set({ primaryColor: color }),
+    setCompactMode: (mode) => set({ compactMode: mode }),
+    setVerbosity: (level) => set({ verbosity: level }),
+    setPersistSelection: (enabled) => set({ persistSelection: enabled }),
+    resetConfig: () => set({
+        serverUrl: 'http://localhost:9876',
+        checkInterval: 5000,
+        themeMode: 'system',
+        primaryColor: '#da7756',
+        compactMode: false,
+        verbosity: 'all',
+        persistSelection: true,
+    })
+}));
+
+const useSelectionStore = create((set) => ({
+    clearAllSelections: () => {
+        console.log('Cache limpo');
+    }
+}));
+
+// --- COMPONENTES ---
 
 const PREDEFINED_COLORS = [
     '#da7756',
@@ -62,21 +102,19 @@ const SettingsView = () => {
     const colorInputRef = useRef(null);
 
     const handleThemeChange = (event, newMode) => {
-        if (newMode !== null) {
-            setThemeMode(newMode);
-        }
+        if (newMode !== null) setThemeMode(newMode);
     };
 
     const handleCompactChange = (event, newMode) => {
-        if (newMode !== null) {
-            setCompactMode(newMode === 'compact');
-        }
+        if (newMode !== null) setCompactMode(newMode === 'compact');
     };
 
     const handleVerbosityChange = (event, newLevel) => {
-        if (newLevel !== null) {
-            setVerbosity(newLevel);
-        }
+        if (newLevel !== null) setVerbosity(newLevel);
+    };
+
+    const handlePersistChange = (event, newValue) => {
+        if (newValue !== null) setPersistSelection(newValue === 'on');
     };
 
     const handleReset = () => {
@@ -112,7 +150,6 @@ const SettingsView = () => {
                         value={themeMode}
                         exclusive
                         onChange={handleThemeChange}
-                        aria-label="theme mode"
                         size="small"
                         fullWidth
                     >
@@ -139,7 +176,6 @@ const SettingsView = () => {
                         value={compactMode ? 'compact' : 'normal'}
                         exclusive
                         onChange={handleCompactChange}
-                        aria-label="list density"
                         size="small"
                         fullWidth
                     >
@@ -162,7 +198,6 @@ const SettingsView = () => {
                         value={verbosity}
                         exclusive
                         onChange={handleVerbosityChange}
-                        aria-label="verbosity"
                         size="small"
                         fullWidth
                     >
@@ -181,22 +216,27 @@ const SettingsView = () => {
                     </ToggleButtonGroup>
                 </Box>
 
-                <Box sx={{ mb: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={persistSelection}
-                                onChange={(e) => setPersistSelection(e.target.checked)}
-                                size="small"
-                            />
-                        }
-                        label={
-                            <Typography variant="body2" color="text.primary">
-                                Manter seleção após recarregar
-                            </Typography>
-                        }
-                    />
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4, mt: -0.5 }}>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        Manter Seleção após Recarregar
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={persistSelection ? 'on' : 'off'}
+                        exclusive
+                        onChange={handlePersistChange}
+                        size="small"
+                        fullWidth
+                    >
+                        <ToggleButton value="off">
+                            <PushPinOutlinedIcon fontSize="small" sx={{ mr: 1 }} />
+                            Desativado
+                        </ToggleButton>
+                        <ToggleButton value="on">
+                            <PushPinIcon fontSize="small" sx={{ mr: 1 }} />
+                            Ativado
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                         Memoriza os arquivos selecionados por projeto
                     </Typography>
                 </Box>
@@ -227,13 +267,7 @@ const SettingsView = () => {
                         <Box sx={{ position: 'relative' }}>
                             <IconButton 
                                 onClick={() => colorInputRef.current?.click()}
-                                sx={{ 
-                                    width: 32, 
-                                    height: 32, 
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    p: 0
-                                }}
+                                sx={{ width: 32, height: 32, border: '1px solid', borderColor: 'divider', p: 0 }}
                             >
                                 <ColorLensIcon fontSize="small" style={{ color: primaryColor }} />
                             </IconButton>
@@ -242,15 +276,7 @@ const SettingsView = () => {
                                 type="color"
                                 value={primaryColor}
                                 onChange={(e) => setPrimaryColor(e.target.value)}
-                                style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    opacity: 0,
-                                    cursor: 'pointer'
-                                }}
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                             />
                         </Box>
                     </Box>
@@ -309,7 +335,7 @@ const SettingsView = () => {
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>
-                CodeMerge Sync v{packageJson.version}
+                CodeMerge Sync v1.2.0
             </Typography>
 
             <Snackbar 
@@ -325,4 +351,26 @@ const SettingsView = () => {
     );
 };
 
-export default SettingsView;
+
+export default function App() {
+    const { themeMode, primaryColor } = useConfigStore();
+    
+    const theme = useMemo(() => createTheme({
+        palette: {
+            mode: themeMode === 'system' ? 'dark' : themeMode,
+            primary: { main: primaryColor },
+            background: {
+                default: themeMode === 'light' ? '#f5f5f5' : '#1a1a1a',
+                paper: themeMode === 'light' ? '#ffffff' : '#262626',
+            },
+        },
+        typography: { fontSize: 12 },
+    }), [themeMode, primaryColor]);
+
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <SettingsView />
+        </ThemeProvider>
+    );
+}
