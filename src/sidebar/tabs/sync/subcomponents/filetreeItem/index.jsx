@@ -4,7 +4,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import FileIcon from './FileIcon';
+import FileIcon from '../../../../components/fileIcon';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
   const [expanded, setExpanded] = useState(false);
