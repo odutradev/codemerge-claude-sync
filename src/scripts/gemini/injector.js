@@ -72,38 +72,7 @@ window.addEventListener('message', async (event) => {
             return;
         }
 
-        console.log("[GeminiInjector] Buscando botão upload");
-        
-        const uploadButton = Array.from(document.querySelectorAll('button')).find(btn => {
-            const icon = btn.querySelector('mat-icon');
-            return icon && (
-                icon.getAttribute('fonticon') === 'add_circle' ||
-                icon.getAttribute('fonticon') === 'attach_file' ||
-                icon.getAttribute('fonticon') === 'add'
-            );
-        });
-
-        if (uploadButton) {
-            uploadButton.click();
-            await new Promise(r => setTimeout(r, 500));
-            
-            fileInput = document.querySelector('input[type="file"]');
-            if (fileInput) {
-                Object.defineProperty(fileInput, 'files', {
-                    value: dataTransfer.files,
-                    writable: false,
-                    configurable: true
-                });
-                
-                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                console.log("[GeminiInjector] Sucesso botão");
-                window.postMessage({ type: 'GEMINI_UPLOAD_SUCCESS' }, '*');
-            } else {
-                throw new Error("Input não criado");
-            }
-        } else {
-            throw new Error("Botão não encontrado");
-        }
+        throw new Error("Paste não interceptado pelo editor");
 
     } catch (error) {
         console.error(`[GeminiInjector] Erro: ${error.message}`);
