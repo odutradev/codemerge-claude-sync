@@ -42,7 +42,7 @@
       ],
       "js": [
         "src/services/geminiService.js",
-        "src/scripts/gemini/brigde.js.js"
+        "src/scripts/gemini/brigde.js"
       ],
       "run_at": "document_idle"
     },

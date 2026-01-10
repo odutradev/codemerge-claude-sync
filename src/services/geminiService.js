@@ -3,7 +3,7 @@ const geminiService = (() => {
         const googleWizGlobalData = JSON.parse(localStorage.getItem("WIZ_global_data"));
         
         if (!googleWizGlobalData) {
-            console.error('[GeminiService] WIZ_global_data não encontrado no localStorage');
+            console.error('[GeminiService] WIZ_global_data ausente');
             return {};
         }
 
@@ -30,7 +30,7 @@ const geminiService = (() => {
         const sessionData = getSessionAuthenticationData();
         
         if (!sessionData.authToken) {
-            throw new Error("Token de autenticação não encontrado. Tente recarregar a página do Gemini.");
+            throw new Error("Token ausente");
         }
         
         const requestIdentifier = Date.now().toString().slice(-7);
@@ -65,7 +65,7 @@ const geminiService = (() => {
         });
 
         if (!networkResponse.ok) {
-            throw new Error(`Erro na requisição: ${networkResponse.statusText}`);
+            throw new Error(`Erro requisição: ${networkResponse.statusText}`);
         }
         
         const rawResponseText = await networkResponse.text();
@@ -82,7 +82,7 @@ const geminiService = (() => {
                 } catch (parseError) {}
             }
         }
-        throw new Error("Payload de dados não encontrado na resposta do servidor.");
+        throw new Error("Payload não encontrado");
     };
 
     const extractCodeAttachmentsFromConversation = (conversationData, conversationId) => {
@@ -136,7 +136,7 @@ const geminiService = (() => {
         getAllFiles: async () => {
             const sessionData = getSessionAuthenticationData();
             if (!sessionData.conversationId) {
-                throw new Error("ID da conversa não encontrado. Certifique-se de estar em um chat do Gemini.");
+                throw new Error("ID conversa não encontrado");
             }
 
             const requestPayload = [sessionData.conversationId, 50, null, 0, [1], [4], null, 1];
@@ -147,18 +147,18 @@ const geminiService = (() => {
         },
 
         uploadFile: async (fileName, content) => {
-            console.log(`[GeminiService] 🚀 Orquestrando upload para injector: ${fileName}`);
+            console.log(`[GeminiService] Iniciando upload: ${fileName}`);
             return new Promise((resolve, reject) => {
                 const messageListener = (event) => {
                     if (event.source !== window) return;
                     
                     if (event.data.type === 'GEMINI_UPLOAD_SUCCESS') {
                         cleanup();
-                        console.log('[GeminiService] ✅ Upload confirmado pelo Injector!');
+                        console.log('[GeminiService] Upload confirmado');
                         resolve();
                     } else if (event.data.type === 'GEMINI_UPLOAD_ERROR') {
                         cleanup();
-                        console.error('[GeminiService] ❌ Erro reportado pelo Injector:', event.data.error);
+                        console.error(`[GeminiService] Erro upload: ${event.data.error}`);
                         reject(new Error(event.data.error));
                     }
                 };
@@ -170,8 +170,8 @@ const geminiService = (() => {
 
                 const timeoutId = setTimeout(() => {
                     cleanup();
-                    console.error('[GeminiService] ⏱️ Timeout aguardando Injector');
-                    reject(new Error('Timeout ao aguardar resposta do injetor do Gemini'));
+                    console.error('[GeminiService] Timeout upload');
+                    reject(new Error('Timeout injector'));
                 }, 8000);
 
                 window.addEventListener('message', messageListener);
@@ -186,6 +186,6 @@ const geminiService = (() => {
     };
 })();
 
-console.log('[GeminiService] Service loaded and ready (Unified Mode)');
+console.log('[GeminiService] Service carregado');
 
 export default geminiService;
