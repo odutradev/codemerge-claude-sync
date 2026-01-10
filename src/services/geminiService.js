@@ -1,5 +1,4 @@
 const geminiService = (() => {
-    
     const getSessionAuthenticationData = () => {
         const googleWizGlobalData = JSON.parse(localStorage.getItem("WIZ_global_data"));
         
@@ -145,10 +144,48 @@ const geminiService = (() => {
             const responseData = await sendBatchExecuteRequest("hNvQHb", requestPayload);
             
             return extractCodeAttachmentsFromConversation(responseData?.[0], sessionData.conversationId);
+        },
+
+        uploadFile: async (fileName, content) => {
+            console.log(`[GeminiService] 🚀 Orquestrando upload para injector: ${fileName}`);
+            return new Promise((resolve, reject) => {
+                const messageListener = (event) => {
+                    if (event.source !== window) return;
+                    
+                    if (event.data.type === 'GEMINI_UPLOAD_SUCCESS') {
+                        cleanup();
+                        console.log('[GeminiService] ✅ Upload confirmado pelo Injector!');
+                        resolve();
+                    } else if (event.data.type === 'GEMINI_UPLOAD_ERROR') {
+                        cleanup();
+                        console.error('[GeminiService] ❌ Erro reportado pelo Injector:', event.data.error);
+                        reject(new Error(event.data.error));
+                    }
+                };
+
+                const cleanup = () => {
+                    window.removeEventListener('message', messageListener);
+                    clearTimeout(timeoutId);
+                };
+
+                const timeoutId = setTimeout(() => {
+                    cleanup();
+                    console.error('[GeminiService] ⏱️ Timeout aguardando Injector');
+                    reject(new Error('Timeout ao aguardar resposta do injetor do Gemini'));
+                }, 8000);
+
+                window.addEventListener('message', messageListener);
+                
+                window.postMessage({
+                    type: 'GEMINI_UPLOAD_FILE',
+                    fileName,
+                    content
+                }, '*');
+            });
         }
     };
 })();
 
-console.log('[GeminiService] Service loaded and ready');
+console.log('[GeminiService] Service loaded and ready (Unified Mode)');
 
 export default geminiService;

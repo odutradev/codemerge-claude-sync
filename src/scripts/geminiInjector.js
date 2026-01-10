@@ -1,8 +1,6 @@
-// Este script roda no contexto MAIN (window real do Gemini)
 console.log('[GeminiInjector] Iniciado no contexto MAIN');
 
 window.addEventListener('message', async (event) => {
-    // Só aceita mensagens da nossa extensão
     if (event.source !== window || event.data.type !== 'GEMINI_UPLOAD_FILE') {
         return;
     }
@@ -29,7 +27,6 @@ window.addEventListener('message', async (event) => {
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
 
-        // Estratégia 1: Input existente
         let fileInput = document.querySelector('input[type="file"]');
         
         if (fileInput) {
@@ -49,7 +46,6 @@ window.addEventListener('message', async (event) => {
             return;
         }
 
-        // Estratégia 2: Evento paste no editor
         log("🎯 Tentando paste no editor...");
         
         const editor = document.querySelector('div[contenteditable="true"]') || 
@@ -88,7 +84,6 @@ window.addEventListener('message', async (event) => {
             return;
         }
 
-        // Estratégia 3: Clicar no botão de upload
         log("🔍 Procurando botão de upload...");
         
         const uploadButton = Array.from(document.querySelectorAll('button')).find(btn => {
