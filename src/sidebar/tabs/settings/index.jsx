@@ -1,11 +1,49 @@
-import React from 'react';
-import { Box, TextField, Typography, Paper, InputAdornment } from '@mui/material';
+import React, { useRef } from 'react';
+import { 
+    Box, 
+    TextField, 
+    Typography, 
+    Paper, 
+    InputAdornment, 
+    ToggleButton, 
+    ToggleButtonGroup,
+    IconButton
+} from '@mui/material';
 import useConfigStore from '../../store/configStore';
 import TimerIcon from '@mui/icons-material/Timer';
 import DnsIcon from '@mui/icons-material/Dns';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
+import ColorLensIcon from '@mui/icons-material/ColorLens';
+
+const PREDEFINED_COLORS = [
+    '#da7756', // Padrão
+    '#2196f3', // Azul
+    '#4caf50', // Verde
+    '#9c27b0', // Roxo
+    '#f44336', // Vermelho
+];
 
 const SettingsView = () => {
-    const { serverUrl, checkInterval, setServerUrl, setCheckInterval } = useConfigStore();
+    const { 
+        serverUrl, 
+        checkInterval, 
+        themeMode, 
+        primaryColor,
+        setServerUrl, 
+        setCheckInterval,
+        setThemeMode,
+        setPrimaryColor
+    } = useConfigStore();
+
+    const colorInputRef = useRef(null);
+
+    const handleThemeChange = (event, newMode) => {
+        if (newMode !== null) {
+            setThemeMode(newMode);
+        }
+    };
 
     return (
         <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
@@ -14,13 +52,104 @@ const SettingsView = () => {
             </Typography>
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
+                    Aparência
+                </Typography>
+
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                        Conexão
+                        Tema
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={themeMode}
+                        exclusive
+                        onChange={handleThemeChange}
+                        aria-label="theme mode"
+                        size="small"
+                        fullWidth
+                    >
+                        <ToggleButton value="light">
+                            <LightModeIcon fontSize="small" sx={{ mr: 1 }} />
+                            Claro
+                        </ToggleButton>
+                        <ToggleButton value="system">
+                            <SettingsBrightnessIcon fontSize="small" sx={{ mr: 1 }} />
+                            Auto
+                        </ToggleButton>
+                        <ToggleButton value="dark">
+                            <DarkModeIcon fontSize="small" sx={{ mr: 1 }} />
+                            Escuro
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        Cor Principal
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {PREDEFINED_COLORS.map((color) => (
+                            <Box
+                                key={color}
+                                onClick={() => setPrimaryColor(color)}
+                                sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    bgcolor: color,
+                                    cursor: 'pointer',
+                                    border: primaryColor === color ? '2px solid white' : '2px solid transparent',
+                                    outline: primaryColor === color ? `2px solid ${color}` : 'none',
+                                    transition: 'transform 0.2s',
+                                    '&:hover': { transform: 'scale(1.1)' }
+                                }}
+                            />
+                        ))}
+                        
+                        <Box sx={{ position: 'relative' }}>
+                            <IconButton 
+                                onClick={() => colorInputRef.current?.click()}
+                                sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    p: 0
+                                }}
+                            >
+                                <ColorLensIcon fontSize="small" style={{ color: primaryColor }} />
+                            </IconButton>
+                            <input
+                                ref={colorInputRef}
+                                type="color"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    opacity: 0,
+                                    cursor: 'pointer'
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                </Box>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
+                    Conexão & Sistema
+                </Typography>
+
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        URL do Servidor
                     </Typography>
                     <TextField
                         fullWidth
-                        label="URL do Servidor"
                         variant="outlined"
                         size="small"
                         value={serverUrl}
@@ -37,11 +166,10 @@ const SettingsView = () => {
 
                 <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                        Performance & Monitoramento
+                        Intervalo de Checagem (ms)
                     </Typography>
                     <TextField
                         fullWidth
-                        label="Intervalo de Checagem (ms)"
                         variant="outlined"
                         size="small"
                         type="number"
@@ -54,13 +182,12 @@ const SettingsView = () => {
                                 </InputAdornment>
                             ),
                         }}
-                        helperText="Tempo entre verificações de status do servidor"
                     />
                 </Box>
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>
-                CodeMerge Sync v2.0.9
+                CodeMerge Sync v2.1.0
             </Typography>
         </Box>
     );
