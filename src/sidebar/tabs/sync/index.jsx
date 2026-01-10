@@ -21,6 +21,7 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
+import { removeComments } from '../../utils/codeProcessor';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -58,7 +59,7 @@ const flattenStructure = (node) => {
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection } = useConfigStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments: removeCommentsEnabled } = useConfigStore();
     const { selections, toggleSelection, setProjectSelection, hasStoredSelection } = useSelectionStore();
     
     const [projectStructure, setProjectStructure] = useState(null);
@@ -205,7 +206,26 @@ const SyncView = ({ fetchViaBackground }) => {
             );
 
             if (!response.success) throw new Error(response.error);
-            const content = response.data;
+            let content = response.data;
+
+            if (removeCommentsEnabled) {
+                const parts = content.split('STARTOFFILE:');
+                const header = parts[0];
+                const processedFiles = parts.slice(1).map(part => {
+                    const dividerIndex = part.indexOf('\n');
+                    const fileName = part.substring(0, dividerIndex);
+                    const fileBody = part.substring(dividerIndex);
+                    
+                    const endMarker = '----------------------------------------\nENDOFFILE:';
+                    const bodyParts = fileBody.split(endMarker);
+                    
+                    const code = bodyParts[0];
+                    const footer = bodyParts[1] || '';
+                    
+                    return `${fileName}${removeComments(code)}${endMarker}${footer}`;
+                });
+                content = header + processedFiles.map(f => 'STARTOFFILE:' + f).join('');
+            }
 
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
@@ -344,7 +364,6 @@ const SyncView = ({ fetchViaBackground }) => {
                             p: 0
                         }}
                     >
-                        {/* Header Minimalista com Busca e Toggle */}
                         <Box sx={{ 
                             p: 1, 
                             display: 'flex', 
@@ -382,7 +401,6 @@ const SyncView = ({ fetchViaBackground }) => {
                             </Tooltip>
                         </Box>
 
-                        {/* Área de Scroll da Árvore */}
                         <Box sx={{ 
                             flexGrow: 1, 
                             overflow: 'auto', 

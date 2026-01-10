@@ -8,6 +8,7 @@ const DEFAULT_CONFIG = {
     compactMode: false,
     verbosity: 'all',
     persistSelection: true,
+    removeComments: false,
 };
 
 const useConfigStore = create((set, get) => ({
@@ -51,6 +52,11 @@ const useConfigStore = create((set, get) => ({
         get().syncToBackground();
     },
 
+    setRemoveComments: (enabled) => {
+        set({ removeComments: enabled });
+        get().syncToBackground();
+    },
+
     resetConfig: () => {
         set(DEFAULT_CONFIG);
         get().syncToBackground();
@@ -67,7 +73,8 @@ const useConfigStore = create((set, get) => ({
                         primaryColor: response.config.primaryColor || state.primaryColor,
                         compactMode: response.config.compactMode ?? state.compactMode,
                         verbosity: response.config.verbosity || state.verbosity,
-                        persistSelection: response.config.persistSelection ?? state.persistSelection
+                        persistSelection: response.config.persistSelection ?? state.persistSelection,
+                        removeComments: response.config.removeComments ?? state.removeComments
                     }));
                 }
             });
@@ -76,10 +83,28 @@ const useConfigStore = create((set, get) => ({
 
     syncToBackground: () => {
         if (chrome && chrome.runtime) {
-            const { serverUrl, checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection } = get();
+            const { 
+                serverUrl, 
+                checkInterval, 
+                themeMode, 
+                primaryColor, 
+                compactMode, 
+                verbosity, 
+                persistSelection,
+                removeComments
+            } = get();
             chrome.runtime.sendMessage({
                 type: 'UPDATE_CONFIG',
-                config: { serverUrl, checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection }
+                config: { 
+                    serverUrl, 
+                    checkInterval, 
+                    themeMode, 
+                    primaryColor, 
+                    compactMode, 
+                    verbosity, 
+                    persistSelection,
+                    removeComments
+                }
             });
         }
     }

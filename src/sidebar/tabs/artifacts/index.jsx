@@ -18,6 +18,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import FileIcon from '../../components/fileIcon';
 import useConfigStore from '../../store/configStore';
+import { removeComments } from '../../utils/codeProcessor';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -44,7 +45,7 @@ const dotBreathing = keyframes`
 `;
 
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, verbosity, compactMode } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, compactMode, removeComments: removeCommentsEnabled } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -189,9 +190,15 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         try {
             const selectedFiles = Array.from(selectedIndices).map(index => {
                 const artifact = artifacts[index];
+                let processedCode = artifact.code;
+                
+                if (removeCommentsEnabled) {
+                    processedCode = removeComments(processedCode);
+                }
+
                 return {
                     path: artifact.name,
-                    content: artifact.code
+                    content: processedCode
                 };
             });
 

@@ -33,6 +33,8 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
+import CodeIcon from '@mui/icons-material/Code';
 
 const DEFAULT_CONFIG = {
     serverUrl: 'http://localhost:9876',
@@ -42,6 +44,7 @@ const DEFAULT_CONFIG = {
     compactMode: false,
     verbosity: 'all',
     persistSelection: true,
+    removeComments: false,
 };
 
 const useConfigStore = create((set, get) => ({
@@ -56,6 +59,7 @@ const useConfigStore = create((set, get) => ({
     setCompactMode: (mode) => set({ compactMode: mode }),
     setVerbosity: (level) => set({ verbosity: level }),
     setPersistSelection: (enabled) => set({ persistSelection: enabled }),
+    setRemoveComments: (enabled) => set({ removeComments: enabled }),
     resetConfig: () => set(DEFAULT_CONFIG),
     syncToBackground: () => {
         if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
@@ -79,9 +83,9 @@ const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'
 
 const SettingsView = () => {
     const { 
-        checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection,
+        checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection, removeComments,
         setCheckInterval, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity,
-        setPersistSelection, resetConfig
+        setPersistSelection, setRemoveComments, resetConfig
     } = useConfigStore();
 
     const { clearAllSelections } = useSelectionStore();
@@ -99,6 +103,7 @@ const SettingsView = () => {
     const handleCompactChange = (event, newMode) => { if (newMode !== null) setCompactMode(newMode === 'compact'); };
     const handleVerbosityChange = (event, newLevel) => { if (newLevel !== null) setVerbosity(newLevel); };
     const handlePersistChange = (event, newValue) => { if (newValue !== null) setPersistSelection(newValue === 'on'); };
+    const handleCommentsChange = (event, newValue) => { if (newValue !== null) setRemoveComments(newValue === 'on'); };
 
     const handleReset = () => {
         resetConfig();
@@ -131,6 +136,14 @@ const SettingsView = () => {
                     <ToggleButtonGroup value={compactMode ? 'compact' : 'normal'} exclusive onChange={handleCompactChange} size="small" fullWidth>
                         <ToggleButton value="normal"><ViewHeadlineIcon fontSize="small" sx={{ mr: 1 }} />Normal</ToggleButton>
                         <ToggleButton value="compact"><ViewCompactIcon fontSize="small" sx={{ mr: 1 }} />Compacto</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Limpeza de Código</Typography>
+                    <ToggleButtonGroup value={removeComments ? 'on' : 'off'} exclusive onChange={handleCommentsChange} size="small" fullWidth>
+                        <ToggleButton value="off"><CodeIcon fontSize="small" sx={{ mr: 1 }} />Preservar</ToggleButton>
+                        <ToggleButton value="on"><CodeOffIcon fontSize="small" sx={{ mr: 1 }} />Limpar Comentários</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
 
