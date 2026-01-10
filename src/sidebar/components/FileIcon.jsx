@@ -1,104 +1,156 @@
 import React from 'react';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import JavascriptIcon from '@mui/icons-material/Javascript';
-import HtmlIcon from '@mui/icons-material/Html';
-import CssIcon from '@mui/icons-material/Css';
-import CodeIcon from '@mui/icons-material/Code';
-import DataObjectIcon from '@mui/icons-material/DataObject';
-import DescriptionIcon from '@mui/icons-material/Description';
-import ImageIcon from '@mui/icons-material/Image';
-import ArticleIcon from '@mui/icons-material/Article';
-import TerminalIcon from '@mui/icons-material/Terminal';
-import FolderZipIcon from '@mui/icons-material/FolderZip';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import IntegrationInstructionsIcon from '@mui/icons-material/IntegrationInstructions';
+import { 
+    SiJavascript, 
+    SiTypescript, 
+    SiHtml5, 
+    SiCss3, 
+    SiReact, 
+    SiPython, 
+    SiCplusplus, 
+    SiCsharp, 
+    SiRust, 
+    SiGo, 
+    SiPhp, 
+    SiRuby, 
+    SiMarkdown,
+    SiDocker,
+    SiGnubash,
+    SiPostgresql,
+    SiSass,
+    SiLess,
+    SiKotlin,
+    SiSwift,
+    SiDart,
+    SiLua
+} from 'react-icons/si';
+import { VscJson } from "react-icons/vsc";
+
+import { 
+    VscFile, 
+    VscFileBinary, 
+    VscFilePdf, 
+    VscFileMedia, 
+    VscFileZip,
+    VscTerminal,
+    VscDatabase
+} from 'react-icons/vsc';
+
+import { FaJava, FaFileCode } from 'react-icons/fa';
 
 const FileIcon = ({ fileName, sx = {} }) => {
     const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
+    const name = fileName ? fileName.toLowerCase() : '';
 
-    const iconProps = { 
-        fontSize: "small", 
-        sx: { ...sx } 
+    const iconStyle = { 
+        fontSize: "1.2rem", 
+        verticalAlign: "middle",
+        ...sx 
     };
+
+    if (name === 'dockerfile') return <SiDocker style={{ ...iconStyle, color: '#2496ED' }} />;
+    if (name === 'makefile') return <VscTerminal style={{ ...iconStyle, color: '#666666' }} />;
+    if (name === 'package.json') return <SiJavascript style={{ ...iconStyle, color: '#CB3837' }} />;
+    if (name === 'tsconfig.json') return <SiTypescript style={{ ...iconStyle, color: '#3178C6' }} />;
 
     switch (ext) {
         case 'js':
         case 'mjs':
         case 'cjs':
-            return <JavascriptIcon {...iconProps} sx={{ ...sx, color: '#f7df1e' }} />;
+            return <SiJavascript style={{ ...iconStyle, color: '#F7DF1E' }} />;
         case 'jsx':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#61dafb' }} />;
+            return <SiReact style={{ ...iconStyle, color: '#61DAFB' }} />;
         case 'ts':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#3178c6' }} />;
+            return <SiTypescript style={{ ...iconStyle, color: '#3178C6' }} />;
         case 'tsx':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#3178c6' }} />;
+            return <SiReact style={{ ...iconStyle, color: '#61DAFB' }} />;
         case 'html':
         case 'htm':
-            return <HtmlIcon {...iconProps} sx={{ ...sx, color: '#e34c26' }} />;
+            return <SiHtml5 style={{ ...iconStyle, color: '#E34C26' }} />;
         case 'css':
+            return <SiCss3 style={{ ...iconStyle, color: '#1572B6' }} />;
         case 'scss':
         case 'sass':
+            return <SiSass style={{ ...iconStyle, color: '#CC6699' }} />;
         case 'less':
-            return <CssIcon {...iconProps} sx={{ ...sx, color: '#264de4' }} />;
+            return <SiLess style={{ ...iconStyle, color: '#1D365D' }} />;
+        
         case 'json':
         case 'json5':
         case 'map':
-            return <DataObjectIcon {...iconProps} sx={{ ...sx, color: '#ffd700' }} />;
+            return <VscJson style={{ ...iconStyle, color: '#F0F0F0' }} />;
         case 'xml':
         case 'yaml':
         case 'yml':
         case 'toml':
         case 'config':
         case 'ini':
-            return <IntegrationInstructionsIcon {...iconProps} sx={{ ...sx, color: '#607d8b' }} />;
+        case 'env':
+            return <FaFileCode style={{ ...iconStyle, color: '#6E7681' }} />;
+        
         case 'csv':
         case 'xls':
         case 'xlsx':
-            return <TableChartIcon {...iconProps} sx={{ ...sx, color: '#4caf50' }} />;
+            return <VscDatabase style={{ ...iconStyle, color: '#217346' }} />;
+        
         case 'md':
         case 'markdown':
-            return <ArticleIcon {...iconProps} sx={{ ...sx, color: '#000000' }} />;
+            return <SiMarkdown style={{ ...iconStyle, color: '#000000' }} />;
         case 'txt':
         case 'log':
-            return <DescriptionIcon {...iconProps} sx={{ ...sx, color: '#9e9e9e' }} />;
+            return <VscFile style={{ ...iconStyle, color: '#9E9E9E' }} />;
         case 'pdf':
-            return <DescriptionIcon {...iconProps} sx={{ ...sx, color: '#f44336' }} />;
+            return <VscFilePdf style={{ ...iconStyle, color: '#F44336' }} />;
+
         case 'java':
         case 'class':
         case 'jar':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#b07219' }} />;
+            return <FaJava style={{ ...iconStyle, color: '#007396' }} />;
         case 'py':
         case 'pyc':
         case 'pyd':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#306998' }} />;
+            return <SiPython style={{ ...iconStyle, color: '#3776AB' }} />;
         case 'c':
         case 'h':
+            return <SiCplusplus style={{ ...iconStyle, color: '#A8B9CC' }} />;
         case 'cpp':
         case 'hpp':
         case 'cc':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#00599C' }} />;
+            return <SiCplusplus style={{ ...iconStyle, color: '#00599C' }} />;
         case 'cs':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#178600' }} />;
+            return <SiCsharp style={{ ...iconStyle, color: '#239120' }} />;
         case 'php':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#4F5D95' }} />;
+            return <SiPhp style={{ ...iconStyle, color: '#777BB4' }} />;
         case 'go':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#00ADD8' }} />;
+            return <SiGo style={{ ...iconStyle, color: '#00ADD8' }} />;
         case 'rs':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#dea584' }} />;
+            return <SiRust style={{ ...iconStyle, color: '#DEA584' }} />;
         case 'rb':
-            return <CodeIcon {...iconProps} sx={{ ...sx, color: '#CC342D' }} />;
+            return <SiRuby style={{ ...iconStyle, color: '#CC342D' }} />;
+        case 'kt':
+        case 'kts':
+            return <SiKotlin style={{ ...iconStyle, color: '#7F52FF' }} />;
+        case 'swift':
+            return <SiSwift style={{ ...iconStyle, color: '#F05138' }} />;
+        case 'dart':
+            return <SiDart style={{ ...iconStyle, color: '#0175C2' }} />;
+        case 'lua':
+            return <SiLua style={{ ...iconStyle, color: '#2C2D72' }} />;
+
         case 'sql':
-            return <TableChartIcon {...iconProps} sx={{ ...sx, color: '#e38c00' }} />;
+            return <SiPostgresql style={{ ...iconStyle, color: '#336791' }} />;
+        case 'sqlite':
+        case 'db':
+            return <VscDatabase style={{ ...iconStyle, color: '#607D8B' }} />;
+
         case 'sh':
         case 'bash':
         case 'zsh':
+            return <SiGnubash style={{ ...iconStyle, color: '#4EAA25' }} />;
         case 'bat':
         case 'cmd':
         case 'ps1':
-        case 'env':
-        case 'gitignore':
-        case 'dockerfile':
-            return <TerminalIcon {...iconProps} sx={{ ...sx, color: '#455a64' }} />;
+            return <VscTerminal style={{ ...iconStyle, color: '#455A64' }} />;
+
         case 'png':
         case 'jpg':
         case 'jpeg':
@@ -106,15 +158,17 @@ const FileIcon = ({ fileName, sx = {} }) => {
         case 'svg':
         case 'ico':
         case 'webp':
-            return <ImageIcon {...iconProps} sx={{ ...sx, color: '#9c27b0' }} />;
+            return <VscFileMedia style={{ ...iconStyle, color: '#9C27B0' }} />;
+        
         case 'zip':
         case 'rar':
         case '7z':
         case 'tar':
         case 'gz':
-            return <FolderZipIcon {...iconProps} sx={{ ...sx, color: '#fdd835' }} />;
+            return <VscFileZip style={{ ...iconStyle, color: '#FDD835' }} />;
+            
         default:
-            return <InsertDriveFileIcon {...iconProps} color="disabled" sx={{ ...sx }} />;
+            return <VscFileBinary style={{ ...iconStyle, color: '#9E9E9E' }} />;
     }
 };
 
