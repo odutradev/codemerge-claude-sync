@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Checkbox, Typography, IconButton, Collapse } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import FileIcon from '../../../../components/fileIcon';
-import useConfigStore from '../../../../store/configStore';
+
+import FileIcon from '../../../../components/fileIcon/index.jsx';
+import useConfigStore from '../../../../store/configStore.js';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
   const [expanded, setExpanded] = useState(false);
   const { compactMode } = useConfigStore();
+  const theme = useTheme();
   
   useEffect(() => {
     if (searchTerm && searchTerm.length > 0) {
@@ -87,7 +90,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
           cursor: 'pointer',
           transition: 'background-color 0.2s',
           '&:hover': { bgcolor: 'action.hover' },
-          bgcolor: isSelected || isPartiallySelected ? 'rgba(218, 119, 86, 0.15)' : 'transparent',
+          bgcolor: isSelected || isPartiallySelected ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
           minHeight: compactMode ? 24 : 32
         }}
       >
