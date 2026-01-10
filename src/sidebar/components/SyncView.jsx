@@ -360,7 +360,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
 
             <Snackbar 
                 open={message.open} 
-                autoHideDuration={4000} 
+                autoHideDuration={1000} 
                 onClose={() => setMessage({ ...message, open: false })}
             >
                 <Alert severity={message.type} sx={{ width: '100%' }}>
