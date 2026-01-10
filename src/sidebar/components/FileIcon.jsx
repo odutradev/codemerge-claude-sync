@@ -21,7 +21,8 @@ import {
     SiKotlin,
     SiSwift,
     SiDart,
-    SiLua
+    SiLua,
+    SiNpm
 } from 'react-icons/si';
 import { VscJson } from "react-icons/vsc";
 
@@ -42,14 +43,14 @@ const FileIcon = ({ fileName, sx = {} }) => {
     const name = fileName ? fileName.toLowerCase() : '';
 
     const iconStyle = { 
-        fontSize: "1.2rem", 
+        fontSize: "1rem", 
         verticalAlign: "middle",
         ...sx 
     };
 
     if (name === 'dockerfile') return <SiDocker style={{ ...iconStyle, color: '#2496ED' }} />;
     if (name === 'makefile') return <VscTerminal style={{ ...iconStyle, color: '#666666' }} />;
-    if (name === 'package.json') return <SiJavascript style={{ ...iconStyle, color: '#CB3837' }} />;
+    if (name === 'package.json') return <SiNpm  style={{ ...iconStyle, color: '#CB3837' }} />;
     if (name === 'tsconfig.json') return <SiTypescript style={{ ...iconStyle, color: '#3178C6' }} />;
 
     switch (ext) {
@@ -77,7 +78,7 @@ const FileIcon = ({ fileName, sx = {} }) => {
         case 'json':
         case 'json5':
         case 'map':
-            return <VscJson style={{ ...iconStyle, color: '#F0F0F0' }} />;
+            return <VscJson style={{ ...iconStyle, color: '#F7DF1E' }} />;
         case 'xml':
         case 'yaml':
         case 'yml':
@@ -94,7 +95,7 @@ const FileIcon = ({ fileName, sx = {} }) => {
         
         case 'md':
         case 'markdown':
-            return <SiMarkdown style={{ ...iconStyle, color: '#000000' }} />;
+            return <SiMarkdown style={{ ...iconStyle, color: '#ffffff' }} />;
         case 'txt':
         case 'log':
             return <VscFile style={{ ...iconStyle, color: '#9E9E9E' }} />;
