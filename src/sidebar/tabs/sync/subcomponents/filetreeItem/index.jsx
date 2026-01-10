@@ -5,9 +5,11 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FileIcon from '../../../../components/fileIcon';
+import useConfigStore from '../../../../store/configStore';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
   const [expanded, setExpanded] = useState(false);
+  const { compactMode } = useConfigStore();
   
   useEffect(() => {
     if (searchTerm && searchTerm.length > 0) {
@@ -67,6 +69,10 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
     onToggleSelection(node, shouldSelect);
   };
 
+  const itemPaddingY = compactMode ? 0 : 0.5;
+  const fontSize = compactMode ? '0.8rem' : '0.875rem';
+  const iconSize = compactMode ? 18 : 20;
+
   return (
     <Box>
       <Box 
@@ -74,14 +80,15 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
         sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          py: 0.5, 
+          py: itemPaddingY, 
           pr: 1,
           pl: 1 + (level * 1.5),
           width: '100%',
           cursor: 'pointer',
           transition: 'background-color 0.2s',
           '&:hover': { bgcolor: 'action.hover' },
-          bgcolor: isSelected || isPartiallySelected ? 'rgba(218, 119, 86, 0.15)' : 'transparent'
+          bgcolor: isSelected || isPartiallySelected ? 'rgba(218, 119, 86, 0.15)' : 'transparent',
+          minHeight: compactMode ? 24 : 32
         }}
       >
         {node.type === 'directory' ? (
@@ -91,7 +98,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
             onClick={handleExpandClick} 
             sx={{ p: 0.5, mr: 0.5 }}
           >
-            {expanded ? <KeyboardArrowDownIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
+            {expanded ? <KeyboardArrowDownIcon sx={{ fontSize: iconSize }} /> : <KeyboardArrowRightIcon sx={{ fontSize: iconSize }} />}
           </IconButton>
         ) : (
           <Box sx={{ width: 24, mr: 0.5 }} />
@@ -102,21 +109,21 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
           checked={isSelected}
           indeterminate={isPartiallySelected}
           onChange={handleCheckboxChange}
-          sx={{ p: 0.5 }}
+          sx={{ p: 0.5, '& .MuiSvgIcon-root': { fontSize: iconSize } }}
         />
 
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden' }}>
             {node.type === 'directory' ? 
-                (expanded ? <FolderOpenIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} /> : <FolderIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />) 
+                (expanded ? <FolderOpenIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <FolderIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />) 
                 : 
                 <Box sx={{ mr: 1, display: 'flex' }}>
-                    <FileIcon fileName={node.name} />
+                    <FileIcon fileName={node.name} sx={{ fontSize: iconSize }} />
                 </Box>
             }
-            <Typography variant="body2" noWrap title={node.name}>
+            <Typography variant="body2" noWrap title={node.name} sx={{ fontSize }}>
                 {node.name}
             </Typography>
-            {node.type === 'file' && node.lines && (
+            {node.type === 'file' && node.lines && !compactMode && (
                 <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                     ({node.lines}L)
                 </Typography>

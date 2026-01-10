@@ -44,7 +44,7 @@ const dotBreathing = keyframes`
 `;
 
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -53,6 +53,12 @@ const ArtifactsView = ({ fetchViaBackground }) => {
     
     const [serverStatus, setServerStatus] = useState('checking'); 
     const [isChecking, setIsChecking] = useState(false);
+
+    const showNotification = useCallback((text, type = 'info') => {
+        if (verbosity === 'silent') return;
+        if (verbosity === 'errors' && type !== 'error') return;
+        setMessage({ open: true, text, type });
+    }, [verbosity]);
 
     useEffect(() => {
         let isMounted = true;
@@ -150,19 +156,19 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             setSelectedIndices(initialSelection);
             
             if (!silent) {
-                setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });
+                showNotification(`${response.artifacts?.length || 0} artefatos encontrados`, 'success');
             }
 
         } catch (error) {
             console.log(error)
             if (!silent) {
-                setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+                showNotification(`Erro: ${error.message}`, 'error');
             }
         } finally {
             setLoading(false);
             setFetching(false);
         }
-    }, []);
+    }, [showNotification]);
 
     useEffect(() => {
         if (serverStatus === 'connected') {
@@ -200,9 +206,9 @@ const ArtifactsView = ({ fetchViaBackground }) => {
 
             if (!response.success) throw new Error(response.error);
 
-            setMessage({ open: true, text: 'Artefatos enviados com sucesso!', type: 'success' });
+            showNotification('Artefatos enviados com sucesso!', 'success');
         } catch (error) {
-            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
         }

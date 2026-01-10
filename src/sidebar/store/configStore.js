@@ -5,6 +5,8 @@ const useConfigStore = create((set, get) => ({
     checkInterval: 5000,
     themeMode: 'system',
     primaryColor: '#da7756',
+    compactMode: false,
+    verbosity: 'all',
     
     setServerUrl: (url) => {
         set({ serverUrl: url });
@@ -29,6 +31,16 @@ const useConfigStore = create((set, get) => ({
         get().syncToBackground();
     },
 
+    setCompactMode: (mode) => {
+        set({ compactMode: mode });
+        get().syncToBackground();
+    },
+
+    setVerbosity: (level) => {
+        set({ verbosity: level });
+        get().syncToBackground();
+    },
+
     loadFromBackground: () => {
         if (chrome && chrome.runtime) {
             chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
@@ -37,7 +49,9 @@ const useConfigStore = create((set, get) => ({
                         serverUrl: response.config.serverUrl || state.serverUrl,
                         checkInterval: response.config.checkInterval || state.checkInterval,
                         themeMode: response.config.themeMode || state.themeMode,
-                        primaryColor: response.config.primaryColor || state.primaryColor
+                        primaryColor: response.config.primaryColor || state.primaryColor,
+                        compactMode: response.config.compactMode ?? state.compactMode,
+                        verbosity: response.config.verbosity || state.verbosity
                     }));
                 }
             });
@@ -46,10 +60,10 @@ const useConfigStore = create((set, get) => ({
 
     syncToBackground: () => {
         if (chrome && chrome.runtime) {
-            const { serverUrl, checkInterval, themeMode, primaryColor } = get();
+            const { serverUrl, checkInterval, themeMode, primaryColor, compactMode, verbosity } = get();
             chrome.runtime.sendMessage({
                 type: 'UPDATE_CONFIG',
-                config: { serverUrl, checkInterval, themeMode, primaryColor }
+                config: { serverUrl, checkInterval, themeMode, primaryColor, compactMode, verbosity }
             });
         }
     }

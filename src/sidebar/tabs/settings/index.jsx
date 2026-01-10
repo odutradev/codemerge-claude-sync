@@ -7,7 +7,9 @@ import {
     InputAdornment, 
     ToggleButton, 
     ToggleButtonGroup,
-    IconButton
+    IconButton,
+    Switch,
+    FormControlLabel
 } from '@mui/material';
 import useConfigStore from '../../store/configStore';
 import TimerIcon from '@mui/icons-material/Timer';
@@ -16,13 +18,18 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
+import ViewHeadlineIcon from '@mui/icons-material/ViewHeadline';
+import ViewCompactIcon from '@mui/icons-material/ViewCompact';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 const PREDEFINED_COLORS = [
-    '#da7756', // Padrão
-    '#2196f3', // Azul
-    '#4caf50', // Verde
-    '#9c27b0', // Roxo
-    '#f44336', // Vermelho
+    '#da7756',
+    '#2196f3',
+    '#4caf50',
+    '#9c27b0',
+    '#f44336',
 ];
 
 const SettingsView = () => {
@@ -31,10 +38,14 @@ const SettingsView = () => {
         checkInterval, 
         themeMode, 
         primaryColor,
+        compactMode,
+        verbosity,
         setServerUrl, 
         setCheckInterval,
         setThemeMode,
-        setPrimaryColor
+        setPrimaryColor,
+        setCompactMode,
+        setVerbosity
     } = useConfigStore();
 
     const colorInputRef = useRef(null);
@@ -42,6 +53,12 @@ const SettingsView = () => {
     const handleThemeChange = (event, newMode) => {
         if (newMode !== null) {
             setThemeMode(newMode);
+        }
+    };
+
+    const handleVerbosityChange = (event, newLevel) => {
+        if (newLevel !== null) {
+            setVerbosity(newLevel);
         }
     };
 
@@ -53,12 +70,12 @@ const SettingsView = () => {
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
-                    Aparência
+                    Interface & UX
                 </Typography>
 
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                        Tema
+                        Aparência
                     </Typography>
                     <ToggleButtonGroup
                         value={themeMode}
@@ -79,6 +96,56 @@ const SettingsView = () => {
                         <ToggleButton value="dark">
                             <DarkModeIcon fontSize="small" sx={{ mr: 1 }} />
                             Escuro
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        Densidade da Lista
+                    </Typography>
+                    <FormControlLabel
+                        control={
+                            <Switch 
+                                checked={compactMode} 
+                                onChange={(e) => setCompactMode(e.target.checked)} 
+                                size="small"
+                            />
+                        }
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {compactMode ? <ViewCompactIcon fontSize="small" /> : <ViewHeadlineIcon fontSize="small" />}
+                                <Typography variant="body2">
+                                    {compactMode ? "Modo Compacto" : "Modo Normal"}
+                                </Typography>
+                            </Box>
+                        }
+                    />
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                        Notificações (Verbosity)
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={verbosity}
+                        exclusive
+                        onChange={handleVerbosityChange}
+                        aria-label="verbosity"
+                        size="small"
+                        fullWidth
+                    >
+                        <ToggleButton value="all">
+                            <NotificationsIcon fontSize="small" sx={{ mr: 1 }} />
+                            Tudo
+                        </ToggleButton>
+                        <ToggleButton value="errors">
+                            <ErrorOutlineIcon fontSize="small" sx={{ mr: 1 }} />
+                            Erros
+                        </ToggleButton>
+                        <ToggleButton value="silent">
+                            <NotificationsOffIcon fontSize="small" sx={{ mr: 1 }} />
+                            Mudo
                         </ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
@@ -187,7 +254,7 @@ const SettingsView = () => {
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>
-                CodeMerge Sync v2.1.0
+                CodeMerge Sync v2.2.0
             </Typography>
         </Box>
     );

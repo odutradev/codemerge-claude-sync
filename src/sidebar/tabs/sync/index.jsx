@@ -52,7 +52,7 @@ const flattenStructure = (node) => {
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl } = useConfigStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity } = useConfigStore();
     const [projectStructure, setProjectStructure] = useState(null);
     const [selectedPaths, setSelectedPaths] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +62,12 @@ const SyncView = ({ fetchViaBackground }) => {
     const [lastUpdated, setLastUpdated] = useState(null);
     const [serverStatus, setServerStatus] = useState('checking'); 
     const [isChecking, setIsChecking] = useState(false);
+
+    const showNotification = useCallback((text, type = 'info') => {
+        if (verbosity === 'silent') return;
+        if (verbosity === 'errors' && type !== 'error') return;
+        setMessage({ open: true, text, type });
+    }, [verbosity]);
 
     useEffect(() => {
         let isMounted = true;
@@ -116,11 +122,11 @@ const SyncView = ({ fetchViaBackground }) => {
             setSelectedPaths(newSet);
             
         } catch (error) {
-            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
         }
-    }, [serverUrl, fetchViaBackground]);
+    }, [serverUrl, fetchViaBackground, showNotification]);
 
     useEffect(() => {
         if (serverStatus === 'connected' && !projectStructure && !loading) {
@@ -185,10 +191,10 @@ const SyncView = ({ fetchViaBackground }) => {
                 throw new Error(msgResponse.error);
             }
 
-            setMessage({ open: true, text: `Sincronizado: ${stats.files} arquivos`, type: 'success' });
+            showNotification(`Sincronizado: ${stats.files} arquivos`, 'success');
 
         } catch (error) {
-            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
         }
