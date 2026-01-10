@@ -2,27 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Checkbox, Typography, IconButton, Collapse } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import JavascriptIcon from '@mui/icons-material/Javascript';
-import HtmlIcon from '@mui/icons-material/Html';
-import CssIcon from '@mui/icons-material/Css';
-import CodeIcon from '@mui/icons-material/Code';
-
-const getFileIcon = (filename) => {
-  const ext = filename.split('.').pop().toLowerCase();
-  switch (ext) {
-    case 'js': return <JavascriptIcon sx={{ color: '#f7df1e' }} fontSize="small" />;
-    case 'ts': return <CodeIcon sx={{ color: '#3178c6' }} fontSize="small" />;
-    case 'jsx': return <CodeIcon sx={{ color: '#61dafb' }} fontSize="small" />;
-    case 'tsx': return <CodeIcon sx={{ color: '#3178c6' }} fontSize="small" />;
-    case 'html': return <HtmlIcon sx={{ color: '#e34c26' }} fontSize="small" />;
-    case 'css': return <CssIcon sx={{ color: '#264de4' }} fontSize="small" />;
-    case 'json': return <CodeIcon sx={{ color: '#ffd700' }} fontSize="small" />;
-    default: return <InsertDriveFileIcon fontSize="small" color="disabled" />;
-  }
-};
+import FileIcon from './FileIcon';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
   const [expanded, setExpanded] = useState(false);
@@ -127,7 +109,9 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
             {node.type === 'directory' ? 
                 (expanded ? <FolderOpenIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} /> : <FolderIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />) 
                 : 
-                <Box sx={{ mr: 1, display: 'flex' }}>{getFileIcon(node.name)}</Box>
+                <Box sx={{ mr: 1, display: 'flex' }}>
+                    <FileIcon fileName={node.name} />
+                </Box>
             }
             <Typography variant="body2" noWrap title={node.name}>
                 {node.name}
