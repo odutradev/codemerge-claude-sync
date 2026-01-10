@@ -138,7 +138,14 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             
             setArtifacts(response.artifacts || []);
-            setSelectedIndices(new Set((response.artifacts || []).map((_, i) => i)));
+            
+            const initialSelection = new Set();
+            (response.artifacts || []).forEach((artifact, index) => {
+                if (!artifact.name.toLowerCase().endsWith('.md')) {
+                    initialSelection.add(index);
+                }
+            });
+            setSelectedIndices(initialSelection);
             
             if (!silent) {
                 setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });

@@ -105,7 +105,12 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
             setLastUpdated(new Date());
             
             const allFiles = flattenStructure(data.root);
-            const newSet = new Set(allFiles.map(f => f.path));
+            
+            const newSet = new Set(
+                allFiles
+                    .filter(f => !f.name.toLowerCase().endsWith('.md'))
+                    .map(f => f.path)
+            );
             setSelectedPaths(newSet);
             
         } catch (error) {
