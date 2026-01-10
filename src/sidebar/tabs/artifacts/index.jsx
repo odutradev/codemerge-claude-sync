@@ -11,11 +11,15 @@ import {
     Paper,
     CircularProgress,
     Snackbar,
-    Alert
+    Alert,
+    Tooltip,
+    IconButton
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
+import CodeIcon from '@mui/icons-material/Code';
 import FileIcon from '../../components/fileIcon';
 import useConfigStore from '../../store/configStore';
 import { removeComments } from '../../utils/codeProcessor';
@@ -45,7 +49,7 @@ const dotBreathing = keyframes`
 `;
 
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, verbosity, compactMode, removeComments: removeCommentsEnabled } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, compactMode, removeComments: removeCommentsEnabled, setRemoveComments } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -65,69 +69,23 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         let isMounted = true;
         const checkHealth = async () => {
             if (!serverUrl) return;
-            
             if (isMounted) setIsChecking(true);
             try {
                 const response = await fetchViaBackground(`${serverUrl}/health`);
                 if (isMounted) {
-                    if (response.success) {
-                        setServerStatus('connected');
-                    } else {
-                        setServerStatus('disconnected');
-                    }
+                    setServerStatus(response.success ? 'connected' : 'disconnected');
                 }
             } catch (error) {
                 if (isMounted) setServerStatus('disconnected');
             } finally {
-                setTimeout(() => {
-                    if (isMounted) setIsChecking(false);
-                }, 500);
+                setTimeout(() => { if (isMounted) setIsChecking(false); }, 500);
             }
         };
 
         checkHealth();
         const interval = setInterval(checkHealth, checkInterval);
-
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
-        };
+        return () => { isMounted = false; clearInterval(interval); };
     }, [serverUrl, checkInterval, fetchViaBackground]);
-
-    const getStatusProps = () => {
-        if (isChecking) {
-            return {
-                color: 'warning.main',
-                pulseAnimation: `${pulseOrange} 1.5s infinite`,
-                dotAnimation: `${dotBreathing} 1s infinite`,
-                text: 'Verificando...'
-            };
-        }
-        if (serverStatus === 'connected') {
-            return {
-                color: 'success.main',
-                pulseAnimation: `${pulseGreen} 3s infinite`,
-                dotAnimation: `${dotBreathing} 3s infinite`,
-                text: 'Online'
-            };
-        }
-        if (serverStatus === 'disconnected') {
-            return {
-                color: 'error.main',
-                pulseAnimation: `${pulseRed} 2s infinite`,
-                dotAnimation: `${dotBreathing} 2s infinite`,
-                text: 'Offline'
-            };
-        }
-        return {
-            color: 'text.disabled',
-            pulseAnimation: 'none',
-            dotAnimation: 'none',
-            text: 'Desconhecido'
-        };
-    };
-
-    const statusProps = getStatusProps();
 
     const handleFetchArtifacts = useCallback(async (silent = false) => {
         setLoading(true);
@@ -147,24 +105,15 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             
             setArtifacts(response.artifacts || []);
-            
             const initialSelection = new Set();
             (response.artifacts || []).forEach((artifact, index) => {
-                if (!artifact.name.toLowerCase().endsWith('.md')) {
-                    initialSelection.add(index);
-                }
+                if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
             });
             setSelectedIndices(initialSelection);
-            
-            if (!silent) {
-                showNotification(`${response.artifacts?.length || 0} artefatos encontrados`, 'success');
-            }
+            if (!silent) showNotification(`${response.artifacts?.length || 0} artefatos encontrados`, 'success');
 
         } catch (error) {
-            console.log(error)
-            if (!silent) {
-                showNotification(`Erro: ${error.message}`, 'error');
-            }
+            if (!silent) showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
             setFetching(false);
@@ -172,17 +121,8 @@ const ArtifactsView = ({ fetchViaBackground }) => {
     }, [showNotification]);
 
     useEffect(() => {
-        if (serverStatus === 'connected') {
-            handleFetchArtifacts(true);
-        }
+        if (serverStatus === 'connected') handleFetchArtifacts(true);
     }, [serverStatus, handleFetchArtifacts]);
-
-    const handleToggle = (index) => {
-        const newSelected = new Set(selectedIndices);
-        if (newSelected.has(index)) newSelected.delete(index);
-        else newSelected.add(index);
-        setSelectedIndices(newSelected);
-    };
 
     const handleSync = async () => {
         if (selectedIndices.size === 0) return;
@@ -190,30 +130,21 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         try {
             const selectedFiles = Array.from(selectedIndices).map(index => {
                 const artifact = artifacts[index];
-                let processedCode = artifact.code;
-                
+                let content = artifact.code;
                 if (removeCommentsEnabled) {
-                    processedCode = removeComments(processedCode);
+                    content = removeComments(content);
                 }
-
-                return {
-                    path: artifact.name,
-                    content: processedCode
-                };
+                return { path: artifact.name, content };
             });
 
-            const response = await fetchViaBackground(
-                `${serverUrl}/upsert`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ files: selectedFiles })
-                }
-            );
+            const response = await fetchViaBackground(`${serverUrl}/upsert`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ files: selectedFiles })
+            });
 
             if (!response.success) throw new Error(response.error);
-
-            showNotification('Artefatos enviados com sucesso!', 'success');
+            showNotification('Artefatos enviados!', 'success');
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
@@ -221,116 +152,73 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         }
     };
 
+    const statusProps = {
+        connected: { color: 'success.main', animation: `${pulseGreen} 3s infinite`, text: 'Online' },
+        disconnected: { color: 'error.main', animation: `${pulseRed} 2s infinite`, text: 'Offline' },
+        checking: { color: 'warning.main', animation: `${pulseOrange} 1.5s infinite`, text: 'Verificando...' }
+    }[isChecking ? 'checking' : serverStatus] || { color: 'text.disabled', animation: 'none', text: '...' };
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">
-                    Status do servidor
+                <Typography variant="caption" color="text.secondary">
+                    {statusProps.text}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                        {statusProps.text}
-                    </Typography>
-                    <Box
-                        sx={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: '50%',
-                            bgcolor: statusProps.color,
-                            animation: `${statusProps.dotAnimation}, ${statusProps.pulseAnimation}`,
-                            transition: 'background-color 0.3s ease'
-                        }}
-                    />
-                </Box>
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: statusProps.color, animation: statusProps.animation }} />
             </Box>
 
-            <Button 
-                variant="outlined" 
-                startIcon={<DownloadIcon />} 
-                onClick={() => handleFetchArtifacts(false)}
-                disabled={loading}
-                fullWidth
-                sx={{ mb: 2 }}
-            >
-                Buscar Artefatos
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <Button 
+                    variant="outlined" 
+                    startIcon={<DownloadIcon />} 
+                    onClick={() => handleFetchArtifacts(false)}
+                    disabled={loading}
+                    fullWidth
+                >
+                    Buscar Artefatos
+                </Button>
+                <Tooltip title={removeCommentsEnabled ? "Limpeza de código ativa" : "Limpeza de código inativa"}>
+                    <IconButton 
+                        color={removeCommentsEnabled ? "primary" : "default"}
+                        onClick={() => setRemoveComments(!removeCommentsEnabled)}
+                        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+                    >
+                        {removeCommentsEnabled ? <CodeOffIcon /> : <CodeIcon />}
+                    </IconButton>
+                </Tooltip>
+            </Box>
 
             {fetching ? (
-                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
-                    <CircularProgress />
-                    <Typography variant="body2" color="text.secondary">Buscando artefatos...</Typography>
-                </Box>
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Box>
             ) : artifacts.length > 0 ? (
                 <>
                     <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
                         <List dense={compactMode}>
                             {artifacts.map((artifact, index) => (
-                                <ListItem 
-                                    key={index}
-                                    button 
-                                    onClick={() => handleToggle(index)}
-                                    divider
-                                >
+                                <ListItem key={index} button onClick={() => {
+                                    const next = new Set(selectedIndices);
+                                    if (next.has(index)) next.delete(index); else next.add(index);
+                                    setSelectedIndices(next);
+                                }} divider>
                                     <ListItemIcon sx={{ minWidth: 36 }}>
-                                        <Checkbox
-                                            edge="start"
-                                            checked={selectedIndices.has(index)}
-                                            tabIndex={-1}
-                                            disableRipple
-                                            size="small"
-                                        />
+                                        <Checkbox edge="start" checked={selectedIndices.has(index)} size="small" />
                                     </ListItemIcon>
                                     <ListItemText 
-                                        primary={
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Box sx={{ mr: 1, display: 'flex' }}>
-                                                    <FileIcon 
-                                                        fileName={artifact.name} 
-                                                        sx={{ fontSize: compactMode ? 18 : 20 }}
-                                                    />
-                                                </Box>
-                                                <Typography variant="body2" noWrap>
-                                                    {artifact.name}
-                                                </Typography>
-                                            </Box>
-                                        }
-                                        secondary={
-                                            <Typography variant="caption" color="text.secondary">
-                                                {artifact.code.length} chars • {artifact.code.split('\n').length} lines
-                                            </Typography>
-                                        }
+                                        primary={<Box sx={{ display: 'flex', alignItems: 'center' }}><FileIcon fileName={artifact.name} sx={{ mr: 1 }} /><Typography variant="body2" noWrap>{artifact.name}</Typography></Box>}
+                                        secondary={`${artifact.code.split('\n').length} linhas`}
                                     />
                                 </ListItem>
                             ))}
                         </List>
                     </Paper>
-
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
-                        onClick={handleSync}
-                        disabled={loading || selectedIndices.size === 0 || serverStatus !== 'connected'}
-                        fullWidth
-                    >
+                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedIndices.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<UploadIcon />}>
                         Fazer Upsert Local ({selectedIndices.size})
                     </Button>
                 </>
             ) : (
-                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                    <Typography variant="body2">Nenhum artefato carregado</Typography>
-                </Box>
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}><Typography variant="body2">Vazio</Typography></Box>
             )}
-
-            <Snackbar 
-                open={message.open} 
-                autoHideDuration={1000} 
-                onClose={() => setMessage({ ...message, open: false })}
-            >
-                <Alert severity={message.type} sx={{ width: '100%' }}>
-                    {message.text}
-                </Alert>
-            </Snackbar>
+            <Snackbar open={message.open} autoHideDuration={2000} onClose={() => setMessage({ ...message, open: false })}><Alert severity={message.type}>{message.text}</Alert></Snackbar>
         </Box>
     );
 };

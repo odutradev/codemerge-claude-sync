@@ -18,6 +18,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SearchIcon from '@mui/icons-material/Search';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
+import CodeIcon from '@mui/icons-material/Code';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
@@ -50,17 +52,13 @@ const dotBreathing = keyframes`
 const flattenStructure = (node) => {
     let files = [];
     if (node.type === 'file') files.push(node);
-    if (node.children) {
-        node.children.forEach(child => {
-            files = [...files, ...flattenStructure(child)];
-        });
-    }
+    if (node.children) node.children.forEach(child => { files = [...files, ...flattenStructure(child)]; });
     return files;
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments: removeCommentsEnabled } = useConfigStore();
-    const { selections, toggleSelection, setProjectSelection, hasStoredSelection } = useSelectionStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments: removeCommentsEnabled, setRemoveComments } = useConfigStore();
+    const { selections, setProjectSelection, hasStoredSelection } = useSelectionStore();
     
     const [projectStructure, setProjectStructure] = useState(null);
     const [projectId, setProjectId] = useState(null);
@@ -72,10 +70,7 @@ const SyncView = ({ fetchViaBackground }) => {
     const [serverStatus, setServerStatus] = useState('checking'); 
     const [isChecking, setIsChecking] = useState(false);
 
-    const selectedPaths = useMemo(() => {
-        if (!projectId) return new Set();
-        return new Set(selections[projectId] || []);
-    }, [selections, projectId]);
+    const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -87,33 +82,19 @@ const SyncView = ({ fetchViaBackground }) => {
         let isMounted = true;
         const checkHealth = async () => {
             if (!serverUrl) return;
-            
             if (isMounted) setIsChecking(true);
             try {
                 const response = await fetchViaBackground(`${serverUrl}/health`);
-                if (isMounted) {
-                    if (response.success) {
-                        setServerStatus('connected');
-                    } else {
-                        setServerStatus('disconnected');
-                    }
-                }
+                if (isMounted) setServerStatus(response.success ? 'connected' : 'disconnected');
             } catch (error) {
                 if (isMounted) setServerStatus('disconnected');
             } finally {
-                setTimeout(() => {
-                    if (isMounted) setIsChecking(false);
-                }, 500);
+                setTimeout(() => { if (isMounted) setIsChecking(false); }, 500);
             }
         };
-
         checkHealth();
         const interval = setInterval(checkHealth, checkInterval);
-
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
-        };
+        return () => { isMounted = false; clearInterval(interval); };
     }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleFetchStructure = useCallback(async () => {
@@ -121,25 +102,16 @@ const SyncView = ({ fetchViaBackground }) => {
         try {
             const response = await fetchViaBackground(`${serverUrl}/structure`);
             if (!response.success) throw new Error(response.error);
-            
             const data = JSON.parse(response.data);
             setProjectStructure(data.root);
-            
             const newProjectId = data.project || 'default-project';
             setProjectId(newProjectId);
             setLastUpdated(new Date());
-            
-            const shouldApplyDefault = !persistSelection || !hasStoredSelection(newProjectId);
-
-            if (shouldApplyDefault) {
+            if (!persistSelection || !hasStoredSelection(newProjectId)) {
                 const allFiles = flattenStructure(data.root);
-                const defaultSelection = allFiles
-                    .filter(f => !f.name.toLowerCase().endsWith('.md'))
-                    .map(f => f.path);
-                
+                const defaultSelection = allFiles.filter(f => !f.name.toLowerCase().endsWith('.md')).map(f => f.path);
                 setProjectSelection(newProjectId, defaultSelection);
             }
-            
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
@@ -148,105 +120,46 @@ const SyncView = ({ fetchViaBackground }) => {
     }, [serverUrl, fetchViaBackground, showNotification, persistSelection, hasStoredSelection, setProjectSelection]);
 
     useEffect(() => {
-        if (serverStatus === 'connected' && !projectStructure && !loading) {
-            handleFetchStructure();
-        }
+        if (serverStatus === 'connected' && !projectStructure && !loading) handleFetchStructure();
     }, [serverStatus, projectStructure, handleFetchStructure, loading]);
-
-    const handleToggleSelection = (node, isSelected) => {
-        if (!projectId) return;
-
-        const collectPaths = (n) => {
-            let paths = [];
-            if (n.type === 'file') paths.push(n.path);
-            if (n.children) {
-                n.children.forEach(child => {
-                    paths = [...paths, ...collectPaths(child)];
-                });
-            }
-            return paths;
-        };
-
-        const targetPaths = collectPaths(node);
-        const currentSelection = selections[projectId] || [];
-        const newSet = new Set(currentSelection);
-
-        targetPaths.forEach(path => {
-            if (isSelected) {
-                newSet.add(path);
-            } else {
-                newSet.delete(path);
-            }
-        });
-
-        setProjectSelection(projectId, Array.from(newSet));
-    };
-
-    useEffect(() => {
-        if (!projectStructure || !projectId) return;
-        const allFiles = flattenStructure(projectStructure);
-        const selectedFiles = allFiles.filter(f => selectedPaths.has(f.path));
-        const lines = selectedFiles.reduce((acc, f) => acc + (f.lines || 0), 0);
-        setStats({ files: selectedFiles.length, lines });
-    }, [selectedPaths, projectStructure, projectId]);
 
     const handleSync = async () => {
         if (selectedPaths.size === 0) return;
         setLoading(true);
         try {
-            const selectedPathsArray = Array.from(selectedPaths);
-            
-            const response = await fetchViaBackground(
-                `${serverUrl}/selective-content`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ selectedPaths: selectedPathsArray })
-                }
-            );
+            const response = await fetchViaBackground(`${serverUrl}/selective-content`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selectedPaths: Array.from(selectedPaths) })
+            });
 
             if (!response.success) throw new Error(response.error);
             let content = response.data;
 
             if (removeCommentsEnabled) {
-                const parts = content.split('STARTOFFILE:');
-                const header = parts[0];
-                const processedFiles = parts.slice(1).map(part => {
-                    const dividerIndex = part.indexOf('\n');
-                    const fileName = part.substring(0, dividerIndex);
-                    const fileBody = part.substring(dividerIndex);
-                    
-                    const endMarker = '----------------------------------------\nENDOFFILE:';
-                    const bodyParts = fileBody.split(endMarker);
-                    
-                    const code = bodyParts[0];
-                    const footer = bodyParts[1] || '';
-                    
-                    return `${fileName}${removeComments(code)}${endMarker}${footer}`;
-                });
-                content = header + processedFiles.map(f => 'STARTOFFILE:' + f).join('');
+                content = content.split('STARTOFFILE:').map((part, i) => {
+                    if (i === 0) return part;
+                    const lines = part.split('\n');
+                    const header = lines[0]; 
+                    const bodyAndFooter = lines.slice(1).join('\n');
+                    const marker = '----------------------------------------\nENDOFFILE:';
+                    const [body, ...footerParts] = bodyAndFooter.split(marker);
+                    return `${header}\n${removeComments(body)}${marker}${footerParts.join(marker)}`;
+                }).join('STARTOFFILE:');
             }
 
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
-            
-            if (!activeTab) throw new Error('Nenhuma aba ativa');
+            if (!activeTab) throw new Error('Aba não encontrada');
 
             const isGemini = activeTab.url.includes('gemini.google.com');
-            const messageType = isGemini ? 'ADD_FILE_GEMINI' : 'ADD_FILE';
-
-            const msgResponse = await chrome.tabs.sendMessage(activeTab.id, {
-                type: messageType,
+            await chrome.tabs.sendMessage(activeTab.id, {
+                type: isGemini ? 'ADD_FILE_GEMINI' : 'ADD_FILE',
                 fileName: 'codemerge-selected.txt',
                 content: content
             });
 
-            if (msgResponse && msgResponse.success === false) {
-                throw new Error(msgResponse.error);
-            }
-
-            showNotification(`Sincronizado: ${stats.files} arquivos`, 'success');
-
+            showNotification(`Sincronizado!`, 'success');
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
@@ -254,98 +167,22 @@ const SyncView = ({ fetchViaBackground }) => {
         }
     };
 
-    const getStatusProps = () => {
-        if (isChecking) {
-            return {
-                color: 'warning.main',
-                borderColor: '#ed6c02',
-                borderAnimation: `${pulseOrange} 1.5s infinite`,
-                dotAnimation: `${dotBreathing} 1s infinite`
-            };
-        }
-        if (serverStatus === 'connected') {
-            return {
-                color: 'success.main',
-                borderColor: '#4caf50',
-                borderAnimation: `${pulseGreen} 3s infinite`,
-                dotAnimation: `${dotBreathing} 3s infinite`
-            };
-        }
-        if (serverStatus === 'disconnected') {
-            return {
-                color: 'error.main',
-                borderColor: '#f44336',
-                borderAnimation: `${pulseRed} 2s infinite`,
-                dotAnimation: `${dotBreathing} 2s infinite`
-            };
-        }
-        return {
-            color: 'text.disabled',
-            borderColor: undefined,
-            borderAnimation: 'none',
-            dotAnimation: 'none'
-        };
-    };
-
-    const statusProps = getStatusProps();
+    const statusProps = {
+        connected: { color: 'success.main', borderColor: '#4caf50', borderAnimation: `${pulseGreen} 3s infinite` },
+        disconnected: { color: 'error.main', borderColor: '#f44336', borderAnimation: `${pulseRed} 2s infinite` },
+        checking: { color: 'warning.main', borderColor: '#ed6c02', borderAnimation: `${pulseOrange} 1.5s infinite` }
+    }[isChecking ? 'checking' : serverStatus] || { color: 'text.disabled' };
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
             <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">URL do Servidor</Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    <TextField 
-                        fullWidth 
-                        size="small" 
-                        variant="outlined" 
-                        value={serverUrl}
-                        onChange={(e) => setServerUrl(e.target.value)}
-                        onBlur={() => {
-                            if (!serverUrl || serverUrl.trim() === '') {
-                                setServerUrl('http://localhost:9876');
-                            }
-                        }}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Box
-                                        sx={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: '50%',
-                                            bgcolor: statusProps.color,
-                                            animation: statusProps.dotAnimation,
-                                            transition: 'background-color 0.3s ease'
-                                        }}
-                                    />
-                                </InputAdornment>
-                            )
-                        }}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: 1,
-                                transition: 'all 0.3s ease',
-                                animation: statusProps.borderAnimation,
-                                '& fieldset': {
-                                    borderColor: statusProps.borderColor,
-                                    transition: 'border-color 0.3s'
-                                },
-                                '&:hover fieldset': {
-                                    borderColor: statusProps.borderColor,
-                                },
-                                '&.Mui-focused fieldset': {
-                                    borderColor: statusProps.borderColor,
-                                },
-                            }
-                        }}
+                    <TextField fullWidth size="small" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)}
+                        InputProps={{ endAdornment: <InputAdornment position="end"><Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: statusProps.color }} /></InputAdornment> }}
+                        sx={{ '& .MuiOutlinedInput-root': { animation: statusProps.borderAnimation, '& fieldset': { borderColor: statusProps.borderColor } } }}
                     />
-                    <Button 
-                        variant="outlined" 
-                        onClick={handleFetchStructure}
-                        disabled={loading || isChecking || serverStatus !== 'connected'}
-                        sx={{ minWidth: 'auto', px: 2 }}
-                        title="Buscar Estrutura"
-                    >
+                    <Button variant="outlined" onClick={handleFetchStructure} disabled={loading || isChecking || serverStatus !== 'connected'} sx={{ minWidth: 'auto', px: 2 }}>
                         {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
                     </Button>
                 </Box>
@@ -353,122 +190,40 @@ const SyncView = ({ fetchViaBackground }) => {
 
             {projectStructure && (
                 <>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            flexGrow: 1, 
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            overflow: 'hidden', 
-                            mb: 2, 
-                            p: 0
-                        }}
-                    >
-                        <Box sx={{ 
-                            p: 1, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            borderBottom: 1, 
-                            borderColor: 'divider',
-                            bgcolor: 'action.hover'
-                        }}>
+                    <Paper variant="outlined" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', mb: 2 }}>
+                        <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
-                            <input
-                                style={{
-                                    border: 'none',
-                                    outline: 'none',
-                                    flexGrow: 1,
-                                    background: 'transparent',
-                                    color: 'inherit',
-                                    fontSize: '0.875rem',
-                                    fontFamily: 'inherit',
-                                    minWidth: 0
-                                }}
-                                placeholder="Filtrar arquivos..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            
-                            <Tooltip title={persistSelection ? "Manter seleção ativado" : "Manter seleção desativado"}>
-                                <IconButton 
-                                    size="small" 
-                                    onClick={() => setPersistSelection(!persistSelection)}
-                                    color={persistSelection ? "primary" : "default"}
-                                    sx={{ ml: 1 }}
-                                >
-                                    {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+                            <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
+                                placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            <Tooltip title="Limpeza de código">
+                                <IconButton size="small" onClick={() => setRemoveComments(!removeCommentsEnabled)} color={removeCommentsEnabled ? "primary" : "default"} sx={{ ml: 1 }}>
+                                    {removeCommentsEnabled ? <CodeOffIcon fontSize="small" /> : <CodeIcon fontSize="small" />}
                                 </IconButton>
                             </Tooltip>
+                            <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
+                                {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+                            </IconButton>
                         </Box>
-
-                        <Box sx={{ 
-                            flexGrow: 1, 
-                            overflow: 'auto', 
-                            '&::-webkit-scrollbar': {
-                                width: '8px',
-                                height: '8px',
-                            },
-                            '&::-webkit-scrollbar-track': {
-                                background: 'transparent', 
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                                borderRadius: '4px',
-                            },
-                            '&::-webkit-scrollbar-thumb:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)', 
-                            },
-                            '&::-webkit-scrollbar-corner': {
-                                background: 'transparent',
-                            }
-                        }}>
-                            <FileTreeItem 
-                                node={projectStructure} 
-                                selectedPaths={selectedPaths}
-                                onToggleSelection={handleToggleSelection}
-                                searchTerm={searchTerm}
-                            />
+                        <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                            <FileTreeItem node={projectStructure} selectedPaths={selectedPaths} onToggleSelection={(n, s) => {
+                                const collect = (node) => {
+                                    let p = []; if (node.type === 'file') p.push(node.path);
+                                    if (node.children) node.children.forEach(c => p = [...p, ...collect(c)]);
+                                    return p;
+                                };
+                                const target = collect(n);
+                                const next = new Set(selectedPaths);
+                                target.forEach(p => s ? next.add(p) : next.delete(p));
+                                setProjectSelection(projectId, Array.from(next));
+                            }} searchTerm={searchTerm} />
                         </Box>
                     </Paper>
-
-                    <Box sx={{ mt: 'auto' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 1.5, flexWrap: 'wrap' }}>
-                             <Typography variant="caption" color="text.secondary">
-                                Arquivos: {stats.files}
-                             </Typography>
-                             <Typography variant="caption" color="text.secondary">
-                                Linhas: {stats.lines.toLocaleString()}
-                             </Typography>
-                             {lastUpdated && (
-                                <Typography variant="caption" color="text.secondary">
-                                    Atualizado: {lastUpdated.toLocaleTimeString()}
-                                </Typography>
-                             )}
-                        </Box>
-                        
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
-                            onClick={handleSync}
-                            disabled={loading || stats.files === 0 || serverStatus !== 'connected'}
-                            fullWidth
-                        >
-                            Sincronizar Selecionados
-                        </Button>
-                    </Box>
+                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<CloudUploadIcon />}>
+                        Sincronizar Selecionados
+                    </Button>
                 </>
             )}
-
-            <Snackbar 
-                open={message.open} 
-                autoHideDuration={1000} 
-                onClose={() => setMessage({ ...message, open: false })}
-            >
-                <Alert severity={message.type} sx={{ width: '100%' }}>
-                    {message.text}
-                </Alert>
-            </Snackbar>
+            <Snackbar open={message.open} autoHideDuration={1000} onClose={() => setMessage({ ...message, open: false })}><Alert severity={message.type}>{message.text}</Alert></Snackbar>
         </Box>
     );
 };
