@@ -42,7 +42,7 @@
       ],
       "js": [
         "src/services/geminiService.js",
-        "src/scripts/geminiHelper.js"
+        "src/scripts/gemini/brigde.js.js"
       ],
       "run_at": "document_idle"
     },
@@ -51,7 +51,7 @@
         "https://gemini.google.com/*"
       ],
       "js": [
-        "src/scripts/geminiInjector.js"
+        "src/scripts/gemini/injector.js"
       ],
       "run_at": "document_idle",
       "world": "MAIN"

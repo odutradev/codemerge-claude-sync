@@ -1,4 +1,4 @@
-import geminiService from '../services/geminiService';
+import geminiService from '../../services/geminiService';
 
 console.log('[GeminiHelper] Content script carregado - Unified Bridge Mode');
 
