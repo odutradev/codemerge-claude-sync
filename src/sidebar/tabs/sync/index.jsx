@@ -246,6 +246,11 @@ const SyncView = ({ fetchViaBackground }) => {
                         variant="outlined" 
                         value={serverUrl}
                         onChange={(e) => setServerUrl(e.target.value)}
+                        onBlur={() => {
+                            if (!serverUrl || serverUrl.trim() === '') {
+                                setServerUrl('http://localhost:9876');
+                            }
+                        }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
