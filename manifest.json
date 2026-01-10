@@ -20,7 +20,7 @@
     "type": "module"
   },
   "side_panel": {
-    "default_path": "src/sidebar/index.html"
+    "default_path": "src/sidebar/core/index.html"
   },
   "action": {
     "default_title": "CodeMerge Sync"
