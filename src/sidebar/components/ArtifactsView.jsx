@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Box, 
     Button, 
@@ -120,7 +120,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
 
     const statusProps = getStatusProps();
 
-    const handleFetchArtifacts = async () => {
+    const handleFetchArtifacts = useCallback(async (silent = false) => {
         setLoading(true);
         setFetching(true);
         try {
@@ -139,16 +139,27 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             
             setArtifacts(response.artifacts || []);
             setSelectedIndices(new Set((response.artifacts || []).map((_, i) => i)));
-            setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });
+            
+            if (!silent) {
+                setMessage({ open: true, text: `${response.artifacts?.length || 0} artefatos encontrados`, type: 'success' });
+            }
 
         } catch (error) {
             console.log(error)
-            setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            if (!silent) {
+                setMessage({ open: true, text: `Erro: ${error.message}`, type: 'error' });
+            }
         } finally {
             setLoading(false);
             setFetching(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (serverStatus === 'connected') {
+            handleFetchArtifacts(true);
+        }
+    }, [serverStatus, handleFetchArtifacts]);
 
     const handleToggle = (index) => {
         const newSelected = new Set(selectedIndices);
@@ -214,7 +225,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             <Button 
                 variant="outlined" 
                 startIcon={<DownloadIcon />} 
-                onClick={handleFetchArtifacts}
+                onClick={() => handleFetchArtifacts(false)}
                 disabled={loading}
                 fullWidth
                 sx={{ mb: 2 }}
