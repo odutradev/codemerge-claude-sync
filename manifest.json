@@ -42,7 +42,8 @@
       ],
       "js": [
         "src/services/geminiService.js",
-        "src/scripts/gemini/brigde.js"
+        "src/scripts/gemini/brigde.js",
+        "src/scripts/gemini/setWiz.js"
       ],
       "run_at": "document_idle"
     },
