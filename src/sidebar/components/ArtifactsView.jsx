@@ -10,13 +10,17 @@ import {
     Checkbox,
     Paper,
     CircularProgress,
-    Chip,
     Snackbar,
     Alert
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
+import JavascriptIcon from '@mui/icons-material/Javascript';
+import HtmlIcon from '@mui/icons-material/Html';
+import CssIcon from '@mui/icons-material/Css';
+import CodeIcon from '@mui/icons-material/Code';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -41,6 +45,20 @@ const dotBreathing = keyframes`
   50% { transform: scale(1.2); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 `;
+
+const getFileIcon = (filename) => {
+  const ext = filename ? filename.split('.').pop().toLowerCase() : '';
+  switch (ext) {
+    case 'js': return <JavascriptIcon sx={{ color: '#f7df1e' }} fontSize="small" />;
+    case 'ts': return <CodeIcon sx={{ color: '#3178c6' }} fontSize="small" />;
+    case 'jsx': return <CodeIcon sx={{ color: '#61dafb' }} fontSize="small" />;
+    case 'tsx': return <CodeIcon sx={{ color: '#3178c6' }} fontSize="small" />;
+    case 'html': return <HtmlIcon sx={{ color: '#e34c26' }} fontSize="small" />;
+    case 'css': return <CssIcon sx={{ color: '#264de4' }} fontSize="small" />;
+    case 'json': return <CodeIcon sx={{ color: '#ffd700' }} fontSize="small" />;
+    default: return <InsertDriveFileIcon fontSize="small" color="disabled" />;
+  }
+};
 
 const ArtifactsView = ({ config, fetchViaBackground }) => {
     const [artifacts, setArtifacts] = useState([]);
@@ -249,11 +267,13 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
                                     </ListItemIcon>
                                     <ListItemText 
                                         primary={
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Typography variant="body2" noWrap sx={{ maxWidth: '70%' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Box sx={{ mr: 1, display: 'flex' }}>
+                                                    {getFileIcon(artifact.name)}
+                                                </Box>
+                                                <Typography variant="body2" noWrap>
                                                     {artifact.name}
                                                 </Typography>
-                                                <Chip label={artifact.language} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.6rem' }} />
                                             </Box>
                                         }
                                         secondary={
