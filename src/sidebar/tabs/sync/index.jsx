@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     Box, 
     Button, 
@@ -8,13 +8,16 @@ import {
     CircularProgress,
     Alert,
     Snackbar,
-    InputAdornment
+    InputAdornment,
+    FormControlLabel,
+    Checkbox
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
+import useSelectionStore from '../../store/selectionStore';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -52,9 +55,11 @@ const flattenStructure = (node) => {
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity } = useConfigStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection } = useConfigStore();
+    const { selections, toggleSelection, setProjectSelection, hasStoredSelection } = useSelectionStore();
+    
     const [projectStructure, setProjectStructure] = useState(null);
-    const [selectedPaths, setSelectedPaths] = useState(new Set());
+    const [projectId, setProjectId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
@@ -62,6 +67,11 @@ const SyncView = ({ fetchViaBackground }) => {
     const [lastUpdated, setLastUpdated] = useState(null);
     const [serverStatus, setServerStatus] = useState('checking'); 
     const [isChecking, setIsChecking] = useState(false);
+
+    const selectedPaths = useMemo(() => {
+        if (!projectId) return new Set();
+        return new Set(selections[projectId] || []);
+    }, [selections, projectId]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -110,23 +120,28 @@ const SyncView = ({ fetchViaBackground }) => {
             
             const data = JSON.parse(response.data);
             setProjectStructure(data.root);
+            
+            const newProjectId = data.project || 'default-project';
+            setProjectId(newProjectId);
             setLastUpdated(new Date());
             
-            const allFiles = flattenStructure(data.root);
-            
-            const newSet = new Set(
-                allFiles
+            const shouldApplyDefault = !persistSelection || !hasStoredSelection(newProjectId);
+
+            if (shouldApplyDefault) {
+                const allFiles = flattenStructure(data.root);
+                const defaultSelection = allFiles
                     .filter(f => !f.name.toLowerCase().endsWith('.md'))
-                    .map(f => f.path)
-            );
-            setSelectedPaths(newSet);
+                    .map(f => f.path);
+                
+                setProjectSelection(newProjectId, defaultSelection);
+            }
             
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
         }
-    }, [serverUrl, fetchViaBackground, showNotification]);
+    }, [serverUrl, fetchViaBackground, showNotification, persistSelection, hasStoredSelection, setProjectSelection]);
 
     useEffect(() => {
         if (serverStatus === 'connected' && !projectStructure && !loading) {
@@ -135,25 +150,41 @@ const SyncView = ({ fetchViaBackground }) => {
     }, [serverStatus, projectStructure, handleFetchStructure, loading]);
 
     const handleToggleSelection = (node, isSelected) => {
-        const newSelected = new Set(selectedPaths);
-        const toggleNode = (n, select) => {
-            if (n.type === 'file') {
-                if (select) newSelected.add(n.path);
-                else newSelected.delete(n.path);
+        if (!projectId) return;
+
+        const collectPaths = (n) => {
+            let paths = [];
+            if (n.type === 'file') paths.push(n.path);
+            if (n.children) {
+                n.children.forEach(child => {
+                    paths = [...paths, ...collectPaths(child)];
+                });
             }
-            if (n.children) n.children.forEach(c => toggleNode(c, select));
+            return paths;
         };
-        toggleNode(node, isSelected);
-        setSelectedPaths(newSelected);
+
+        const targetPaths = collectPaths(node);
+        const currentSelection = selections[projectId] || [];
+        const newSet = new Set(currentSelection);
+
+        targetPaths.forEach(path => {
+            if (isSelected) {
+                newSet.add(path);
+            } else {
+                newSet.delete(path);
+            }
+        });
+
+        setProjectSelection(projectId, Array.from(newSet));
     };
 
     useEffect(() => {
-        if (!projectStructure) return;
+        if (!projectStructure || !projectId) return;
         const allFiles = flattenStructure(projectStructure);
         const selectedFiles = allFiles.filter(f => selectedPaths.has(f.path));
         const lines = selectedFiles.reduce((acc, f) => acc + (f.lines || 0), 0);
         setStats({ files: selectedFiles.length, lines });
-    }, [selectedPaths, projectStructure]);
+    }, [selectedPaths, projectStructure, projectId]);
 
     const handleSync = async () => {
         if (selectedPaths.size === 0) return;
@@ -299,14 +330,31 @@ const SyncView = ({ fetchViaBackground }) => {
 
             {projectStructure && (
                 <>
-                    <TextField 
-                        fullWidth 
-                        size="small" 
-                        placeholder="Filtrar arquivos..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        sx={{ mb: 2 }}
-                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+                        <TextField 
+                            fullWidth 
+                            size="small" 
+                            placeholder="Filtrar arquivos..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                         <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={persistSelection}
+                                    onChange={(e) => setPersistSelection(e.target.checked)}
+                                    size="small"
+                                    color="primary"
+                                />
+                            }
+                            label={
+                                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                                    Manter
+                                </Typography>
+                            }
+                            sx={{ mr: 0, ml: 0.5 }}
+                        />
+                    </Box>
                     
                     <Paper 
                         variant="outlined" 

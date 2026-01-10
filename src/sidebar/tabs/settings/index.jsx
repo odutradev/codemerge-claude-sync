@@ -9,7 +9,9 @@ import {
     ToggleButtonGroup,
     IconButton,
     Button,
-    Divider
+    Divider,
+    Switch,
+    FormControlLabel
 } from '@mui/material';
 import useConfigStore from '../../store/configStore';
 import TimerIcon from '@mui/icons-material/Timer';
@@ -40,11 +42,13 @@ const SettingsView = () => {
         primaryColor,
         compactMode,
         verbosity,
+        persistSelection,
         setCheckInterval,
         setThemeMode,
         setPrimaryColor,
         setCompactMode,
         setVerbosity,
+        setPersistSelection,
         resetConfig
     } = useConfigStore();
 
@@ -160,6 +164,26 @@ const SettingsView = () => {
                             Mudo
                         </ToggleButton>
                     </ToggleButtonGroup>
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={persistSelection}
+                                onChange={(e) => setPersistSelection(e.target.checked)}
+                                size="small"
+                            />
+                        }
+                        label={
+                            <Typography variant="body2" color="text.primary">
+                                Manter seleção após recarregar
+                            </Typography>
+                        }
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4, mt: -0.5 }}>
+                        Memoriza os arquivos selecionados por projeto
+                    </Typography>
                 </Box>
 
                 <Box>
