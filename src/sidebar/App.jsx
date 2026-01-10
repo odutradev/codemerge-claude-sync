@@ -1,29 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SyncView from './tabs/sync';
 import ArtifactsView from './tabs/artifacts';
+import SettingsView from './tabs/settings';
+import useConfigStore from './store/configStore';
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
-    const [config, setConfig] = useState({ serverUrl: 'http://localhost:9876' });
+    const loadFromBackground = useConfigStore(state => state.loadFromBackground);
 
     useEffect(() => {
-        if (chrome && chrome.runtime) {
-            chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                if (response?.config) {
-                    setConfig(prev => ({ ...prev, ...response.config }));
-                }
-            });
-        }
-    }, []);
-
-    const handleConfigChange = (newConfig) => {
-        const updated = { ...config, ...newConfig };
-        setConfig(updated);
-        if (chrome && chrome.runtime) {
-            chrome.runtime.sendMessage({ type: 'UPDATE_CONFIG', config: updated });
-        }
-    };
+        loadFromBackground();
+    }, [loadFromBackground]);
 
     const fetchViaBackground = (url, options = {}) => {
         return new Promise((resolve) => {
@@ -46,17 +35,35 @@ const App = () => {
     return (
         <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default', color: 'text.primary' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={currentTab} onChange={handleTabChange} aria-label="sidebar tabs" variant="fullWidth" textColor="primary" indicatorColor="primary">
-                    <Tab label="Sync" />
-                    <Tab label="Artefatos" />
+                <Tabs 
+                    value={currentTab} 
+                    onChange={handleTabChange} 
+                    aria-label="sidebar tabs" 
+                    variant="standard"
+                    textColor="primary" 
+                    indicatorColor="primary"
+                    sx={{
+                        '& .MuiTabs-flexContainer': {
+                            display: 'flex',
+                        }
+                    }}
+                >
+                    <Tab label="Sync" sx={{ flexGrow: 1, maxWidth: 'none' }} />
+                    <Tab label="Artefatos" sx={{ flexGrow: 1, maxWidth: 'none' }} />
+                    <Tab 
+                        icon={<SettingsIcon fontSize="small" />} 
+                        sx={{ 
+                            minWidth: 48, 
+                            width: 48, 
+                            padding: 0 
+                        }} 
+                    />
                 </Tabs>
             </Box>
             
             <Box role="tabpanel" hidden={currentTab !== 0} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
                 {currentTab === 0 && (
                     <SyncView 
-                        config={config} 
-                        onConfigChange={handleConfigChange}
                         fetchViaBackground={fetchViaBackground}
                     />
                 )}
@@ -65,9 +72,14 @@ const App = () => {
             <Box role="tabpanel" hidden={currentTab !== 1} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
                 {currentTab === 1 && (
                     <ArtifactsView 
-                        config={config}
                         fetchViaBackground={fetchViaBackground}
                     />
+                )}
+            </Box>
+
+            <Box role="tabpanel" hidden={currentTab !== 2} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
+                {currentTab === 2 && (
+                    <SettingsView />
                 )}
             </Box>
         </Box>

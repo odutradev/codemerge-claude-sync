@@ -14,6 +14,7 @@ import { keyframes } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FileTreeItem from './subcomponents/filetreeItem';
+import useConfigStore from '../../store/configStore';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -50,7 +51,8 @@ const flattenStructure = (node) => {
     return files;
 };
 
-const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
+const SyncView = ({ fetchViaBackground }) => {
+    const { serverUrl, checkInterval, setServerUrl } = useConfigStore();
     const [projectStructure, setProjectStructure] = useState(null);
     const [selectedPaths, setSelectedPaths] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
@@ -64,11 +66,11 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
     useEffect(() => {
         let isMounted = true;
         const checkHealth = async () => {
-            if (!config.serverUrl) return;
+            if (!serverUrl) return;
             
             if (isMounted) setIsChecking(true);
             try {
-                const response = await fetchViaBackground(`${config.serverUrl}/health`);
+                const response = await fetchViaBackground(`${serverUrl}/health`);
                 if (isMounted) {
                     if (response.success) {
                         setServerStatus('connected');
@@ -86,18 +88,18 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         };
 
         checkHealth();
-        const interval = setInterval(checkHealth, 5000);
+        const interval = setInterval(checkHealth, checkInterval);
 
         return () => {
             isMounted = false;
             clearInterval(interval);
         };
-    }, [config.serverUrl, fetchViaBackground]);
+    }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleFetchStructure = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetchViaBackground(`${config.serverUrl}/structure`);
+            const response = await fetchViaBackground(`${serverUrl}/structure`);
             if (!response.success) throw new Error(response.error);
             
             const data = JSON.parse(response.data);
@@ -118,7 +120,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
         } finally {
             setLoading(false);
         }
-    }, [config.serverUrl, fetchViaBackground]);
+    }, [serverUrl, fetchViaBackground]);
 
     useEffect(() => {
         if (serverStatus === 'connected' && !projectStructure && !loading) {
@@ -154,7 +156,7 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
             const selectedPathsArray = Array.from(selectedPaths);
             
             const response = await fetchViaBackground(
-                `${config.serverUrl}/selective-content`,
+                `${serverUrl}/selective-content`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -236,8 +238,8 @@ const SyncView = ({ config, onConfigChange, fetchViaBackground }) => {
                         fullWidth 
                         size="small" 
                         variant="outlined" 
-                        value={config.serverUrl}
-                        onChange={(e) => onConfigChange({ serverUrl: e.target.value })}
+                        value={serverUrl}
+                        onChange={(e) => setServerUrl(e.target.value)}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">

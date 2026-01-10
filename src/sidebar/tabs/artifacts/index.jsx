@@ -17,6 +17,7 @@ import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import FileIcon from '../../components/fileIcon';
+import useConfigStore from '../../store/configStore';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -42,7 +43,8 @@ const dotBreathing = keyframes`
   100% { transform: scale(1); opacity: 1; }
 `;
 
-const ArtifactsView = ({ config, fetchViaBackground }) => {
+const ArtifactsView = ({ fetchViaBackground }) => {
+    const { serverUrl, checkInterval } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -55,11 +57,11 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
     useEffect(() => {
         let isMounted = true;
         const checkHealth = async () => {
-            if (!config.serverUrl) return;
+            if (!serverUrl) return;
             
             if (isMounted) setIsChecking(true);
             try {
-                const response = await fetchViaBackground(`${config.serverUrl}/health`);
+                const response = await fetchViaBackground(`${serverUrl}/health`);
                 if (isMounted) {
                     if (response.success) {
                         setServerStatus('connected');
@@ -77,13 +79,13 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
         };
 
         checkHealth();
-        const interval = setInterval(checkHealth, 5000);
+        const interval = setInterval(checkHealth, checkInterval);
 
         return () => {
             isMounted = false;
             clearInterval(interval);
         };
-    }, [config.serverUrl, fetchViaBackground]);
+    }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const getStatusProps = () => {
         if (isChecking) {
@@ -188,7 +190,7 @@ const ArtifactsView = ({ config, fetchViaBackground }) => {
             });
 
             const response = await fetchViaBackground(
-                `${config.serverUrl}/upsert`,
+                `${serverUrl}/upsert`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
