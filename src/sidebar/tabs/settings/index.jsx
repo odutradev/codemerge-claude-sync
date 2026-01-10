@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
     Box, 
     TextField, 
@@ -11,9 +11,12 @@ import {
     Button,
     Divider,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import useConfigStore from '../../store/configStore';
+import useSelectionStore from '../../store/selectionStore';
 import TimerIcon from '@mui/icons-material/Timer';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -25,6 +28,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import packageJson from '../../../../package.json';
 
 const PREDEFINED_COLORS = [
@@ -52,6 +56,9 @@ const SettingsView = () => {
         resetConfig
     } = useConfigStore();
 
+    const { clearAllSelections } = useSelectionStore();
+    const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
+
     const colorInputRef = useRef(null);
 
     const handleThemeChange = (event, newMode) => {
@@ -75,6 +82,14 @@ const SettingsView = () => {
     const handleReset = () => {
         if (window.confirm('Tem certeza que deseja restaurar todas as configurações para o padrão?')) {
             resetConfig();
+            setMessage({ open: true, text: 'Configurações restauradas', type: 'success' });
+        }
+    };
+
+    const handleClearCache = () => {
+        if (window.confirm('Tem certeza que deseja limpar todo o cache de seleções de arquivos?')) {
+            clearAllSelections();
+            setMessage({ open: true, text: 'Cache de seleções limpo com sucesso', type: 'success' });
         }
     };
 
@@ -244,31 +259,42 @@ const SettingsView = () => {
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
-                    Conexão & Sistema
+                    Dados & Armazenamento
                 </Typography>
-
-                <Box sx={{ mb: 3 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                        Intervalo de Checagem (ms)
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        type="number"
-                        value={checkInterval}
-                        onChange={(e) => setCheckInterval(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <TimerIcon fontSize="small" />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                </Box>
+                
+                <Button
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<DeleteSweepIcon />}
+                    onClick={handleClearCache}
+                    fullWidth
+                    size="small"
+                    sx={{ mb: 2 }}
+                >
+                    Limpar Cache de Seleções
+                </Button>
 
                 <Divider sx={{ my: 2 }} />
+
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                    Intervalo de Checagem (ms)
+                </Typography>
+                <TextField
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    type="number"
+                    value={checkInterval}
+                    onChange={(e) => setCheckInterval(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <TimerIcon fontSize="small" />
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{ mb: 2 }}
+                />
 
                 <Button
                     variant="outlined"
@@ -285,6 +311,16 @@ const SettingsView = () => {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>
                 CodeMerge Sync v{packageJson.version}
             </Typography>
+
+            <Snackbar 
+                open={message.open} 
+                autoHideDuration={2000} 
+                onClose={() => setMessage({ ...message, open: false })}
+            >
+                <Alert severity={message.type} sx={{ width: '100%' }}>
+                    {message.text}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

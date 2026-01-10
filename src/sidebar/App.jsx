@@ -6,15 +6,18 @@ import SyncView from './tabs/sync';
 import ArtifactsView from './tabs/artifacts';
 import SettingsView from './tabs/settings';
 import useConfigStore from './store/configStore';
+import useSelectionStore from './store/selectionStore';
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
     const { loadFromBackground, themeMode, primaryColor } = useConfigStore();
+    const { checkExpiration } = useSelectionStore();
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
     useEffect(() => {
         loadFromBackground();
-    }, [loadFromBackground]);
+        checkExpiration();
+    }, [loadFromBackground, checkExpiration]);
 
     const theme = useMemo(() => {
         const mode = themeMode === 'system' ? (prefersDarkMode ? 'dark' : 'light') : themeMode;
