@@ -13,7 +13,7 @@ import {
 import { keyframes } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import FileTreeItem from './FileTreeItem';
+import FileTreeItem from '../FileTreeItem';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }

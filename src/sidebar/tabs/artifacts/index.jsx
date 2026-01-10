@@ -16,7 +16,7 @@ import {
 import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
-import FileIcon from './FileIcon';
+import FileIcon from '../FileIcon';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }

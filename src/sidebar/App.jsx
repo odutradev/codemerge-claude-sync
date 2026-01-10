@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
-import SyncView from './components/SyncView';
-import ArtifactsView from './components/ArtifactsView';
+import SyncView from './tabs/sync';
+import ArtifactsView from './tabs/artifacts';
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
