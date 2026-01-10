@@ -44,7 +44,7 @@ const dotBreathing = keyframes`
 `;
 
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, verbosity } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, compactMode } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
@@ -256,7 +256,7 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             ) : artifacts.length > 0 ? (
                 <>
                     <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
-                        <List dense>
+                        <List dense={compactMode}>
                             {artifacts.map((artifact, index) => (
                                 <ListItem 
                                     key={index}
@@ -277,7 +277,10 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                                         primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <Box sx={{ mr: 1, display: 'flex' }}>
-                                                    <FileIcon fileName={artifact.name} />
+                                                    <FileIcon 
+                                                        fileName={artifact.name} 
+                                                        sx={{ fontSize: compactMode ? 18 : 20 }}
+                                                    />
                                                 </Box>
                                                 <Typography variant="body2" noWrap>
                                                     {artifact.name}

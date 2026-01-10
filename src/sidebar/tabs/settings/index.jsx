@@ -7,7 +7,9 @@ import {
     InputAdornment, 
     ToggleButton, 
     ToggleButtonGroup,
-    IconButton
+    IconButton,
+    Button,
+    Divider
 } from '@mui/material';
 import useConfigStore from '../../store/configStore';
 import TimerIcon from '@mui/icons-material/Timer';
@@ -20,6 +22,7 @@ import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import packageJson from '../../../../package.json';
 
 const PREDEFINED_COLORS = [
@@ -41,7 +44,8 @@ const SettingsView = () => {
         setThemeMode,
         setPrimaryColor,
         setCompactMode,
-        setVerbosity
+        setVerbosity,
+        resetConfig
     } = useConfigStore();
 
     const colorInputRef = useRef(null);
@@ -61,6 +65,12 @@ const SettingsView = () => {
     const handleVerbosityChange = (event, newLevel) => {
         if (newLevel !== null) {
             setVerbosity(newLevel);
+        }
+    };
+
+    const handleReset = () => {
+        if (window.confirm('Tem certeza que deseja restaurar todas as configurações para o padrão?')) {
+            resetConfig();
         }
     };
 
@@ -213,7 +223,7 @@ const SettingsView = () => {
                     Conexão & Sistema
                 </Typography>
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                         Intervalo de Checagem (ms)
                     </Typography>
@@ -233,6 +243,19 @@ const SettingsView = () => {
                         }}
                     />
                 </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<RestartAltIcon />}
+                    onClick={handleReset}
+                    fullWidth
+                    size="small"
+                >
+                    Restaurar Padrões
+                </Button>
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>

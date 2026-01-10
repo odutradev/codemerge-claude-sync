@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 
-const useConfigStore = create((set, get) => ({
+const DEFAULT_CONFIG = {
     serverUrl: 'http://localhost:9876',
     checkInterval: 5000,
     themeMode: 'system',
     primaryColor: '#da7756',
     compactMode: false,
     verbosity: 'all',
+};
+
+const useConfigStore = create((set, get) => ({
+    ...DEFAULT_CONFIG,
     
     setServerUrl: (url) => {
         set({ serverUrl: url });
@@ -38,6 +42,11 @@ const useConfigStore = create((set, get) => ({
 
     setVerbosity: (level) => {
         set({ verbosity: level });
+        get().syncToBackground();
+    },
+
+    resetConfig: () => {
+        set(DEFAULT_CONFIG);
         get().syncToBackground();
     },
 

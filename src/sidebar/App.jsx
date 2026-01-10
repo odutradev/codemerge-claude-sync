@@ -98,8 +98,8 @@ const App = () => {
                             }
                         }}
                     >
-                        <Tab label="Sync" sx={{ flexGrow: 1, maxWidth: 'none' }} />
-                        <Tab label="Artefatos" sx={{ flexGrow: 1, maxWidth: 'none' }} />
+                        <Tab label="Sync" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
+                        <Tab label="Artefatos" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
                         <Tab 
                             icon={<SettingsIcon fontSize="small" />} 
                             sx={{ 
