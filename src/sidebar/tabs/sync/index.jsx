@@ -9,12 +9,15 @@ import {
     Alert,
     Snackbar,
     InputAdornment,
-    FormControlLabel,
-    Checkbox
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import SearchIcon from '@mui/icons-material/Search';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
@@ -330,39 +333,59 @@ const SyncView = ({ fetchViaBackground }) => {
 
             {projectStructure && (
                 <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
-                        <TextField 
-                            fullWidth 
-                            size="small" 
-                            placeholder="Filtrar arquivos..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                         <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={persistSelection}
-                                    onChange={(e) => setPersistSelection(e.target.checked)}
-                                    size="small"
-                                    color="primary"
-                                />
-                            }
-                            label={
-                                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                                    Manter
-                                </Typography>
-                            }
-                            sx={{ mr: 0, ml: 0.5 }}
-                        />
-                    </Box>
-                    
                     <Paper 
                         variant="outlined" 
                         sx={{ 
                             flexGrow: 1, 
-                            overflow: 'auto', 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            overflow: 'hidden', 
                             mb: 2, 
-                            p: 0,
+                            p: 0
+                        }}
+                    >
+                        {/* Header Minimalista com Busca e Toggle */}
+                        <Box sx={{ 
+                            p: 1, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            borderBottom: 1, 
+                            borderColor: 'divider',
+                            bgcolor: 'action.hover'
+                        }}>
+                            <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                            <input
+                                style={{
+                                    border: 'none',
+                                    outline: 'none',
+                                    flexGrow: 1,
+                                    background: 'transparent',
+                                    color: 'inherit',
+                                    fontSize: '0.875rem',
+                                    fontFamily: 'inherit',
+                                    minWidth: 0
+                                }}
+                                placeholder="Filtrar arquivos..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            
+                            <Tooltip title={persistSelection ? "Manter seleção ativado" : "Manter seleção desativado"}>
+                                <IconButton 
+                                    size="small" 
+                                    onClick={() => setPersistSelection(!persistSelection)}
+                                    color={persistSelection ? "primary" : "default"}
+                                    sx={{ ml: 1 }}
+                                >
+                                    {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+
+                        {/* Área de Scroll da Árvore */}
+                        <Box sx={{ 
+                            flexGrow: 1, 
+                            overflow: 'auto', 
                             '&::-webkit-scrollbar': {
                                 width: '8px',
                                 height: '8px',
@@ -380,14 +403,14 @@ const SyncView = ({ fetchViaBackground }) => {
                             '&::-webkit-scrollbar-corner': {
                                 background: 'transparent',
                             }
-                        }}
-                    >
-                        <FileTreeItem 
-                            node={projectStructure} 
-                            selectedPaths={selectedPaths}
-                            onToggleSelection={handleToggleSelection}
-                            searchTerm={searchTerm}
-                        />
+                        }}>
+                            <FileTreeItem 
+                                node={projectStructure} 
+                                selectedPaths={selectedPaths}
+                                onToggleSelection={handleToggleSelection}
+                                searchTerm={searchTerm}
+                            />
+                        </Box>
                     </Paper>
 
                     <Box sx={{ mt: 'auto' }}>
