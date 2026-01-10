@@ -1,6 +1,6 @@
 import geminiService from '../../services/geminiService';
 
-console.log('[GeminiHelper] Bridge carregado');
+console.log('[GeminiBridge] Bridge carregado');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'ADD_FILE_GEMINI') {
@@ -11,14 +11,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'GET_GEMINI_ARTIFACTS') {
-        console.log('[GeminiHelper] Buscando artefatos');
+        console.log('[GeminiBridge] Buscando artefatos');
         geminiService.getAllFiles()
             .then(artifacts => {
-                console.log(`[GeminiHelper] Encontrados: ${artifacts.length}`);
+                console.log(`[GeminiBridge] Encontrados: ${artifacts.length}`);
                 sendResponse({ success: true, artifacts });
             })
             .catch(error => {
-                console.error('[GeminiHelper] Falha ao buscar:', error.message);
+                console.error('[GeminiBridge] Falha ao buscar:', error.message);
                 sendResponse({ success: false, error: error.message });
             });
         return true;
