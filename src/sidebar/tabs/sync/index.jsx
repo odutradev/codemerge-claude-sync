@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-    Box, 
-    Button, 
-    TextField, 
-    Typography, 
+import {
+    Box,
+    Button,
+    TextField,
+    Typography,
     Paper,
     CircularProgress,
     Alert,
@@ -18,8 +18,6 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SearchIcon from '@mui/icons-material/Search';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import CodeOffIcon from '@mui/icons-material/CodeOff';
-import CodeIcon from '@mui/icons-material/Code';
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
@@ -51,15 +49,15 @@ const flattenStructure = (node) => {
 };
 
 const SyncView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
+    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
     const { selections, setProjectSelection, hasStoredSelection } = useSelectionStore();
-    
+
     const [projectStructure, setProjectStructure] = useState(null);
     const [projectId, setProjectId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
-    const [serverStatus, setServerStatus] = useState('checking'); 
+    const [serverStatus, setServerStatus] = useState('checking');
     const [isChecking, setIsChecking] = useState(false);
 
     const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
@@ -131,15 +129,15 @@ const SyncView = ({ fetchViaBackground }) => {
                 content = content.split('STARTOFFILE:').map((part, i) => {
                     if (i === 0) return part;
                     const lines = part.split('\n');
-                    const header = lines[0]; 
+                    const header = lines[0];
                     const bodyAndFooter = lines.slice(1).join('\n');
                     const marker = '----------------------------------------\nENDOFFILE:';
                     const [body, ...footerParts] = bodyAndFooter.split(marker);
-                    
-                    const cleanedBody = processCode(body, { 
-                        removeComments: true, 
-                        removeEmptyLines, 
-                        removeLogs 
+
+                    const cleanedBody = processCode(body, {
+                        removeComments: true,
+                        removeEmptyLines,
+                        removeLogs
                     });
 
                     return `${header}\n${cleanedBody}\n${marker}${footerParts.join(marker)}`;
@@ -193,14 +191,11 @@ const SyncView = ({ fetchViaBackground }) => {
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
                                 placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                            <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
-                                <IconButton size="small" onClick={() => setRemoveComments(!removeComments)} color={removeComments ? "primary" : "default"} sx={{ ml: 1 }}>
-                                    {removeComments ? <CodeOffIcon fontSize="small" /> : <CodeIcon fontSize="small" />}
+                            <Tooltip title={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}>
+                                <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
+                                    {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
                                 </IconButton>
                             </Tooltip>
-                            <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
-                                {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
-                            </IconButton>
                         </Box>
                         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
                             <FileTreeItem node={projectStructure} selectedPaths={selectedPaths} onToggleSelection={(n, s) => {

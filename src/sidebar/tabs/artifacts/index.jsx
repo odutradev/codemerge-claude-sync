@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    Box, 
-    Button, 
-    Typography, 
+import {
+    Box,
+    Button,
+    Typography,
     List,
     ListItem,
     ListItemIcon,
@@ -13,13 +13,15 @@ import {
     Snackbar,
     Alert,
     Tooltip,
-    IconButton
+    IconButton,
+    Divider
 } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
+import { keyframes, alpha } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import CodeIcon from '@mui/icons-material/Code';
+import DeselectIcon from '@mui/icons-material/Deselect';
 import FileIcon from '../../components/fileIcon';
 import useConfigStore from '../../store/configStore';
 import { processCode } from '../../utils/codeProcessor';
@@ -49,8 +51,8 @@ const ArtifactsView = ({ fetchViaBackground }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
-    
-    const [serverStatus, setServerStatus] = useState('checking'); 
+
+    const [serverStatus, setServerStatus] = useState('checking');
     const [isChecking, setIsChecking] = useState(false);
 
     const showNotification = useCallback((text, type = 'info') => {
@@ -87,7 +89,7 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
-            
+
             if (!activeTab || !activeTab.url.includes('gemini.google.com')) {
                 throw new Error('Esta função só funciona no Gemini');
             }
@@ -97,7 +99,7 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             });
 
             if (!response.success) throw new Error(response.error);
-            
+
             setArtifacts(response.artifacts || []);
             const initialSelection = new Set();
             (response.artifacts || []).forEach((artifact, index) => {
@@ -126,10 +128,10 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                 const artifact = artifacts[index];
                 let content = artifact.code;
                 if (removeComments) {
-                    content = processCode(content, { 
-                        removeComments: true, 
-                        removeEmptyLines, 
-                        removeLogs 
+                    content = processCode(content, {
+                        removeComments: true,
+                        removeEmptyLines,
+                        removeLogs
                     });
                 }
                 return { path: artifact.name, content };
@@ -150,6 +152,10 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         }
     };
 
+    const handleDeselectAll = () => {
+        setSelectedIndices(new Set());
+    };
+
     const statusProps = {
         connected: { color: 'success.main', animation: `${pulseGreen} 3s infinite`, text: 'Online' },
         disconnected: { color: 'error.main', animation: `${pulseRed} 2s infinite`, text: 'Offline' },
@@ -166,9 +172,9 @@ const ArtifactsView = ({ fetchViaBackground }) => {
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Button 
-                    variant="outlined" 
-                    startIcon={<DownloadIcon />} 
+                <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
                     onClick={() => handleFetchArtifacts(false)}
                     disabled={loading}
                     fullWidth
@@ -176,7 +182,7 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                     Buscar Artefatos
                 </Button>
                 <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
-                    <IconButton 
+                    <IconButton
                         color={removeComments ? "primary" : "default"}
                         onClick={() => setRemoveComments(!removeComments)}
                         sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
@@ -190,8 +196,54 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Box>
             ) : artifacts.length > 0 ? (
                 <>
-                    <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
-                        <List dense={compactMode}>
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            flexGrow: 1,
+                            overflow: 'auto',
+                            mb: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            position: 'relative'
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 1,
+                                bgcolor: (theme) => alpha(theme.palette.background.paper, 0.95),
+                                backdropFilter: 'blur(4px)',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                px: 2,
+                                py: 0.5,
+                                borderBottom: 1,
+                                borderColor: 'divider'
+                            }}
+                        >
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                {artifacts.length} artefatos
+                            </Typography>
+                            <Button
+                                size="small"
+                                color="inherit"
+                                onClick={handleDeselectAll}
+                                disabled={selectedIndices.size === 0}
+                                sx={{
+                                    fontSize: '0.65rem',
+                                    minWidth: 'auto',
+                                    p: '2px 8px',
+                                    opacity: 0.8,
+                                    '&:hover': { opacity: 1, bgcolor: 'action.hover' }
+                                }}
+                            >
+                                Limpar Seleção
+                            </Button>
+                        </Box>
+
+                        <List dense={compactMode} sx={{ p: 0 }}>
                             {artifacts.map((artifact, index) => (
                                 <ListItem key={index} button onClick={() => {
                                     const next = new Set(selectedIndices);
@@ -201,7 +253,7 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                                     <ListItemIcon sx={{ minWidth: 36 }}>
                                         <Checkbox edge="start" checked={selectedIndices.has(index)} size="small" />
                                     </ListItemIcon>
-                                    <ListItemText 
+                                    <ListItemText
                                         primary={<Box sx={{ display: 'flex', alignItems: 'center' }}><FileIcon fileName={artifact.name} sx={{ mr: 1 }} /><Typography variant="body2" noWrap>{artifact.name}</Typography></Box>}
                                         secondary={`${artifact.code.split('\n').length} linhas`}
                                     />
