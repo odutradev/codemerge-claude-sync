@@ -55,7 +55,7 @@ const flattenStructure = (node) => {
 
 const SyncView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
-    const { selections, setProjectSelection, hasStoredSelection, timestamps } = useSelectionStore();
+    const { selections, setProjectSelection, hasStoredSelection } = useSelectionStore();
 
     const [projectStructure, setProjectStructure] = useState(null);
     const [projectId, setProjectId] = useState(null);
@@ -64,6 +64,8 @@ const SyncView = ({ fetchViaBackground }) => {
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [serverStatus, setServerStatus] = useState('checking');
     const [isChecking, setIsChecking] = useState(false);
+
+    const [lastTreeFetchTime, setLastTreeFetchTime] = useState(null);
 
     const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
 
@@ -80,13 +82,12 @@ const SyncView = ({ fetchViaBackground }) => {
         const filesCount = selectedList.length;
         const totalLines = selectedList.reduce((sum, path) => sum + (fileMap[path] || 0), 0);
 
-        const lastUpdateTs = timestamps[projectId];
-        const lastUpdate = lastUpdateTs
-            ? new Date(lastUpdateTs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        const lastUpdate = lastTreeFetchTime
+            ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : '-';
 
         return { files: filesCount, lines: totalLines, lastUpdate };
-    }, [projectStructure, selectedPaths, projectId, timestamps]);
+    }, [projectStructure, selectedPaths, projectId, lastTreeFetchTime]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -120,6 +121,7 @@ const SyncView = ({ fetchViaBackground }) => {
             if (!response.success) throw new Error(response.error);
             const data = JSON.parse(response.data);
             setProjectStructure(data.root);
+            setLastTreeFetchTime(Date.now());
             const newProjectId = data.project || 'default-project';
             setProjectId(newProjectId);
             if (!persistSelection || !hasStoredSelection(newProjectId)) {
@@ -279,7 +281,7 @@ const SyncView = ({ fetchViaBackground }) => {
                                     </Box>
                                 </Tooltip>
                             </Box>
-                            <Tooltip title="Última atualização da seleção">
+                            <Tooltip title="Última atualização da árvore">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                     <Typography variant="caption" color="text.secondary">
