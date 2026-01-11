@@ -10,14 +10,19 @@ import {
     Snackbar,
     InputAdornment,
     IconButton,
-    Tooltip
+    Tooltip,
+    Divider
 } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
+import { keyframes, alpha } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SearchIcon from '@mui/icons-material/Search';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+
 import FileTreeItem from './subcomponents/filetreeItem';
 import useConfigStore from '../../store/configStore';
 import useSelectionStore from '../../store/selectionStore';
@@ -50,7 +55,7 @@ const flattenStructure = (node) => {
 
 const SyncView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
-    const { selections, setProjectSelection, hasStoredSelection } = useSelectionStore();
+    const { selections, setProjectSelection, hasStoredSelection, timestamps } = useSelectionStore();
 
     const [projectStructure, setProjectStructure] = useState(null);
     const [projectId, setProjectId] = useState(null);
@@ -61,6 +66,27 @@ const SyncView = ({ fetchViaBackground }) => {
     const [isChecking, setIsChecking] = useState(false);
 
     const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
+
+    const stats = useMemo(() => {
+        if (!projectStructure || !projectId) return { files: 0, lines: 0, lastUpdate: '-' };
+
+        const allFiles = flattenStructure(projectStructure);
+        const fileMap = allFiles.reduce((acc, file) => {
+            acc[file.path] = file.lines || 0;
+            return acc;
+        }, {});
+
+        const selectedList = Array.from(selectedPaths);
+        const filesCount = selectedList.length;
+        const totalLines = selectedList.reduce((sum, path) => sum + (fileMap[path] || 0), 0);
+
+        const lastUpdateTs = timestamps[projectId];
+        const lastUpdate = lastUpdateTs
+            ? new Date(lastUpdateTs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '-';
+
+        return { files: filesCount, lines: totalLines, lastUpdate };
+    }, [projectStructure, selectedPaths, projectId, timestamps]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -126,13 +152,15 @@ const SyncView = ({ fetchViaBackground }) => {
             let content = response.data;
 
             if (removeComments) {
-                content = content.split('STARTOFFILE:').map((part, i) => {
+                content = content.split('----------------------------------------\nENDOFFILE:').map((part, i) => {
                     if (i === 0) return part;
                     const lines = part.split('\n');
                     const header = lines[0];
                     const bodyAndFooter = lines.slice(1).join('\n');
                     const marker = '----------------------------------------\nENDOFFILE:';
-                    const [body, ...footerParts] = bodyAndFooter.split(marker);
+                    const parts = bodyAndFooter.split(marker);
+                    const body = parts[0];
+                    const footer = parts.slice(1).join(marker);
 
                     const cleanedBody = processCode(body, {
                         removeComments: true,
@@ -140,8 +168,8 @@ const SyncView = ({ fetchViaBackground }) => {
                         removeLogs
                     });
 
-                    return `${header}\n${cleanedBody}\n${marker}${footerParts.join(marker)}`;
-                }).join('STARTOFFILE:');
+                    return `${header}\n${cleanedBody}\n${marker}${footer}`;
+                }).join('----------------------------------------\nENDOFFILE:');
             }
 
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -197,7 +225,26 @@ const SyncView = ({ fetchViaBackground }) => {
                                 </IconButton>
                             </Tooltip>
                         </Box>
-                        <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+
+                        <Box sx={{
+                            flexGrow: 1,
+                            overflow: 'auto',
+
+                            '&::-webkit-scrollbar': {
+                                width: '6px',
+                                height: '6px'
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                background: 'transparent'
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.1),
+                                borderRadius: '3px',
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                                backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.2),
+                            }
+                        }}>
                             <FileTreeItem node={projectStructure} selectedPaths={selectedPaths} onToggleSelection={(n, s) => {
                                 const collect = (node) => {
                                     let p = []; if (node.type === 'file') p.push(node.path);
@@ -211,6 +258,38 @@ const SyncView = ({ fetchViaBackground }) => {
                             }} searchTerm={searchTerm} />
                         </Box>
                     </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 1, mb: 2, bgcolor: 'background.paper', borderColor: 'divider' }}>
+                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Tooltip title="Arquivos selecionados">
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <InsertDriveFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                            {stats.files}
+                                        </Typography>
+                                    </Box>
+                                </Tooltip>
+                                <Tooltip title="Total de linhas">
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <FormatAlignLeftIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                            {stats.lines}
+                                        </Typography>
+                                    </Box>
+                                </Tooltip>
+                            </Box>
+                            <Tooltip title="Última atualização da seleção">
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                        {stats.lastUpdate}
+                                    </Typography>
+                                </Box>
+                            </Tooltip>
+                         </Box>
+                    </Paper>
+
                     <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<CloudUploadIcon />}>
                         Sincronizar Selecionados
                     </Button>
