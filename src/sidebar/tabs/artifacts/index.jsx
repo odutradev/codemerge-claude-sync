@@ -5,8 +5,6 @@ import {
     Typography,
     List,
     ListItem,
-    ListItemIcon,
-    ListItemText,
     Checkbox,
     Paper,
     CircularProgress,
@@ -14,9 +12,9 @@ import {
     Alert,
     Tooltip,
     IconButton,
-    Divider
+    alpha
 } from '@mui/material';
-import { keyframes, alpha } from '@mui/material/styles';
+import { keyframes } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
@@ -163,12 +161,12 @@ const ArtifactsView = ({ fetchViaBackground }) => {
     }[isChecking ? 'checking' : serverStatus] || { color: 'text.disabled', animation: 'none', text: '...' };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="caption" color="text.secondary">
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: statusProps.color, animation: statusProps.animation, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     {statusProps.text}
                 </Typography>
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: statusProps.color, animation: statusProps.animation }} />
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -178,97 +176,155 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                     onClick={() => handleFetchArtifacts(false)}
                     disabled={loading}
                     fullWidth
+                    size="small"
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
                 >
                     Buscar Artefatos
                 </Button>
                 <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
                     <IconButton
+                        size="small"
                         color={removeComments ? "primary" : "default"}
                         onClick={() => setRemoveComments(!removeComments)}
-                        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+                        sx={{ 
+                            border: '1px solid', 
+                            borderColor: removeComments ? 'primary.main' : 'divider', 
+                            borderRadius: 2,
+                            width: 36,
+                            height: 36
+                        }}
                     >
-                        {removeComments ? <CodeOffIcon /> : <CodeIcon />}
+                        {removeComments ? <CodeOffIcon fontSize="small" /> : <CodeIcon fontSize="small" />}
                     </IconButton>
                 </Tooltip>
             </Box>
 
             {fetching ? (
-                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Box>
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={24} /></Box>
             ) : artifacts.length > 0 ? (
                 <>
                     <Paper
+                        elevation={0}
                         variant="outlined"
                         sx={{
                             flexGrow: 1,
-                            overflow: 'auto',
+                            overflow: 'hidden',
                             mb: 2,
                             display: 'flex',
                             flexDirection: 'column',
-                            position: 'relative'
+                            bgcolor: 'background.paper',
+                            borderRadius: 2,
+                            borderColor: 'divider'
                         }}
                     >
                         <Box
                             sx={{
-                                position: 'sticky',
-                                top: 0,
-                                zIndex: 1,
-                                bgcolor: (theme) => alpha(theme.palette.background.paper, 0.95),
-                                backdropFilter: 'blur(4px)',
+                                px: 2,
+                                py: 1.5,
+                                borderBottom: 1,
+                                borderColor: 'divider',
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                px: 2,
-                                py: 0.5,
-                                borderBottom: 1,
-                                borderColor: 'divider'
+                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.02)
                             }}
                         >
-                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                {artifacts.length} artefatos
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {artifacts.length} ARQUIVOS
                             </Typography>
                             <Button
                                 size="small"
-                                color="inherit"
                                 onClick={handleDeselectAll}
                                 disabled={selectedIndices.size === 0}
                                 sx={{
-                                    fontSize: '0.65rem',
+                                    fontSize: '0.7rem',
                                     minWidth: 'auto',
-                                    p: '2px 8px',
-                                    opacity: 0.8,
-                                    '&:hover': { opacity: 1, bgcolor: 'action.hover' }
+                                    p: 0,
+                                    textTransform: 'none',
+                                    color: 'text.secondary',
+                                    '&:hover': { color: 'error.main', bgcolor: 'transparent' }
                                 }}
                             >
-                                Limpar Seleção
+                                Limpar
                             </Button>
                         </Box>
 
-                        <List dense={compactMode} sx={{ p: 0 }}>
+                        <List sx={{ p: 1, overflowY: 'auto', flexGrow: 1 }}>
                             {artifacts.map((artifact, index) => (
-                                <ListItem key={index} button onClick={() => {
-                                    const next = new Set(selectedIndices);
-                                    if (next.has(index)) next.delete(index); else next.add(index);
-                                    setSelectedIndices(next);
-                                }} divider>
-                                    <ListItemIcon sx={{ minWidth: 36 }}>
-                                        <Checkbox edge="start" checked={selectedIndices.has(index)} size="small" />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary={<Box sx={{ display: 'flex', alignItems: 'center' }}><FileIcon fileName={artifact.name} sx={{ mr: 1 }} /><Typography variant="body2" noWrap>{artifact.name}</Typography></Box>}
-                                        secondary={`${artifact.code.split('\n').length} linhas`}
-                                    />
+                                <ListItem
+                                    key={index}
+                                    button
+                                    onClick={() => {
+                                        const next = new Set(selectedIndices);
+                                        if (next.has(index)) next.delete(index); else next.add(index);
+                                        setSelectedIndices(next);
+                                    }}
+                                    sx={{
+                                        borderRadius: 1.5,
+                                        mb: 0.5,
+                                        p: 1,
+                                        transition: 'all 0.2s',
+                                        bgcolor: selectedIndices.has(index) ? (theme) => alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                                        '&:hover': { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12) }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, width: '100%' }}>
+                                        <Checkbox
+                                            checked={selectedIndices.has(index)}
+                                            size="small"
+                                            sx={{ p: 0.5, mr: 1.5 }}
+                                        />
+                                        
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            mr: 2,
+                                            color: 'text.secondary',
+                                            width: 24,
+                                            height: 24
+                                        }}>
+                                            <FileIcon fileName={artifact.name} />
+                                        </Box>
+
+                                        <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
+                                            <Typography variant="body2" noWrap sx={{ color: 'text.primary', fontWeight: 500 }}>
+                                                {artifact.name}
+                                            </Typography>
+                                        </Box>
+
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', opacity: 0.7 }}>
+                                            {artifact.code.split('\n').length}
+                                        </Typography>
+                                    </Box>
                                 </ListItem>
                             ))}
                         </List>
                     </Paper>
-                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedIndices.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<UploadIcon />}>
-                        Fazer Upsert Local ({selectedIndices.size})
+                    <Button
+                        variant="contained"
+                        onClick={handleSync}
+                        disabled={loading || selectedIndices.size === 0 || serverStatus !== 'connected'}
+                        fullWidth
+                        disableElevation
+                        startIcon={<UploadIcon />}
+                        sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}
+                    >
+                        Sincronizar ({selectedIndices.size})
                     </Button>
                 </>
             ) : (
-                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}><Typography variant="body2">Vazio</Typography></Box>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, gap: 1 }}>
+                    <DeselectIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+                    <Typography variant="body2" color="text.secondary">Nenhum artefato encontrado</Typography>
+                </Box>
             )}
-            <Snackbar open={message.open} autoHideDuration={2000} onClose={() => setMessage({ ...message, open: false })}><Alert severity={message.type}>{message.text}</Alert></Snackbar>
+            
+            <Snackbar open={message.open} autoHideDuration={2000} onClose={() => setMessage({ ...message, open: false })}>
+                <Alert severity={message.type} variant="filled" sx={{ width: '100%', borderRadius: 2 }}>
+                    {message.text}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
