@@ -15,6 +15,12 @@
     "http://localhost:9876/*",
     "http://127.0.0.1:9876/*"
   ],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
   "background": {
     "service_worker": "src/background/index.js",
     "type": "module"
@@ -23,7 +29,13 @@
     "default_path": "src/sidebar/core/index.html"
   },
   "action": {
-    "default_title": "CodeMerge Sync"
+    "default_title": "CodeMerge Sync",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
   },
   "content_scripts": [
     {
