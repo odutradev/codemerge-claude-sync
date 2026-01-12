@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CodeMerge Sync",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Selecione e sincronize arquivos do CodeMerge com Claude Projects e Gemini via sidebar",
   "permissions": [
     "storage",
@@ -9,7 +9,7 @@
     "activeTab",
     "scripting"
   ],
-"host_permissions": [
+  "host_permissions": [
     "https://claude.ai/*",
     "https://gemini.google.com/*",
     "http://localhost:9876/*",
