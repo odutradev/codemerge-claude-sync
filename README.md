@@ -1,335 +1,134 @@
-# CodeMerge Claude Sync
+# CodeMerge Sync & CLI Ecosystem
 
-> Extensão Chrome/Edge que sincroniza automaticamente o código mesclado do CodeMerge diretamente nos seus projetos do Claude.
+> A suíte completa para conectar seu ambiente de desenvolvimento local diretamente ao **Google Gemini** e Claude.
 
 ## 📋 Sobre
 
-O **CodeMerge Claude Sync** é uma extensão de navegador que automatiza o processo de manter seu código atualizado no Claude Projects. Ela monitora um servidor local do CodeMerge e sincroniza automaticamente as alterações, mantendo seu contexto de IA sempre atualizado.
+O ecossistema **CodeMerge** é composto por duas partes que trabalham juntas para criar um fluxo de desenvolvimento com IA sem atrito:
 
-### ✨ Funcionalidades
+1.  **CodeMerge CLI (O Motor):** Uma ferramenta de linha de comando que roda localmente, observa seus arquivos, otimiza o contexto e fornece uma API HTTP.
+2.  **CodeMerge Sync (A Ponte):** Uma extensão de navegador que conecta a interface do Google Gemini/Claude ao seu servidor local, permitindo envio de contexto e salvamento de artefatos.
 
-- 🔄 **Sincronização Automática**: Atualiza o código no Claude em intervalos configuráveis
-- 🎯 **Por Projeto**: Mantém configurações independentes para cada projeto Claude
-- 🖱️ **Interface Integrada**: UI nativa dentro da página do Claude Projects
-- ⚡ **Sincronização Manual**: Botão para forçar atualização imediata
-- 📊 **Status Visual**: Indicadores coloridos mostram o estado da sincronização
-- 💾 **Persistência**: Salva estado e configurações automaticamente
-- 🔁 **Atualização Inteligente**: Só atualiza quando o conteúdo realmente muda (via hash)
+-----
 
-## 🚀 Instalação
+## 🔧 Parte 1: CodeMerge CLI (Backend Local)
 
-### 1. Instalar a Extensão
+Antes de usar a extensão, você precisa do "cérebro" da operação rodando na sua máquina. A CLI prepara seus arquivos e expõe a API que a extensão utiliza.
 
-#### Chrome/Edge
+### Instalação
 
-1. Faça download ou clone este repositório
-2. Abra o navegador e acesse:
-   - **Chrome**: `chrome://extensions/`
-   - **Edge**: `edge://extensions/`
-3. Ative o **"Modo do desenvolvedor"** (canto superior direito)
-4. Clique em **"Carregar sem compactação"**
-5. Selecione a pasta raiz do projeto `codemerge-claude-sync`
+Recomendamos a instalação global para facilitar o uso em qualquer projeto.
 
-### 2. Configurar o CodeMerge
+```bash
+npm install -g codemerge-cli
+```
 
-Inicie o CodeMerge no modo watch:
+### Início Rápido
+
+1.  **Inicialize no seu projeto:**
+    Na raiz do seu projeto, execute o comando abaixo para criar o arquivo de configuração `codemerge.json` e configurar o `.gitignore`.
+
+    ```bash
+    codemerge init
+    ```
+
+2.  **Inicie o Servidor (Modo Watch):**
+    Este é o comando essencial para a extensão funcionar. Ele inicia um servidor HTTP local (padrão porta `9876`) e monitora alterações nos arquivos.
+
+    ```bash
+    codemerge watch
+    ```
+
+### Comandos Úteis da CLI
+
+  * `codemerge use`: Mescla arquivos manualmente em um único arquivo de texto (útil para copiar/colar se não usar a extensão).
+  * `codemerge watch --port 3000`: Roda o servidor em uma porta personalizada.
+  * `codemerge help`: Exibe ajuda sobre comandos e opções.
+
+> **Nota:** A CLI respeita seu `.gitignore` automaticamente, evitando que arquivos como `node_modules` ou `.env` sejam enviados para a IA.
+
+-----
+
+## 🧩 Parte 2: CodeMerge Sync (Extensão do Navegador)
+
+Com a CLI rodando, a extensão atua como a interface visual dentro do **Google Gemini**, permitindo sincronização bidirecional.
+
+### Funcionalidades Principais (Foco no Gemini)
+
+  * 🚀 **Envio de Contexto Inteligente**: Selecione arquivos ou pastas inteiras da sua árvore de projeto local (via sidebar) e injete-os instantaneamente no chat do Gemini.
+  * 💎 **Gestão de Artefatos**: A extensão detecta blocos de código gerados pelo Gemini na conversa.
+  * 💾 **Salvar no Disco**: Com um clique na sidebar "Artifacts", salve os códigos gerados pela IA diretamente nos arquivos do seu projeto local (a extensão envia para a CLI, que grava no disco).
+  * 🧹 **Limpeza Automática**: Opções para remover comentários, logs e linhas vazias para economizar tokens.
+
+### Instalação da Extensão
+
+1.  Faça o download ou clone este repositório (`codemerge-sync`).
+2.  Acesse `chrome://extensions/` no seu navegador (Chrome, Edge, Brave).
+3.  Ative o **"Modo do desenvolvedor"** (canto superior direito).
+4.  Clique em **"Carregar sem compactação"** (Load unpacked).
+5.  Selecione a pasta raiz deste projeto.
+
+-----
+
+## 📖 Fluxo de Trabalho Completo
+
+### Passo 1: No Terminal
+
+Abra seu terminal na raiz do projeto e mantenha o servidor rodando:
 
 ```bash
 codemerge watch
+# O servidor iniciará em http://localhost:9876
 ```
 
-## 📖 Como Usar
+### Passo 2: No Google Gemini
 
-### Primeira Configuração
+1.  Abra o [Google Gemini](https://gemini.google.com).
+2.  Abra a Sidebar do CodeMerge (lado direito ou ícone da extensão).
+3.  **Aba Sync (Local ➔ IA):**
+      * Verifique se o status está "Online" (conectado ao localhost:9876).
+      * Selecione os arquivos de contexto.
+      * Clique em "Sincronizar Selecionados" para preencher o chat.
+4.  **Aba Artifacts (IA ➔ Local):**
+      * Peça ao Gemini para gerar código (ex: "Crie um componente React de botão").
+      * Quando ele responder, clique em "Buscar Artefatos".
+      * Selecione o código desejado e clique em "Sincronizar" para salvar o arquivo no seu PC.
 
-1. **Acesse o Claude Projects**
-   - Vá para https://claude.ai
-   - Abra ou crie um projeto
+-----
 
-2. **Configure a Extensão**
-   - A interface aparecerá automaticamente acima da seção "Arquivos"
-   - Digite o **nome do projeto** (deve corresponder ao nome retornado pelo CodeMerge)
-   - Clique no botão **🔄** (Recarregar) para fazer o primeiro sync
+## ⚙️ Configuração Avançada
 
-3. **Inicie a Sincronização Automática**
-   - Clique no botão **▶️** para iniciar
-   - O botão mudará para **⏹️** quando ativo
-   - A sincronização acontecerá automaticamente no intervalo configurado
+### Na Extensão (Aba Settings)
 
-### Interface
+  * **Servidor**: URL do servidor CodeMerge (Padrão: `http://localhost:9876`). Ajuste se você iniciou a CLI em outra porta.
+  * **Limpeza**: Ative a remoção de logs/comentários.
 
-```
-┌─────────────────────────────────────────┐
-│ CodeMerge Sync                    ● 🟢  │
-├─────────────────────────────────────────┤
-│ [Nome do Projeto____] [🔄] [▶️]         │
-├─────────────────────────────────────────┤
-│ Status: Sincronizado                    │
-│ Última sync: 14:30                      │
-└─────────────────────────────────────────┘
-```
+### Na CLI (`codemerge.json`)
 
-#### Indicadores de Status
-
-- 🔴 **Vermelho**: Erro na sincronização
-- 🟡 **Amarelo** (pulsando): Sincronizando
-- 🟢 **Verde**: Sincronizado com sucesso
-- ⚪ **Cinza**: Aguardando (inativo)
-
-#### Botões
-
-- **🔄 Recarregar**: Força uma sincronização imediata (ignora cache)
-- **▶️ Play**: Inicia a sincronização automática
-- **⏹️ Stop**: Para a sincronização automática
-
-## ⚙️ Configuração
-
-### Parâmetros
-
-A extensão armazena as seguintes configurações por projeto:
-
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| `serverUrl` | `http://localhost:9876` | URL do servidor CodeMerge |
-| `projectName` | - | Nome do projeto (obrigatório) |
-| `updateInterval` | `5000` | Intervalo entre sincronizações (ms) |
-
-### Armazenamento
-
-- **Configurações globais**: Salvas em `chrome.storage.local` com a chave `config`
-- **Estado por projeto**: Salvo com a chave `project_{projectId}`, incluindo:
-  - Nome do projeto
-  - Status de execução (ligado/desligado)
-  - Último hash do conteúdo
-  - Horário da última sincronização
-
-## 🏗️ Arquitetura
-
-### Estrutura de Arquivos
-
-```
-codemerge-claude-sync/
-├── manifest.json          # Configuração da extensão
-├── package.json          # Dependências Node.js
-├── codemerge.json        # Config do CodeMerge
-├── publish.js            # Script de build e deploy
-├── README.md             # Documentação
-└── src/
-    ├── background.js     # Service worker (background)
-    └── scripts/
-        └── upsertFile.js # Content script (UI e sync)
-```
-
-### Componentes
-
-#### 1. Background Service Worker (`background.js`)
-
-- Gerencia requisições HTTP via `fetch` (contorna CORS)
-- Armazena e recupera configurações
-- Comunica com content scripts via mensagens
-
-#### 2. Content Script (`upsertFile.js`)
-
-- Injeta interface na página do Claude
-- Gerencia ciclo de sincronização
-- Manipula arquivos no Claude (adicionar/remover)
-- Mantém estado por projeto
-
-#### 3. Fluxo de Sincronização
-
-```
-┌──────────────┐
-│ Timer Ativo  │
-└──────┬───────┘
-       │
-       v
-┌──────────────────────┐
-│ Busca Conteúdo       │
-│ (via background.js)  │
-└──────┬───────────────┘
-       │
-       v
-┌──────────────────────┐
-│ Compara Hash         │
-│ (mudou?)             │
-└──────┬───────────────┘
-       │
-       v (sim)
-┌──────────────────────┐
-│ Remove arquivo antigo│
-└──────┬───────────────┘
-       │
-       v
-┌──────────────────────┐
-│ Adiciona novo arquivo│
-└──────┬───────────────┘
-       │
-       v
-┌──────────────────────┐
-│ Salva hash e horário │
-└──────────────────────┘
-```
-
-## 🔧 Desenvolvimento
-
-### Requisitos
-
-- Node.js 16+
-- Chrome 86+ ou Edge 86+
-- CodeMerge CLI instalado
-
-### Scripts Disponíveis
-
-```bash
-# Bump de versão, build e deploy
-npm run publish
-```
-
-O script `publish.js` executa:
-1. Incrementa a versão no `package.json` e `manifest.json`
-2. Cria arquivo ZIP em `builds/`
-3. Mantém apenas as 3 builds mais recentes
-4. Commit e push automático
-
-### Estrutura do Manifest
+Você pode refinar o que a CLI enxerga editando o arquivo `codemerge.json` na raiz do seu projeto:
 
 ```json
 {
-  "manifest_version": 3,
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": [
-    "https://claude.ai/*",
-    "http://localhost:*/*"
-  ],
-  "background": {
-    "service_worker": "src/background.js"
-  },
-  "content_scripts": [{
-    "matches": ["https://claude.ai/project/*"],
-    "js": ["src/scripts/upsertFile.js"]
-  }]
+  "projectName": "meu-projeto",
+  "port": 9876,
+  "ignorePatterns": ["**/*.test.ts", "coverage/**"],
+  "includePatterns": ["**/*.ts", "**/*.js", "**/*.md"]
 }
 ```
 
-### Debugging
+-----
 
-1. **Inspecionar Content Script**
-   - Abra DevTools (F12) na página do Claude
-   - Console mostrará logs da sincronização
+## 🏗️ Estrutura do Repositório (Extensão)
 
-2. **Inspecionar Service Worker**
-   - Vá para `chrome://extensions/`
-   - Clique em "Inspecionar visualizações" → "service worker"
+  * **manifest.json**: Configurações da extensão e permissões de host (`localhost` e `gemini.google.com`).
+  * **src/services/geminiService.js**: Comunicação com a API interna do Gemini para extração de artefatos.
+  * **src/sidebar/**: Interface React injetada no navegador.
 
-3. **Verificar Storage**
-   - DevTools → Application → Storage → Local Storage
-   - Procure por chaves `config` e `project_{id}`
+## 🔐 Privacidade
 
-## 🔍 Troubleshooting
+O fluxo de dados é estritamente **Local ↔ Navegador ↔ Gemini**.
+O código do seu projeto passa do seu disco (CLI) para a extensão e é colado no chat do Gemini. O código gerado volta do Gemini para a extensão e é salvo no disco (CLI). Nenhum servidor intermediário de terceiros é utilizado.
 
-### A extensão não aparece no Claude
+-----
 
-- ✅ Verifique se você está em `https://claude.ai/project/*`
-- ✅ Recarregue a página (Ctrl + R)
-- ✅ Verifique o console do navegador por erros
-- ✅ Confirme que a extensão está ativa em `chrome://extensions/`
-
-### Erro de conexão com o servidor
-
-- ✅ Verifique se o CodeMerge está rodando: `curl http://localhost:9876/health`
-- ✅ Confirme a URL do servidor na configuração
-- ✅ Verifique se a porta está correta
-- ✅ Teste o endpoint no navegador: `http://localhost:9876/{projectName}`
-
-### O arquivo não atualiza no Claude
-
-- ✅ Confirme que o **nome do projeto** está correto (sensível a maiúsculas)
-- ✅ Verifique se o CodeMerge gerou o arquivo merge
-- ✅ Use o botão **🔄 Recarregar** para forçar atualização
-- ✅ Verifique os logs do console (F12)
-- ✅ Teste se você consegue adicionar arquivos manualmente no Claude
-
-### Status sempre em "Erro"
-
-- ✅ Abra o console e veja a mensagem de erro específica
-- ✅ Verifique permissões da extensão
-- ✅ Teste o endpoint manualmente: `fetch('http://localhost:9876/nome-projeto')`
-- ✅ Verifique se o CORS está configurado no servidor
-
-### A sincronização não inicia automaticamente
-
-- ✅ Clique no botão ▶️ para ativar
-- ✅ Verifique se o nome do projeto foi configurado
-- ✅ Recarregue a página do Claude
-
-## 📝 Formato do Arquivo Gerado
-
-A extensão cria um arquivo no formato:
-
-```
-{projectName}-merged.txt
-```
-
-**Estrutura do conteúdo:**
-
-```
-# Code Merge Output
-Generated at: 2025-10-06T17:54:01.781Z
-Source path: .
-Files processed: 7
-Total lines: 873
-Total characters: 28602
-
-File types:
-  - json: 3 files (75 lines)
-  - js: 3 files (715 lines)
-
-Project structure & file index:
-./
-  - file1.js
-  - file2.json
-  src/
-    - module.js
-
-================================================================================
-STARTOFFILE: file1.js
-----------------------------------------
-[conteúdo do arquivo]
-----------------------------------------
-ENDOFFILE: file1.js
-...
-```
-
-## 🔐 Permissões
-
-A extensão solicita as seguintes permissões:
-
-- **`storage`**: Armazenar configurações e estado
-- **`activeTab`**: Interagir com a aba ativa do Claude
-- **`https://claude.ai/*`**: Injetar scripts no Claude
-- **`http://localhost:*/*`**: Acessar servidor local do CodeMerge
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Por favor:
-
-1. Fork o repositório
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 🔗 Links Úteis
-
-- [CodeMerge CLI](https://github.com/odutradev/codemerge) (adicione o link correto)
-- [Claude Projects](https://claude.ai)
-- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
-
-## 📮 Suporte
-
-Encontrou um bug ou tem uma sugestão? Abra uma [issue](https://github.com/odutradev/codemerge-claude-sync/issues) no GitHub!
-
+**CodeMerge Ecosystem** - Potencialize seu desenvolvimento unindo CLI e IA.
