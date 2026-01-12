@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "publisher": "npx pub --bump-package --bump-manifest --build --push"
+    "publisher": "npx pub --bump-package --bump-manifest --build --build-zip --clean --push"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
