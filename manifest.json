@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CodeMerge Sync",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "Selecione e sincronize arquivos do CodeMerge com Claude Projects e Gemini via sidebar",
   "permissions": [
     "storage",
