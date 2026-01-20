@@ -1,34 +1,63 @@
 # Política de Privacidade - CodeMerge Sync
 
-**Última atualização:** 12 de janeiro de 2026
+**Última atualização:** 20 de janeiro de 2026
 
-A extensão CodeMerge Sync respeita a sua privacidade. Esta política descreve de forma transparente como lidamos com as informações durante a utilização da extensão.
+Esta Política de Privacidade descreve como a extensão CodeMerge Sync coleta, usa, armazena e compartilha seus dados. Comprometemo-nos com a transparência total e a segurança das suas informações.
 
-## 1. Coleta e Transmissão de Dados
+## 1. Coleta e Uso de Dados
 
-- A extensão **não coleta, armazena ou transmite** nenhuma informação pessoal, dados de navegação, tokens de autenticação ou conteúdo de código para servidores externos controlados pelos desenvolvedores ou terceiros.
-- A extensão funciona inteiramente no lado do cliente (client-side), processando dados apenas localmente no seu navegador.
+A funcionalidade principal desta extensão é transferir contexto de desenvolvimento (código-fonte) do seu ambiente local para interfaces de Inteligência Artificial.
 
-## 2. Uso de Permissões
+### Dados Coletados e Processados:
 
-Abaixo justificamos o uso de cada permissão solicitada pela extensão:
+* **Código Fonte e Estrutura de Arquivos:** A extensão lê arquivos do seu servidor local (`localhost`) via CodeMerge CLI.
+* **Metadados do Projeto:** Nomes de arquivos, caminhos de diretórios e linguagem de programação.
+* **Configurações da Extensão:** Preferências de UI, URL do servidor local e filtros de exclusão.
 
-- **Storage (`storage`):** Utilizado exclusivamente para salvar as suas preferências locais (como URL do servidor local, nomes dos projetos e estado da sincronização) dentro do próprio armazenamento do navegador (`chrome.storage.local`).
+### Finalidade do Uso:
 
-- **Acesso ao Host Local (`http://localhost:*`, `http://127.0.0.1:*`):** Necessário apenas para ler os arquivos gerados pela sua instância local da CLI do CodeMerge.
+* **Sincronização:** Injetar o código selecionado diretamente nos chats do Google Gemini e Claude Projects para análise.
+* **Recuperação de Artefatos:** Ler as respostas geradas pela IA para permitir que o usuário as salve localmente.
 
-- **Acesso aos Sites de IA (`https://claude.ai/*`, `https://gemini.google.com/*`):** Necessário apenas para injetar os scripts que permitem a inserção do código sincronizado na interface de chat ativa.
+## 2. Compartilhamento de Dados com Terceiros
 
-- **ActiveTab / Scripting:** Utilizado para manipular a interface da página ativa (Claude ou Gemini) para realizar a automação do upload de arquivos.
+Para fornecer a funcionalidade de "Sincronização", a extensão transfere dados do usuário para serviços de terceiros. A extensão não possui servidores próprios e os desenvolvedores do CodeMerge Sync não têm acesso a esses dados.
 
-## 3. Autenticação e Dados Sensíveis
+Os dados (conteúdo dos seus arquivos de código) são compartilhados com as seguintes entidades apenas quando você executa uma ação de sincronização:
 
-Quaisquer tokens de sessão ou dados de autenticação (especificamente os necessários para a integração com o Google Gemini) são acessados apenas temporariamente na memória local do seu navegador para permitir o funcionamento técnico da extensão. Estes dados jamais são enviados para fora do seu ambiente local.
+### 1. Google LLC (Gemini)
 
-## 4. Alterações nesta Política
+* **Dados Compartilhados:** Trechos de código, conteúdo de arquivos e prompts inseridos na interface.
+* **Motivo:** Processamento pela IA do Google Gemini conforme solicitado pelo usuário.
+* **Política de Privacidade:** [Política de Privacidade do Google](https://policies.google.com/privacy)
 
-Reservamo-nos o direito de atualizar esta política de privacidade para refletir mudanças nas nossas práticas de informação. Recomendamos que reveja esta página periodicamente para obter as informações mais recentes sobre as nossas práticas de privacidade.
+### 2. Anthropic PBC (Claude)
 
-## 5. Contato
+* **Dados Compartilhados:** Trechos de código e arquivos carregados na interface de Projetos (`claude.ai`).
+* **Motivo:** Análise de contexto e geração de código pela IA Claude.
+* **Política de Privacidade:** [Política de Privacidade da Anthropic](https://www.anthropic.com/privacy)
 
-Se tiver dúvidas sobre esta política, por favor abra uma issue no repositório oficial do projeto no GitHub.
+## 3. Armazenamento e Retenção de Dados
+
+* **Armazenamento Local:** As configurações da extensão e o estado da seleção de arquivos são armazenados localmente no seu navegador usando a API `chrome.storage.local`.
+* **Sem Banco de Dados Externo:** Não mantemos bancos de dados externos. Todos os dados transitam diretamente entre: `Seu Computador` ↔ `Extensão` ↔ `Provedor de IA (Google/Anthropic)`.
+* **Tokens de Sessão:** Tokens necessários para a comunicação com o Gemini (como `WIZ_global_data`) são mantidos estritamente na memória local do navegador e nunca são transmitidos para nós.
+
+## 4. Medidas de Segurança
+
+* A comunicação com o servidor local (`localhost`) ocorre via HTTP direto, sem passar pela internet pública.
+* A comunicação com os provedores de IA ocorre via HTTPS criptografado dentro do contexto seguro do navegador.
+
+## 5. Permissões do Navegador
+
+Solicitamos apenas as permissões estritamente necessárias:
+
+* `storage`: Para salvar preferências locais.
+* `activeTab` / `scripting`: Para interagir com as páginas do Gemini e Claude.
+* `host_permissions`: Para conectar ao `localhost` (ler seus arquivos) e aos domínios das IAs (escrever/ler o chat).
+
+## 6. Contato e Controle
+
+Como não armazenamos seus dados pessoais em nossos servidores, não há dados para solicitar exclusão do nosso lado. Para gerenciar seus dados processados pelas IAs, consulte as configurações de privacidade das respectivas plataformas (Google e Anthropic).
+
+Para dúvidas sobre esta política, entre em contato através do repositório oficial do projeto no GitHub.
