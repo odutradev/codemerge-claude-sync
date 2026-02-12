@@ -10,7 +10,7 @@ const DEFAULT_CONFIG = {
     verbosity: 'all',
     persistSelection: true,
     removeComments: false,
-    removeEmptyLines: true,
+    removeEmptyLines: false,
     removeLogs: false,
 };
 
