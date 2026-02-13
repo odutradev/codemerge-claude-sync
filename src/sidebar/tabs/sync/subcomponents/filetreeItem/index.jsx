@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Checkbox, Typography, IconButton, Collapse } from '@mui/material';
+import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
@@ -9,16 +8,11 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FileIcon from '../../../../components/fileIcon/index.jsx';
 import useConfigStore from '../../../../store/configStore.js';
 
-const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searchTerm }) => {
-  const [expanded, setExpanded] = useState(false);
+const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, onToggleSelection, onToggleExpansion, searchTerm }) => {
   const { compactMode } = useConfigStore();
   const theme = useTheme();
-  
-  useEffect(() => {
-    if (searchTerm && searchTerm.length > 0) {
-      setExpanded(true);
-    }
-  }, [searchTerm]);
+
+  const isExpanded = (searchTerm && searchTerm.length > 0) || expandedPaths.has(node.path);
 
   const getAllChildrenPaths = (n) => {
     let paths = [];
@@ -33,7 +27,6 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
 
   const allDescendants = getAllChildrenPaths(node);
   const selectedDescendantsCount = allDescendants.filter(p => selectedPaths.has(p)).length;
-  
   const isFullySelected = allDescendants.length > 0 && selectedDescendantsCount === allDescendants.length;
   const isPartiallySelected = selectedDescendantsCount > 0 && selectedDescendantsCount < allDescendants.length;
   const isSelected = selectedPaths.has(node.path) || isFullySelected;
@@ -57,7 +50,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
 
   const handleExpandClick = (e) => {
     e.stopPropagation();
-    setExpanded(!expanded);
+    onToggleExpansion(node.path);
   };
 
   const handleItemClick = (e) => {
@@ -78,12 +71,12 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
 
   return (
     <Box>
-      <Box 
+      <Box
         onClick={handleItemClick}
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          py: itemPaddingY, 
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          py: itemPaddingY,
           pr: 1,
           pl: 1 + (level * 1.5),
           width: '100%',
@@ -95,13 +88,13 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
         }}
       >
         {node.type === 'directory' ? (
-          <IconButton 
+          <IconButton
             className="expand-icon"
-            size="small" 
-            onClick={handleExpandClick} 
+            size="small"
+            onClick={handleExpandClick}
             sx={{ p: 0.5, mr: 0.5 }}
           >
-            {expanded ? <KeyboardArrowDownIcon sx={{ fontSize: iconSize }} /> : <KeyboardArrowRightIcon sx={{ fontSize: iconSize }} />}
+            {isExpanded ? <KeyboardArrowDownIcon sx={{ fontSize: iconSize }} /> : <KeyboardArrowRightIcon sx={{ fontSize: iconSize }} />}
           </IconButton>
         ) : (
           <Box sx={{ width: 24, mr: 0.5 }} />
@@ -116,9 +109,9 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
         />
 
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden' }}>
-            {node.type === 'directory' ? 
-                (expanded ? <FolderOpenIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <FolderIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />) 
-                : 
+            {node.type === 'directory' ?
+                (isExpanded ? <FolderOpenIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <FolderIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
+                :
                 <Box sx={{ mr: 1, display: 'flex' }}>
                     <FileIcon fileName={node.name} sx={{ fontSize: iconSize }} />
                 </Box>
@@ -135,14 +128,16 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, onToggleSelection, searc
       </Box>
 
       {node.children && (
-        <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           {node.children.map((child) => (
-            <FileTreeItem 
-              key={child.path} 
-              node={child} 
-              level={level + 1} 
+            <FileTreeItem
+              key={child.path}
+              node={child}
+              level={level + 1}
               selectedPaths={selectedPaths}
+              expandedPaths={expandedPaths}
               onToggleSelection={onToggleSelection}
+              onToggleExpansion={onToggleExpansion}
               searchTerm={searchTerm}
             />
           ))}

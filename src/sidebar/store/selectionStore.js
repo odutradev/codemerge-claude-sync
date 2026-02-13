@@ -5,6 +5,7 @@ const useSelectionStore = create(
     persist(
         (set, get) => ({
             selections: {},
+            expansions: {},
             timestamps: {},
 
             toggleSelection: (projectId, path) => set((state) => {
@@ -26,6 +27,21 @@ const useSelectionStore = create(
                 };
             }),
 
+            toggleExpansion: (projectId, path) => set((state) => {
+                const currentExpansions = new Set(state.expansions[projectId] || []);
+                if (currentExpansions.has(path)) {
+                    currentExpansions.delete(path);
+                } else {
+                    currentExpansions.add(path);
+                }
+                return {
+                    expansions: {
+                        ...state.expansions,
+                        [projectId]: Array.from(currentExpansions)
+                    }
+                };
+            }),
+
             setProjectSelection: (projectId, paths) => set((state) => ({
                 selections: {
                     ...state.selections,
@@ -39,45 +55,50 @@ const useSelectionStore = create(
 
             clearProjectSelection: (projectId) => set((state) => {
                 const newSelections = { ...state.selections };
+                const newExpansions = { ...state.expansions };
                 const newTimestamps = { ...state.timestamps };
                 delete newSelections[projectId];
+                delete newExpansions[projectId];
                 delete newTimestamps[projectId];
-                return { 
+                return {
                     selections: newSelections,
-                    timestamps: newTimestamps 
+                    expansions: newExpansions,
+                    timestamps: newTimestamps
                 };
             }),
 
-            clearAllSelections: () => set({ 
-                selections: {}, 
-                timestamps: {} 
+            clearAllSelections: () => set({
+                selections: {},
+                expansions: {},
+                timestamps: {}
             }),
 
             checkExpiration: () => set((state) => {
                 const now = Date.now();
                 const MAX_AGE = 72 * 60 * 60 * 1000;
                 const newSelections = { ...state.selections };
+                const newExpansions = { ...state.expansions };
                 const newTimestamps = { ...state.timestamps };
                 let hasChanges = false;
 
                 Object.keys(newSelections).forEach(pid => {
                     const timestamp = newTimestamps[pid];
-                    
                     if (!timestamp) {
                         newTimestamps[pid] = now;
                         hasChanges = true;
-                    } 
-                    else if (now - timestamp > MAX_AGE) {
+                    } else if (now - timestamp > MAX_AGE) {
                         delete newSelections[pid];
+                        delete newExpansions[pid];
                         delete newTimestamps[pid];
                         hasChanges = true;
                     }
                 });
 
                 if (hasChanges) {
-                    return { 
-                        selections: newSelections, 
-                        timestamps: newTimestamps 
+                    return {
+                        selections: newSelections,
+                        expansions: newExpansions,
+                        timestamps: newTimestamps
                     };
                 }
                 return {};
@@ -90,7 +111,7 @@ const useSelectionStore = create(
         }),
         {
             name: 'codemerge-selection-storage',
-            version: 2, 
+            version: 3,
         }
     )
 );
