@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Tabs, Tab, useMediaQuery, CssBaseline } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import SettingsIcon from '@mui/icons-material/Settings';
-import useSelectionStore from './store/selectionStore';
-import useConfigStore from './store/configStore';
-import ArtifactsView from './tabs/artifacts';
-import SettingsView from './tabs/settings';
-import SyncView from './tabs/sync';
+import useSelectionStore from '../store/selectionStore';
+import useConfigStore from '../store/configStore';
+import ArtifactsView from '../tabs/artifacts';
+import SettingsView from '../tabs/settings';
+import SyncView from '../tabs/sync';
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
@@ -23,6 +23,9 @@ const App = () => {
         const mode = themeMode === 'system' ? (prefersDarkMode ? 'dark' : 'light') : themeMode;
         const isDark = mode === 'dark';
 
+        const SCROLLBAR_SIZE = '3px';
+        const SCROLLBAR_RADIUS = '3px';
+
         return createTheme({
             palette: {
                 mode,
@@ -38,19 +41,27 @@ const App = () => {
             },
             components: {
                 MuiCssBaseline: {
-                    styleOverrides: {
+                    styleOverrides: (themeParam) => ({
                         body: {
-                            scrollbarWidth: 'thin',
-                            '&::-webkit-scrollbar': { width: 8, height: 8 },
-                            '&::-webkit-scrollbar-track': { background: 'transparent' },
-                            '&::-webkit-scrollbar-thumb': {
-                                backgroundColor: isDark ? '#424242' : '#bdbdbd',
-                                borderRadius: 4,
-                                '&:hover': { backgroundColor: isDark ? '#616161' : '#9e9e9e' }
-                            },
-                            '&::-webkit-scrollbar-corner': { background: 'transparent' }
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: `${alpha(themeParam.palette.text.primary, 0.1)} transparent`,
+                        '&::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
+                        '&::-webkit-scrollbar-track': { background: 'transparent' },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
+                            borderRadius: SCROLLBAR_RADIUS,
+                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.2) }
+                        },
+                        '&::-webkit-scrollbar-corner': { background: 'transparent' },
+                        '& *::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
+                        '& *::-webkit-scrollbar-track': { background: 'transparent' },
+                        '& *::-webkit-scrollbar-thumb': {
+                            backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
+                            borderRadius: SCROLLBAR_RADIUS,
+                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.2) }
                         }
-                    }
+                        }
+                    })
                 },
                 MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 8 } } },
                 MuiCheckbox: { styleOverrides: { root: { padding: 4 } } }
