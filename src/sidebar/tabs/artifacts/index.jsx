@@ -16,7 +16,6 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    TextField,
     alpha
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
@@ -51,6 +50,30 @@ const pulseOrange = keyframes`
   70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); }
   100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
 `;
+
+const renderAnsi = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(\x1b\[[\d;]*m)/g);
+    let style = {};
+    return parts.map((part, i) => {
+        if (part.match(/^\x1b\[[\d;]*m$/)) {
+            const codes = part.slice(2, -1).split(';').map(Number);
+            codes.forEach(c => {
+                if (c === 0) style = {};
+                else if (c === 1) style.fontWeight = 'bold';
+                else if (c === 2) style.opacity = 0.7;
+                else if (c === 22) delete style.fontWeight;
+                else if (c === 39) delete style.color;
+                else if (c >= 30 && c <= 37) {
+                    const colors = ['#000000', '#ef5350', '#66bb6a', '#ffa726', '#42a5f5', '#ab47bc', '#29b6f6', '#eeeeee'];
+                    style.color = colors[c - 30];
+                }
+            });
+            return null;
+        }
+        return <span key={i} style={{ ...style }}>{part}</span>;
+    });
+};
 
 const ArtifactsView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
@@ -447,18 +470,19 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                                             </Typography>
                                         </Box>
                                     </Box>
-                                    <TextField
-                                        fullWidth
-                                        multiline
-                                        minRows={10}
-                                        maxRows={20}
-                                        value={cmdOutput?.output || cmdOutput?.error || ''}
-                                        variant="outlined"
-                                        InputProps={{
-                                            readOnly: true,
-                                            sx: { fontFamily: 'monospace', fontSize: '0.85rem', bgcolor: 'background.default' }
-                                        }}
-                                    />
+                                    <Box sx={{
+                                        p: 2,
+                                        bgcolor: '#1e1e1e',
+                                        color: '#e0e0e0',
+                                        borderRadius: 1,
+                                        fontFamily: 'monospace',
+                                        fontSize: '0.85rem',
+                                        overflow: 'auto',
+                                        maxHeight: '400px',
+                                        whiteSpace: 'pre-wrap'
+                                    }}>
+                                        {renderAnsi(cmdOutput?.output || cmdOutput?.error || '')}
+                                    </Box>
                                 </>
                             )}
                         </Box>
