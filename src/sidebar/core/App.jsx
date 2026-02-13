@@ -50,7 +50,7 @@ const App = () => {
                         '&::-webkit-scrollbar-thumb': {
                             backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
                             borderRadius: SCROLLBAR_RADIUS,
-                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.2) }
+                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
                         },
                         '&::-webkit-scrollbar-corner': { background: 'transparent' },
                         '& *::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
@@ -58,7 +58,7 @@ const App = () => {
                         '& *::-webkit-scrollbar-thumb': {
                             backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
                             borderRadius: SCROLLBAR_RADIUS,
-                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.2) }
+                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
                         }
                         }
                     })
