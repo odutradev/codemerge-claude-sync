@@ -12,6 +12,11 @@ import {
     Alert,
     Tooltip,
     IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
     alpha
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
@@ -20,6 +25,11 @@ import UploadIcon from '@mui/icons-material/Upload';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import CodeIcon from '@mui/icons-material/Code';
 import DeselectIcon from '@mui/icons-material/Deselect';
+import TerminalIcon from '@mui/icons-material/Terminal';
+import InputIcon from '@mui/icons-material/Input';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CloseIcon from '@mui/icons-material/Close';
+
 import FileIcon from '../../components/fileIcon';
 import useConfigStore from '../../store/configStore';
 import { processCode } from '../../utils/codeProcessor';
@@ -43,15 +53,18 @@ const pulseOrange = keyframes`
 `;
 
 const ArtifactsView = ({ fetchViaBackground }) => {
-    const { serverUrl, checkInterval, verbosity, compactMode, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
     const [artifacts, setArtifacts] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
-
     const [serverStatus, setServerStatus] = useState('checking');
     const [isChecking, setIsChecking] = useState(false);
+
+    const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
+    const [cmdOutput, setCmdOutput] = useState(null);
+    const [cmdLoading, setCmdLoading] = useState(false);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -150,6 +163,53 @@ const ArtifactsView = ({ fetchViaBackground }) => {
         }
     };
 
+    const handleFetchCommandOutput = async () => {
+        setCmdLoading(true);
+        try {
+            const response = await fetchViaBackground(`${serverUrl}/command-output`);
+            if (!response.success) throw new Error(response.error);
+            const data = JSON.parse(response.data);
+            setCmdOutput(data);
+        } catch (error) {
+            showNotification(`Erro ao buscar output: ${error.message}`, 'error');
+            setCmdOutput({ error: error.message });
+        } finally {
+            setCmdLoading(false);
+        }
+    };
+
+    const handleOpenCmdDialog = () => {
+        setCmdDialogOpen(true);
+        handleFetchCommandOutput();
+    };
+
+    const handleInjectOutput = async () => {
+        if (!cmdOutput) return;
+
+        const content = cmdOutput.status === 'no_command_executed'
+            ? 'Nenhum comando foi executado recentemente.'
+            : `COMMAND: ${cmdOutput.command}\nTIMESTAMP: ${cmdOutput.timestamp}\nSTATUS: ${cmdOutput.success ? 'SUCCESS' : 'ERROR'}\n\nOUTPUT:\n${cmdOutput.output || cmdOutput.error || ''}`;
+
+        try {
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            const activeTab = tabs[0];
+            if (!activeTab) throw new Error('Aba ativa não encontrada');
+
+            const isGemini = activeTab.url.includes('gemini.google.com');
+            const response = await chrome.tabs.sendMessage(activeTab.id, {
+                type: isGemini ? 'ADD_FILE_GEMINI' : 'ADD_FILE',
+                fileName: 'command-output.txt',
+                content: content
+            });
+
+            if (!response?.success && response?.error) throw new Error(response.error);
+            showNotification('Output inserido no input!', 'success');
+            setCmdDialogOpen(false);
+        } catch (error) {
+            showNotification(`Erro ao injetar: ${error.message}`, 'error');
+        }
+    };
+
     const handleDeselectAll = () => {
         setSelectedIndices(new Set());
     };
@@ -179,16 +239,34 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                     size="small"
                     sx={{ textTransform: 'none', borderRadius: 2 }}
                 >
-                    Buscar Artefatos
+                    Buscar
                 </Button>
+
+                <Tooltip title="Output do Comando (Hooks)">
+                    <IconButton
+                        size="small"
+                        onClick={handleOpenCmdDialog}
+                        disabled={serverStatus !== 'connected'}
+                        sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 2,
+                            width: 36,
+                            height: 36
+                        }}
+                    >
+                        <TerminalIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+
                 <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
                     <IconButton
                         size="small"
                         color={removeComments ? "primary" : "default"}
                         onClick={() => setRemoveComments(!removeComments)}
-                        sx={{ 
-                            border: '1px solid', 
-                            borderColor: removeComments ? 'primary.main' : 'divider', 
+                        sx={{
+                            border: '1px solid',
+                            borderColor: removeComments ? 'primary.main' : 'divider',
                             borderRadius: 2,
                             width: 36,
                             height: 36
@@ -274,10 +352,10 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                                             size="small"
                                             sx={{ p: 0.5, mr: 1.5 }}
                                         />
-                                        
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
+
+                                        <Box sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             justifyContent: 'center',
                                             mr: 2,
                                             color: 'text.secondary',
@@ -319,7 +397,93 @@ const ArtifactsView = ({ fetchViaBackground }) => {
                     <Typography variant="body2" color="text.secondary">Nenhum artefato encontrado</Typography>
                 </Box>
             )}
-            
+
+            <Dialog
+                open={cmdDialogOpen}
+                onClose={() => setCmdDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 3 } }}
+            >
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TerminalIcon color="primary" />
+                        <Typography variant="h6">Output do Comando</Typography>
+                    </Box>
+                    <IconButton size="small" onClick={() => setCmdDialogOpen(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                    {cmdLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <Box>
+                            {cmdOutput?.status === 'no_command_executed' ? (
+                                <Alert severity="info" variant="outlined">
+                                    Nenhum comando configurado ou executado recentemente.
+                                </Alert>
+                            ) : (
+                                <>
+                                    <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Comando</Typography>
+                                            <Typography variant="body2" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 1, borderRadius: 1 }}>
+                                                {cmdOutput?.command || '-'}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Horário</Typography>
+                                            <Typography variant="body2">
+                                                {cmdOutput?.timestamp ? new Date(cmdOutput.timestamp).toLocaleTimeString() : '-'}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Status</Typography>
+                                            <Typography variant="body2" color={cmdOutput?.success ? 'success.main' : 'error.main'} fontWeight="bold">
+                                                {cmdOutput?.success ? 'SUCESSO' : 'ERRO'}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        minRows={10}
+                                        maxRows={20}
+                                        value={cmdOutput?.output || cmdOutput?.error || ''}
+                                        variant="outlined"
+                                        InputProps={{
+                                            readOnly: true,
+                                            sx: { fontFamily: 'monospace', fontSize: '0.85rem', bgcolor: 'background.default' }
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2 }}>
+                    <Button
+                        startIcon={<RefreshIcon />}
+                        onClick={handleFetchCommandOutput}
+                        disabled={cmdLoading}
+                    >
+                        Atualizar
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<InputIcon />}
+                        onClick={handleInjectOutput}
+                        disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'}
+                        disableElevation
+                    >
+                        Inserir no Chat
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <Snackbar open={message.open} autoHideDuration={2000} onClose={() => setMessage({ ...message, open: false })}>
                 <Alert severity={message.type} variant="filled" sx={{ width: '100%', borderRadius: 2 }}>
                     {message.text}

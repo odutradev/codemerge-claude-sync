@@ -2,6 +2,7 @@
   "projectName": "codemerge-claude-sync",
   "outputPath": "codemerge-claude-sync-merged.txt",
   "watch": false,
+  "onUpsertCommand":"npm run build",
   "watchDelay": 1500,
   "useGitignore": true,
   "ignorePatterns": [
