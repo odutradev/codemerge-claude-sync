@@ -2,7 +2,6 @@ import { Box, Snackbar, Alert } from '@mui/material';
 
 import { CommandDialog } from './subcomponents/CommandDialog';
 import { ArtifactList } from './subcomponents/ArtifactList';
-import { GitActions } from './subcomponents/GitActions';
 import { useArtifacts } from './hooks/useArtifacts';
 import { Header } from './subcomponents/Header';
 
@@ -15,32 +14,27 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 serverStatus={state.serverStatus} 
                 isChecking={state.isChecking} 
                 handleFetchArtifacts={actions.handleFetchArtifacts} 
-                loading={state.loading} 
+                loading={state.actionLoading || state.fetching} 
                 handleOpenCmdDialog={actions.handleOpenCmdDialog} 
                 removeComments={state.removeComments} 
                 setRemoveComments={actions.setRemoveComments} 
             />
 
-            <GitActions 
-                commitMessage={state.commitMessage} 
-                setCommitMessage={actions.setCommitMessage} 
-                originalCommitMessage={state.originalCommitMessage} 
-                handleCommit={actions.handleCommit} 
-                filesToDelete={state.filesToDelete} 
-                handleDeleteFiles={actions.handleDeleteFiles} 
-                actionLoading={state.actionLoading} 
-                serverStatus={state.serverStatus} 
-            />
-
             <ArtifactList 
                 fetching={state.fetching} 
                 artifacts={state.artifacts} 
+                filesToDelete={state.filesToDelete}
                 selectedIndices={state.selectedIndices} 
+                selectedDeletions={state.selectedDeletions}
                 toggleSelection={actions.toggleSelection} 
+                toggleDeleteSelection={actions.toggleDeleteSelection}
                 handleDeselectAll={actions.handleDeselectAll} 
-                handleSync={actions.handleSync} 
-                loading={state.loading} 
+                handleApplyAll={actions.handleApplyAll} 
+                actionLoading={state.actionLoading} 
                 serverStatus={state.serverStatus} 
+                commitMessage={state.commitMessage}
+                setCommitMessage={actions.setCommitMessage}
+                originalCommitMessage={state.originalCommitMessage}
             />
 
             <CommandDialog 

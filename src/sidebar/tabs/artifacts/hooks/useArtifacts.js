@@ -6,6 +6,7 @@ import useConfigStore from '../../../store/configStore';
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
+    const [selectedDeletions, setSelectedDeletions] = useState(new Set());
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
@@ -17,7 +18,6 @@ export const useArtifacts = (fetchViaBackground) => {
     const [fetching, setFetching] = useState(false);
     const [cmdOutput, setCmdOutput] = useState(null);
     const [artifacts, setArtifacts] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
 
     const showNotification = useCallback((text, type = 'info') => {
@@ -46,7 +46,7 @@ export const useArtifacts = (fetchViaBackground) => {
     }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleFetchArtifacts = useCallback(async (silent = false) => {
-        setLoading(true);
+        setActionLoading(true);
         setFetching(true);
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -78,16 +78,19 @@ export const useArtifacts = (fetchViaBackground) => {
             setCommitMessage(parsedCommitMsg);
             setOriginalCommitMessage(parsedCommitMsg);
             setFilesToDelete(parsedFilesToDelete);
+
             const initialSelection = new Set();
             filteredArtifacts.forEach((artifact, index) => {
                 if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
             });
             setSelectedIndices(initialSelection);
+            setSelectedDeletions(new Set(parsedFilesToDelete));
+
             if (!silent) showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
         } catch (error) {
             if (!silent) showNotification(`Erro: ${error.message}`, 'error');
         } finally {
-            setLoading(false);
+            setActionLoading(false);
             setFetching(false);
         }
     }, [showNotification]);
@@ -96,51 +99,33 @@ export const useArtifacts = (fetchViaBackground) => {
         if (serverStatus === 'connected') handleFetchArtifacts(true);
     }, [serverStatus, handleFetchArtifacts]);
 
-    const handleSync = async () => {
-        if (selectedIndices.size === 0) return;
-        setLoading(true);
+    const handleApplyAll = async () => {
+        setActionLoading(true);
         try {
-            const selectedFiles = Array.from(selectedIndices).map(index => {
-                const artifact = artifacts[index];
-                const content = removeComments ? processCode(artifact.code, { removeComments: true, removeEmptyLines, removeLogs }) : artifact.code;
-                return { path: artifact.name, content };
-            });
-            const response = await fetchViaBackground(`${serverUrl}/upsert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: selectedFiles }) });
-            if (!response.success) throw new Error(response.error);
-            showNotification('Artefatos enviados!', 'success');
+            if (selectedIndices.size > 0) {
+                const selectedFiles = Array.from(selectedIndices).map(index => {
+                    const artifact = artifacts[index];
+                    const content = removeComments ? processCode(artifact.code, { removeComments: true, removeEmptyLines, removeLogs }) : artifact.code;
+                    return { path: artifact.name, content };
+                });
+                const res = await fetchViaBackground(`${serverUrl}/upsert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: selectedFiles }) });
+                if (!res.success) throw new Error(`Sync: ${res.error}`);
+            }
+            if (selectedDeletions.size > 0) {
+                const res = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: Array.from(selectedDeletions) }) });
+                if (!res.success) throw new Error(`Deleção: ${res.error}`);
+                setFilesToDelete(prev => prev.filter(p => !selectedDeletions.has(p)));
+                setSelectedDeletions(new Set());
+            }
+            if (commitMessage.trim()) {
+                const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
+                if (!res.success) throw new Error(`Commit: ${res.error}`);
+                setOriginalCommitMessage(commitMessage);
+                setCommitMessage('');
+            }
+            showNotification('Alterações aplicadas com sucesso!', 'success');
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCommit = async () => {
-        if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
-        setActionLoading(true);
-        try {
-            const response = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
-            if (!response.success) throw new Error(response.error);
-            showNotification('Commit realizado com sucesso!', 'success');
-            setCommitMessage('');
-            setOriginalCommitMessage('');
-        } catch (error) {
-            showNotification(`Erro ao commitar: ${error.message}`, 'error');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleDeleteFiles = async (pathsToDelete) => {
-        if (!pathsToDelete || pathsToDelete.length === 0) return;
-        setActionLoading(true);
-        try {
-            const response = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: pathsToDelete }) });
-            if (!response.success) throw new Error(response.error);
-            showNotification(`${pathsToDelete.length} arquivos apagados!`, 'success');
-            setFilesToDelete(prev => prev.filter(p => !pathsToDelete.includes(p)));
-        } catch (error) {
-            showNotification(`Erro ao apagar: ${error.message}`, 'error');
         } finally {
             setActionLoading(false);
         }
@@ -188,10 +173,19 @@ export const useArtifacts = (fetchViaBackground) => {
         setSelectedIndices(next);
     };
 
-    const handleDeselectAll = () => setSelectedIndices(new Set());
+    const toggleDeleteSelection = (path) => {
+        const next = new Set(selectedDeletions);
+        next.has(path) ? next.delete(path) : next.add(path);
+        setSelectedDeletions(next);
+    };
+
+    const handleDeselectAll = () => {
+        setSelectedIndices(new Set());
+        setSelectedDeletions(new Set());
+    };
 
     return {
-        state: { artifacts, selectedIndices, loading, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, originalCommitMessage, filesToDelete, actionLoading },
-        actions: { handleFetchArtifacts, handleSync, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, setRemoveComments, setMessage, handleCommit, handleDeleteFiles, setCommitMessage }
+        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, originalCommitMessage, actionLoading },
+        actions: { handleFetchArtifacts, handleApplyAll, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage }
     };
 };
