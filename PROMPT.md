@@ -75,7 +75,8 @@ Este artefato DEVE ser gerado em TODA resposta, sem exceção, independente do e
 
 ```json
 {
-  "commitMessage": "[mensagem no formato <type>: <description>, idêntica ao campo 💬 MENSAGEM DE COMMIT]",
+  "commitType": "[somente o tipo do commit, ex: feat, fix, refactor — idêntico ao campo 💬 MENSAGEM DE COMMIT]",
+  "commitMessage": "[somente a descrição do commit em português, sem o tipo prefixado — idêntica ao campo 💬 MENSAGEM DE COMMIT]",
   "filesToDelete": [
     "[caminho completo de cada arquivo listado em 🗑️ ARQUIVOS PARA REMOÇÃO]"
   ]
@@ -83,6 +84,8 @@ Este artefato DEVE ser gerado em TODA resposta, sem exceção, independente do e
 ```
 
 Regras do artefato:
+* `commitType` deve conter exclusivamente o tipo (ex: `feat`), sem dois-pontos ou descrição.
+* `commitMessage` deve conter exclusivamente a descrição em português, sem o tipo prefixado.
 * `filesToDelete` deve ser um array vazio `[]` caso não haja arquivos para remoção.
 * Os valores devem ser IDÊNTICOS ao que foi escrito nas seções correspondentes da resposta. Nenhum dado novo pode ser inventado aqui.
 * O artefato deve ser entregue na seção de artefatos de código, NÃO ao final da resposta.
@@ -115,7 +118,7 @@ JUSTIFICATIVAS (apenas para itens ❌):
 [Parágrafo único e objetivo. NÃO repita itens do checklist. Foque nas decisões de arquitetura e mudanças estruturais realizadas.]
 
 💬 MENSAGEM DE COMMIT:
-[Mensagem curta e objetiva em INGLÊS seguindo o padrão Conventional Commits: `<type>: <description>`. Os tipos válidos são: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Escolha o tipo que melhor representa a mudança realizada.]
+[Mensagem curta e objetiva em PORTUGUÊS seguindo o padrão Conventional Commits: `<type>: <descrição>`. Os tipos válidos são: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. O tipo permanece em inglês; somente a descrição deve estar em português. Escolha o tipo que melhor representa a mudança realizada.]
 
 💡 SUGESTÕES DE MELHORIA (Opcional)
 (Liste até 5 sugestões NUMERADAS. APENAS se for útil e viável. Se não houver, não exiba esta seção).
