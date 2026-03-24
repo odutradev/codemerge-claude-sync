@@ -99,6 +99,22 @@ export const useArtifacts = (fetchViaBackground) => {
         if (serverStatus === 'connected') handleFetchArtifacts(true);
     }, [serverStatus, handleFetchArtifacts]);
 
+    const handleCommit = async () => {
+        if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
+        setActionLoading(true);
+        try {
+            const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
+            if (!res.success) throw new Error(`Commit: ${res.error}`);
+            setOriginalCommitMessage(commitMessage);
+            setCommitMessage('');
+            showNotification('Commit realizado com sucesso!', 'success');
+        } catch (error) {
+            showNotification(`Erro ao commitar: ${error.message}`, 'error');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleApplyAll = async () => {
         setActionLoading(true);
         try {
@@ -117,13 +133,7 @@ export const useArtifacts = (fetchViaBackground) => {
                 setFilesToDelete(prev => prev.filter(p => !selectedDeletions.has(p)));
                 setSelectedDeletions(new Set());
             }
-            if (commitMessage.trim()) {
-                const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
-                if (!res.success) throw new Error(`Commit: ${res.error}`);
-                setOriginalCommitMessage(commitMessage);
-                setCommitMessage('');
-            }
-            showNotification('Alterações aplicadas com sucesso!', 'success');
+            showNotification('Sincronização e deleções aplicadas!', 'success');
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
@@ -186,6 +196,6 @@ export const useArtifacts = (fetchViaBackground) => {
 
     return {
         state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, originalCommitMessage, actionLoading },
-        actions: { handleFetchArtifacts, handleApplyAll, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage }
+        actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage }
     };
 };

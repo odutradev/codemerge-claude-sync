@@ -1,5 +1,4 @@
-import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress, TextField, IconButton } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress } from '@mui/material';
 import DeselectIcon from '@mui/icons-material/Deselect';
 import UploadIcon from '@mui/icons-material/Upload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,18 +6,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { paperStyles, headerBoxStyles, clearBtnStyles, listItemStyles, deleteListItemStyles, emptyBoxStyles } from './styles';
 import FileIcon from '../../../../components/fileIcon';
 
-export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus, commitMessage, setCommitMessage, originalCommitMessage }) => {
+export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }) => {
     if (fetching) return <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={24} /></Box>;
 
     const totalItems = artifacts.length + filesToDelete.length;
     const totalSelected = selectedIndices.size + selectedDeletions.size;
-    const hasActions = totalSelected > 0 || commitMessage.trim().length > 0;
+    const hasActions = totalSelected > 0;
 
-    if (totalItems === 0 && !commitMessage) {
+    if (totalItems === 0) {
         return (
             <Box sx={emptyBoxStyles}>
                 <DeselectIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
-                <Typography variant="body2" color="text.secondary">Nenhum artefato ou ação pendente</Typography>
+                <Typography variant="body2" color="text.secondary">Nenhum artefato ou arquivo para apagar</Typography>
             </Box>
         );
     }
@@ -70,30 +69,9 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
                         </ListItem>
                     ))}
                 </List>
-                {(originalCommitMessage || commitMessage) && (
-                    <Box sx={{ p: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.default' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>MENSAGEM DE COMMIT</Typography>
-                            <IconButton size="small" onClick={() => setCommitMessage(originalCommitMessage)} disabled={commitMessage === originalCommitMessage || actionLoading}>
-                                <RestartAltIcon fontSize="small" />
-                            </IconButton>
-                        </Box>
-                        <TextField
-                            fullWidth
-                            multiline
-                            minRows={2}
-                            maxRows={4}
-                            value={commitMessage}
-                            onChange={(e) => setCommitMessage(e.target.value)}
-                            disabled={actionLoading}
-                            size="small"
-                            sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem', fontFamily: 'monospace' } }}
-                        />
-                    </Box>
-                )}
             </Paper>
             <Button variant="contained" onClick={handleApplyAll} disabled={actionLoading || !hasActions || serverStatus !== 'connected'} fullWidth disableElevation startIcon={<UploadIcon />} sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}>
-                Aplicar Alterações
+                Aplicar Sincronização
             </Button>
         </>
     );

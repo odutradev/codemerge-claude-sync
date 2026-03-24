@@ -2,6 +2,7 @@ import { Box, Snackbar, Alert } from '@mui/material';
 
 import { CommandDialog } from './subcomponents/CommandDialog';
 import { ArtifactList } from './subcomponents/ArtifactList';
+import { CommitBox } from './subcomponents/CommitBox';
 import { useArtifacts } from './hooks/useArtifacts';
 import { Header } from './subcomponents/Header';
 
@@ -20,6 +21,15 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 setRemoveComments={actions.setRemoveComments} 
             />
 
+            <CommitBox 
+                commitMessage={state.commitMessage}
+                setCommitMessage={actions.setCommitMessage}
+                originalCommitMessage={state.originalCommitMessage}
+                handleCommit={actions.handleCommit}
+                actionLoading={state.actionLoading}
+                serverStatus={state.serverStatus}
+            />
+
             <ArtifactList 
                 fetching={state.fetching} 
                 artifacts={state.artifacts} 
@@ -32,9 +42,6 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 handleApplyAll={actions.handleApplyAll} 
                 actionLoading={state.actionLoading} 
                 serverStatus={state.serverStatus} 
-                commitMessage={state.commitMessage}
-                setCommitMessage={actions.setCommitMessage}
-                originalCommitMessage={state.originalCommitMessage}
             />
 
             <CommandDialog 
