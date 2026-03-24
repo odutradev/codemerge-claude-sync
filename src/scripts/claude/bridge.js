@@ -1,3 +1,5 @@
+import { getClaudeArtifacts } from '../../services/claudeService';
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'ADD_FILE') {
         const messageListener = (event) => {
@@ -20,6 +22,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }, 8000);
         window.addEventListener('message', messageListener);
         window.postMessage({ type: 'CLAUDE_UPLOAD_FILE', fileName: message.fileName, content: message.content }, '*');
+        return true;
+    }
+
+    if (message.type === 'GET_CLAUDE_ARTIFACTS') {
+        getClaudeArtifacts()
+            .then(artifacts => sendResponse({ success: true, artifacts }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }
 });

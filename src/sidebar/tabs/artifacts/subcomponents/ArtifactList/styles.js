@@ -1,0 +1,5 @@
+export const paperStyles = { flexGrow: 1, overflow: 'hidden', mb: 2, display: 'flex', flexDirection: 'column', bgcolor: 'background.paper', borderRadius: 2, borderColor: 'divider' };
+export const headerBoxStyles = (theme) => ({ px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)' });
+export const clearBtnStyles = { fontSize: '0.7rem', minWidth: 'auto', p: 0, textTransform: 'none', color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: 'transparent' } };
+export const listItemStyles = (isSelected) => (theme) => ({ borderRadius: 1.5, mb: 0.5, p: 1, transition: 'all 0.2s', bgcolor: isSelected ? 'rgba(0, 0, 0, 0.04)' : 'transparent', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' } });
+export const emptyBoxStyles = { flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, gap: 1 };
