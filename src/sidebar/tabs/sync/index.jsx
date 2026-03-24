@@ -1,19 +1,20 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Button, TextField, Typography, Paper, CircularProgress, Alert, Snackbar, InputAdornment, IconButton, Tooltip } from '@mui/material';
-import { keyframes, alpha } from '@mui/material/styles';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import SearchIcon from '@mui/icons-material/Search';
-import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchIcon from '@mui/icons-material/Search';
+import { keyframes, alpha } from '@mui/material/styles';
 
-import FileTreeItem from './subcomponents/filetreeItem';
-import useConfigStore from '../../store/configStore';
-import useSelectionStore from '../../store/selectionStore';
-import { processCode } from '../../utils/codeProcessor';
+import FileTreeItem from './subcomponents/filetreeItem/index.jsx';
+import useSelectionStore from '../../store/selectionStore.js';
+import { processCode } from '../../utils/codeProcessor.js';
+import useConfigStore from '../../store/configStore.js';
 
 const pulseGreen = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
@@ -33,12 +34,10 @@ const pulseOrange = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
 `;
 
-const flattenStructure = (node) => {
-    let files = [];
-    if (node.type === 'file') files.push(node);
-    if (node.children) node.children.forEach(child => { files = [...files, ...flattenStructure(child)]; });
-    return files;
-};
+const flattenStructure = (node) => [
+    ...(node.type === 'file' ? [node] : []),
+    ...(node.children ? node.children.flatMap(flattenStructure) : [])
+];
 
 const SyncView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
@@ -52,6 +51,7 @@ const SyncView = ({ fetchViaBackground }) => {
     const [serverStatus, setServerStatus] = useState('checking');
     const [isChecking, setIsChecking] = useState(false);
     const [lastTreeFetchTime, setLastTreeFetchTime] = useState(null);
+    const [isCopyMode, setIsCopyMode] = useState(false);
 
     const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
     const expandedPaths = useMemo(() => projectId ? new Set(expansions[projectId] || []) : new Set(), [expansions, projectId]);
@@ -59,16 +59,11 @@ const SyncView = ({ fetchViaBackground }) => {
     const stats = useMemo(() => {
         if (!projectStructure || !projectId) return { files: 0, lines: 0, lastUpdate: '-' };
         const allFiles = flattenStructure(projectStructure);
-        const fileMap = allFiles.reduce((acc, file) => {
-            acc[file.path] = file.lines || 0;
-            return acc;
-        }, {});
+        const fileMap = allFiles.reduce((acc, file) => ({ ...acc, [file.path]: file.lines || 0 }), {});
         const selectedList = Array.from(selectedPaths);
         const filesCount = selectedList.length;
         const totalLines = selectedList.reduce((sum, path) => sum + (fileMap[path] || 0), 0);
-        const lastUpdate = lastTreeFetchTime
-            ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '-';
+        const lastUpdate = lastTreeFetchTime ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
         return { files: filesCount, lines: totalLines, lastUpdate };
     }, [projectStructure, selectedPaths, projectId, lastTreeFetchTime]);
 
@@ -78,6 +73,11 @@ const SyncView = ({ fetchViaBackground }) => {
         setMessage({ open: true, text, type });
     }, [verbosity]);
 
+    const handleCopyPath = useCallback((path) => {
+        navigator.clipboard.writeText(path);
+        showNotification(`Caminho copiado: ${path}`, 'success');
+    }, [showNotification]);
+
     useEffect(() => {
         let isMounted = true;
         const checkHealth = async () => {
@@ -86,7 +86,7 @@ const SyncView = ({ fetchViaBackground }) => {
             try {
                 const response = await fetchViaBackground(`${serverUrl}/health`);
                 if (isMounted) setServerStatus(response.success ? 'connected' : 'disconnected');
-            } catch (error) {
+            } catch {
                 if (isMounted) setServerStatus('disconnected');
             } finally {
                 setTimeout(() => { if (isMounted) setIsChecking(false); }, 500);
@@ -198,6 +198,11 @@ const SyncView = ({ fetchViaBackground }) => {
                             <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
                                 placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            <Tooltip title={isCopyMode ? "Modo de cópia ativado" : "Ativar modo de cópia de caminho"}>
+                                <IconButton size="small" onClick={() => setIsCopyMode(!isCopyMode)} color={isCopyMode ? "primary" : "default"}>
+                                    <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
                             <Tooltip title={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}>
                                 <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
                                     {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
@@ -210,12 +215,13 @@ const SyncView = ({ fetchViaBackground }) => {
                                 node={projectStructure}
                                 selectedPaths={selectedPaths}
                                 expandedPaths={expandedPaths}
+                                isCopyMode={isCopyMode}
+                                onCopyPath={handleCopyPath}
                                 onToggleSelection={(n, s) => {
-                                    const collect = (node) => {
-                                        let p = []; if (node.type === 'file') p.push(node.path);
-                                        if (node.children) node.children.forEach(c => p = [...p, ...collect(c)]);
-                                        return p;
-                                    };
+                                    const collect = (node) => [
+                                        ...(node.type === 'file' ? [node.path] : []),
+                                        ...(node.children ? node.children.flatMap(collect) : [])
+                                    ];
                                     const target = collect(n);
                                     const next = new Set(selectedPaths);
                                     target.forEach(p => s ? next.add(p) : next.delete(p));

@@ -1,29 +1,23 @@
-import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
-import { useTheme, alpha } from '@mui/material/styles';
-import FolderIcon from '@mui/icons-material/Folder';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import { useTheme, alpha } from '@mui/material/styles';
+import FolderIcon from '@mui/icons-material/Folder';
 
 import FileIcon from '../../../../components/fileIcon/index.jsx';
 import useConfigStore from '../../../../store/configStore.js';
 
-const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, onToggleSelection, onToggleExpansion, searchTerm }) => {
+const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMode, onCopyPath, onToggleSelection, onToggleExpansion, searchTerm }) => {
   const { compactMode } = useConfigStore();
   const theme = useTheme();
 
   const isExpanded = (searchTerm && searchTerm.length > 0) || expandedPaths.has(node.path);
 
-  const getAllChildrenPaths = (n) => {
-    let paths = [];
-    if (n.type === 'file') paths.push(n.path);
-    if (n.children) {
-      n.children.forEach(child => {
-        paths = [...paths, ...getAllChildrenPaths(child)];
-      });
-    }
-    return paths;
-  };
+  const getAllChildrenPaths = (n) => [
+    ...(n.type === 'file' ? [n.path] : []),
+    ...(n.children ? n.children.flatMap(getAllChildrenPaths) : [])
+  ];
 
   const allDescendants = getAllChildrenPaths(node);
   const selectedDescendantsCount = allDescendants.filter(p => selectedPaths.has(p)).length;
@@ -31,18 +25,12 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, onToggleS
   const isPartiallySelected = selectedDescendantsCount > 0 && selectedDescendantsCount < allDescendants.length;
   const isSelected = selectedPaths.has(node.path) || isFullySelected;
 
+  const checkVisibility = (n, term) => n.name.toLowerCase().includes(term.toLowerCase()) || (n.children ? n.children.some(c => checkVisibility(c, term)) : false);
+
   const isVisible = () => {
     if (!searchTerm) return true;
     if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
-    if (node.children) {
-      return node.children.some(child => checkVisibility(child, searchTerm));
-    }
-    return false;
-  };
-
-  const checkVisibility = (n, term) => {
-    if (n.name.toLowerCase().includes(term.toLowerCase())) return true;
-    if (n.children) return n.children.some(c => checkVisibility(c, term));
+    if (node.children) return node.children.some(child => checkVisibility(child, searchTerm));
     return false;
   };
 
@@ -55,6 +43,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, onToggleS
 
   const handleItemClick = (e) => {
     if (e.target.closest('.expand-icon')) return;
+    if (isCopyMode) return onCopyPath(node.path);
     const shouldSelect = selectedDescendantsCount === 0;
     onToggleSelection(node, shouldSelect);
   };
@@ -136,6 +125,8 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, onToggleS
               level={level + 1}
               selectedPaths={selectedPaths}
               expandedPaths={expandedPaths}
+              isCopyMode={isCopyMode}
+              onCopyPath={onCopyPath}
               onToggleSelection={onToggleSelection}
               onToggleExpansion={onToggleExpansion}
               searchTerm={searchTerm}
