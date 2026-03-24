@@ -1,4 +1,3 @@
-import React from 'react';
 
 export const renderAnsi = (text) => {
     if (!text) return null;
