@@ -5,13 +5,14 @@ import useConfigStore from '../../../store/configStore';
 
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
+    const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [commitMessage, setCommitMessage] = useState('');
     const [filesToDelete, setFilesToDelete] = useState([]);
     const [isChecking, setIsChecking] = useState(false);
-    const [commitMessage, setCommitMessage] = useState('');
     const [cmdLoading, setCmdLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [cmdOutput, setCmdOutput] = useState(null);
@@ -51,21 +52,15 @@ export const useArtifacts = (fetchViaBackground) => {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
             if (!activeTab) throw new Error('Aba ativa não encontrada');
-
             const isGemini = activeTab.url.includes('gemini.google.com');
             const isClaude = activeTab.url.includes('claude.ai');
-
             if (!isGemini && !isClaude) throw new Error('Esta função requer Gemini ou Claude aberto na aba ativa');
-
             const type = isGemini ? 'GET_GEMINI_ARTIFACTS' : 'GET_CLAUDE_ARTIFACTS';
             const response = await chrome.tabs.sendMessage(activeTab.id, { type });
-
             if (!response.success) throw new Error(response.error);
-
             const rawArtifacts = response.artifacts ?? [];
             let parsedCommitMsg = '';
             let parsedFilesToDelete = [];
-
             const filteredArtifacts = rawArtifacts.filter(art => {
                 if (art.name === 'codemerge.result.json') {
                     try {
@@ -79,11 +74,10 @@ export const useArtifacts = (fetchViaBackground) => {
                 }
                 return true;
             });
-
             setArtifacts(filteredArtifacts);
             setCommitMessage(parsedCommitMsg);
+            setOriginalCommitMessage(parsedCommitMsg);
             setFilesToDelete(parsedFilesToDelete);
-
             const initialSelection = new Set();
             filteredArtifacts.forEach((artifact, index) => {
                 if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
@@ -122,16 +116,14 @@ export const useArtifacts = (fetchViaBackground) => {
     };
 
     const handleCommit = async () => {
-        if (!commitMessage.trim()) {
-            showNotification('Mensagem de commit vazia', 'warning');
-            return;
-        }
+        if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
         setActionLoading(true);
         try {
             const response = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
             if (!response.success) throw new Error(response.error);
             showNotification('Commit realizado com sucesso!', 'success');
             setCommitMessage('');
+            setOriginalCommitMessage('');
         } catch (error) {
             showNotification(`Erro ao commitar: ${error.message}`, 'error');
         } finally {
@@ -139,14 +131,14 @@ export const useArtifacts = (fetchViaBackground) => {
         }
     };
 
-    const handleDeleteFiles = async () => {
-        if (filesToDelete.length === 0) return;
+    const handleDeleteFiles = async (pathsToDelete) => {
+        if (!pathsToDelete || pathsToDelete.length === 0) return;
         setActionLoading(true);
         try {
-            const response = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: filesToDelete }) });
+            const response = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: pathsToDelete }) });
             if (!response.success) throw new Error(response.error);
-            showNotification(`${filesToDelete.length} arquivos apagados!`, 'success');
-            setFilesToDelete([]);
+            showNotification(`${pathsToDelete.length} arquivos apagados!`, 'success');
+            setFilesToDelete(prev => prev.filter(p => !pathsToDelete.includes(p)));
         } catch (error) {
             showNotification(`Erro ao apagar: ${error.message}`, 'error');
         } finally {
@@ -199,7 +191,7 @@ export const useArtifacts = (fetchViaBackground) => {
     const handleDeselectAll = () => setSelectedIndices(new Set());
 
     return {
-        state: { artifacts, selectedIndices, loading, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, filesToDelete, actionLoading },
+        state: { artifacts, selectedIndices, loading, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, originalCommitMessage, filesToDelete, actionLoading },
         actions: { handleFetchArtifacts, handleSync, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, setRemoveComments, setMessage, handleCommit, handleDeleteFiles, setCommitMessage }
     };
 };

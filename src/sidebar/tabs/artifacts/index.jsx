@@ -1,5 +1,4 @@
 import { Box, Snackbar, Alert } from '@mui/material';
-import React from 'react';
 
 import { CommandDialog } from './subcomponents/CommandDialog';
 import { ArtifactList } from './subcomponents/ArtifactList';
@@ -25,6 +24,7 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
             <GitActions 
                 commitMessage={state.commitMessage} 
                 setCommitMessage={actions.setCommitMessage} 
+                originalCommitMessage={state.originalCommitMessage} 
                 handleCommit={actions.handleCommit} 
                 filesToDelete={state.filesToDelete} 
                 handleDeleteFiles={actions.handleDeleteFiles} 
