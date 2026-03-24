@@ -89,13 +89,15 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
           <Box sx={{ width: 24, mr: 0.5 }} />
         )}
 
-        <Checkbox
-          size="small"
-          checked={isSelected}
-          indeterminate={isPartiallySelected}
-          onChange={handleCheckboxChange}
-          sx={{ p: 0.5, '& .MuiSvgIcon-root': { fontSize: iconSize } }}
-        />
+        {!isCopyMode && (
+          <Checkbox
+            size="small"
+            checked={isSelected}
+            indeterminate={isPartiallySelected}
+            onChange={handleCheckboxChange}
+            sx={{ p: 0.5, '& .MuiSvgIcon-root': { fontSize: iconSize } }}
+          />
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden' }}>
             {node.type === 'directory' ?
