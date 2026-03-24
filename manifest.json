@@ -39,13 +39,22 @@
   "content_scripts": [
     {
       "matches": [
-        "https://claude.ai/project/*"
+        "https://claude.ai/*"
       ],
       "js": [
-        "src/scripts/projectHelper.js",
-        "src/scripts/upsertFile.js"
+        "src/scripts/claude/bridge.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "src/scripts/claude/injector.js"
+      ],
+      "run_at": "document_idle",
+      "world": "MAIN"
     },
     {
       "matches": [
