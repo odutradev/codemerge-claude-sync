@@ -74,8 +74,9 @@ const SyncView = ({ fetchViaBackground }) => {
     }, [verbosity]);
 
     const handleCopyPath = useCallback((path) => {
-        navigator.clipboard.writeText(path);
-        showNotification(`Caminho copiado: ${path}`, 'success');
+        const formattedPath = `{${path}}`;
+        navigator.clipboard.writeText(formattedPath);
+        showNotification(`Caminho copiado: ${formattedPath}`, 'success');
     }, [showNotification]);
 
     useEffect(() => {
