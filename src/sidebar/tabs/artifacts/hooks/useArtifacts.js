@@ -8,7 +8,10 @@ export const useArtifacts = (fetchViaBackground) => {
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [filesToDelete, setFilesToDelete] = useState([]);
     const [isChecking, setIsChecking] = useState(false);
+    const [commitMessage, setCommitMessage] = useState('');
     const [cmdLoading, setCmdLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [cmdOutput, setCmdOutput] = useState(null);
@@ -59,13 +62,34 @@ export const useArtifacts = (fetchViaBackground) => {
 
             if (!response.success) throw new Error(response.error);
 
-            setArtifacts(response.artifacts ?? []);
+            const rawArtifacts = response.artifacts ?? [];
+            let parsedCommitMsg = '';
+            let parsedFilesToDelete = [];
+
+            const filteredArtifacts = rawArtifacts.filter(art => {
+                if (art.name === 'codemerge.result.json') {
+                    try {
+                        const parsed = JSON.parse(art.code);
+                        parsedCommitMsg = parsed.commitMessage ?? '';
+                        parsedFilesToDelete = parsed.filesToDelete ?? [];
+                    } catch (e) {
+                        return false;
+                    }
+                    return false;
+                }
+                return true;
+            });
+
+            setArtifacts(filteredArtifacts);
+            setCommitMessage(parsedCommitMsg);
+            setFilesToDelete(parsedFilesToDelete);
+
             const initialSelection = new Set();
-            (response.artifacts ?? []).forEach((artifact, index) => {
+            filteredArtifacts.forEach((artifact, index) => {
                 if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
             });
             setSelectedIndices(initialSelection);
-            if (!silent) showNotification(`${response.artifacts?.length ?? 0} artefatos encontrados`, 'success');
+            if (!silent) showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
         } catch (error) {
             if (!silent) showNotification(`Erro: ${error.message}`, 'error');
         } finally {
@@ -94,6 +118,39 @@ export const useArtifacts = (fetchViaBackground) => {
             showNotification(`Erro: ${error.message}`, 'error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCommit = async () => {
+        if (!commitMessage.trim()) {
+            showNotification('Mensagem de commit vazia', 'warning');
+            return;
+        }
+        setActionLoading(true);
+        try {
+            const response = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
+            if (!response.success) throw new Error(response.error);
+            showNotification('Commit realizado com sucesso!', 'success');
+            setCommitMessage('');
+        } catch (error) {
+            showNotification(`Erro ao commitar: ${error.message}`, 'error');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDeleteFiles = async () => {
+        if (filesToDelete.length === 0) return;
+        setActionLoading(true);
+        try {
+            const response = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: filesToDelete }) });
+            if (!response.success) throw new Error(response.error);
+            showNotification(`${filesToDelete.length} arquivos apagados!`, 'success');
+            setFilesToDelete([]);
+        } catch (error) {
+            showNotification(`Erro ao apagar: ${error.message}`, 'error');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -142,7 +199,7 @@ export const useArtifacts = (fetchViaBackground) => {
     const handleDeselectAll = () => setSelectedIndices(new Set());
 
     return {
-        state: { artifacts, selectedIndices, loading, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments },
-        actions: { handleFetchArtifacts, handleSync, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, setRemoveComments, setMessage }
+        state: { artifacts, selectedIndices, loading, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, filesToDelete, actionLoading },
+        actions: { handleFetchArtifacts, handleSync, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, setRemoveComments, setMessage, handleCommit, handleDeleteFiles, setCommitMessage }
     };
 };
