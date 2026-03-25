@@ -1,8 +1,9 @@
+import { SettingsBrightness, PushPinOutlined, LibraryAddCheck, NotificationsOff, DeleteForever, DeleteSweep, Notifications, ErrorOutline, AutoFixHigh, ViewHeadline, ViewCompact, RestartAlt, ColorLens, LightMode, DarkMode, PushPin, Terminal, Translate, History, Timer } from '@mui/icons-material';
 import { ToggleButtonGroup, FormControlLabel, InputAdornment, ToggleButton, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
-import { SettingsBrightness, PushPinOutlined, LibraryAddCheck, NotificationsOff, DeleteSweep, Notifications, ErrorOutline, AutoFixHigh, ViewHeadline, ViewCompact, RestartAlt, ColorLens, LightMode, DarkMode, PushPin, Terminal, Translate, Timer } from '@mui/icons-material';
 import React, { useRef, useState, useEffect } from 'react';
 
 import useSelectionStore from '../../store/selectionStore';
+import useHistoryStore from '../../store/historyStore';
 import useConfigStore from '../../store/configStore';
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'];
@@ -17,6 +18,7 @@ const SettingsView = () => {
     } = useConfigStore();
 
     const { clearAllSelections } = useSelectionStore();
+    const { clearAllHistory } = useHistoryStore();
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [version, setVersion] = useState('0.0.0');
     const colorInputRef = useRef(null);
@@ -136,7 +138,11 @@ const SettingsView = () => {
                         <ToggleButton value="on" color="primary"><LibraryAddCheck fontSize="small" sx={{ mr: 1 }} />Ativo</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
-                <Button variant="outlined" color="warning" startIcon={<DeleteSweep />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache limpo', type: 'success' }); }} fullWidth size="small" sx={{ mb: 2 }}>Limpar Cache de Seleções</Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                    <Button variant="outlined" color="warning" startIcon={<DeleteSweep />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache de seleções limpo', type: 'success' }); }} fullWidth size="small">Limpar Cache de Seleções</Button>
+                    <Button variant="outlined" color="warning" startIcon={<History />} onClick={() => { clearAllHistory(); setMessage({ open: true, text: 'Histórico de artefatos limpo', type: 'success' }); }} fullWidth size="small">Limpar Histórico de Artefatos</Button>
+                    <Button variant="outlined" color="error" startIcon={<DeleteForever />} onClick={() => { clearAllSelections(); clearAllHistory(); setMessage({ open: true, text: 'Todo o cache foi limpo', type: 'success' }); }} fullWidth size="small">Limpar Todo o Cache</Button>
+                </Box>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Check Interval (ms)</Typography>
                 <TextField fullWidth variant="outlined" size="small" type="number" value={checkInterval} onChange={(e) => setCheckInterval(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><Timer fontSize="small" /></InputAdornment>) }} sx={{ mb: 2 }} />

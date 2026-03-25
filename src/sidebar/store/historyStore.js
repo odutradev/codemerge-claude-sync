@@ -89,7 +89,8 @@ const useHistoryStore = create(
                     }
                 });
                 return hasChanges ? { histories: newHistories } : state;
-            })
+            }),
+            clearAllHistory: () => set({ histories: {} })
         }),
         {
             name: 'codemerge-history-storage',
