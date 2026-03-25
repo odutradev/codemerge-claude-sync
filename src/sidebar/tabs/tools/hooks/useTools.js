@@ -111,6 +111,6 @@ export const useTools = (fetchViaBackground) => {
 
     return {
         state: { serverStatus, cmdDialogOpen, actionLoading, commitMessage, cmdLoading, commitType, cmdOutput, message, translateCommit, originalCommitMessage, originalCommitType },
-        actions: { setCmdDialogOpen, setCommitMessage, setCommitType, setMessage, setTranslateCommit, handleCommit, handleFetchCommandOutput, handleInjectOutput }
+        actions: { setCmdDialogOpen, setCommitMessage, setCommitType, setMessage, setTranslateCommit, handleCommit, handleFetchCommandOutput, handleInjectOutput, showNotification }
     };
 };
