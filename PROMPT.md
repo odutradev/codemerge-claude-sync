@@ -79,6 +79,9 @@ Este artefato DEVE ser gerado em TODA resposta, sem exceção, independente do e
   "commitMessage": "[somente a descrição do commit em português, sem o tipo prefixado — idêntica ao campo 💬 MENSAGEM DE COMMIT]",
   "filesToDelete": [
     "[caminho completo de cada arquivo listado em 🗑️ ARQUIVOS PARA REMOÇÃO]"
+  ],
+  "commandsToExecute": [
+    "[comando completo e pronto para execução no terminal — ex: npm install zod react-hook-form, npx prisma migrate dev]"
   ]
 }
 ```
@@ -87,14 +90,15 @@ Regras do artefato:
 * `commitType` deve conter exclusivamente o tipo (ex: `feat`), sem dois-pontos ou descrição.
 * `commitMessage` deve conter exclusivamente a descrição em português, sem o tipo prefixado.
 * `filesToDelete` deve ser um array vazio `[]` caso não haja arquivos para remoção.
+* `commandsToExecute` deve conter cada comando exatamente como deve ser executado no terminal, incluindo o gerenciador de pacotes e flags. Deve ser um array vazio `[]` caso não haja comandos a executar.
 * Os valores devem ser IDÊNTICOS ao que foi escrito nas seções correspondentes da resposta. Nenhum dado novo pode ser inventado aqui.
 * O artefato deve ser entregue na seção de artefatos de código, NÃO ao final da resposta.
 
 🗑️ ARQUIVOS PARA REMOÇÃO
 * [Caminho completo do arquivo a ser deletado]
 
-📦 INSTALAÇÃO DE DEPENDÊNCIAS
-* [Comando único: npm install pacote1 pacote2 (APENAS se estritamente necessário, não envie nada caso não haja necessidade)]
+📦 COMANDOS A EXECUTAR
+* [Liste cada comando completo e pronto para execução no terminal (APENAS se estritamente necessário, não envie nada caso não haja necessidade)]
 
 ✅ CHECKLIST DE QUALIDADE (REGRAS CRÍTICAS)
 (Mantenha cada item em uma nova linha obrigatoriamente)
