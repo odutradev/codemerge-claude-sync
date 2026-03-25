@@ -42,13 +42,13 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
   const handleItemClick = (e) => {
     if (e.target.closest('.action-btn')) return;
     if (isCopyMode) return onCopyPath(node.path);
-    const shouldSelect = selectedDescendantsCount === 0;
+    const shouldSelect = !isFullySelected;
     onToggleSelection(node, shouldSelect);
   };
 
   const handleCheckboxChange = (e) => {
     e.stopPropagation();
-    const shouldSelect = selectedDescendantsCount === 0;
+    const shouldSelect = !isFullySelected;
     onToggleSelection(node, shouldSelect);
   };
 
