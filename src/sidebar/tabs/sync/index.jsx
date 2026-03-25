@@ -2,46 +2,30 @@ import { Box, Button, TextField, Typography, Paper, CircularProgress, Alert, Sna
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { useState, useEffect, useCallback, useMemo } from 'react';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { keyframes, alpha } from '@mui/material/styles';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
-import { keyframes, alpha } from '@mui/material/styles';
+import StarIcon from '@mui/icons-material/Star';
 
 import FileTreeItem from './subcomponents/filetreeItem/index.jsx';
 import useSelectionStore from '../../store/selectionStore.js';
 import { processCode } from '../../utils/codeProcessor.js';
 import useConfigStore from '../../store/configStore.js';
 
-const pulseGreen = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-`;
+const pulseGreen = keyframes`0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }`;
+const pulseRed = keyframes`0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }`;
+const pulseOrange = keyframes`0% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); } 100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }`;
 
-const pulseRed = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-`;
-
-const pulseOrange = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
-`;
-
-const flattenStructure = (node) => [
-    ...(node.type === 'file' ? [node] : []),
-    ...(node.children ? node.children.flatMap(flattenStructure) : [])
-];
+const flattenStructure = (node) => [...(node.type === 'file' ? [node] : []), ...(node.children ? node.children.flatMap(flattenStructure) : [])];
 
 const SyncView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
-    const { selections, expansions, setProjectSelection, hasStoredSelection, toggleExpansion } = useSelectionStore();
+    const { selections, expansions, pinned, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
 
     const [projectStructure, setProjectStructure] = useState(null);
     const [projectId, setProjectId] = useState(null);
@@ -55,6 +39,7 @@ const SyncView = ({ fetchViaBackground }) => {
 
     const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
     const expandedPaths = useMemo(() => projectId ? new Set(expansions[projectId] || []) : new Set(), [expansions, projectId]);
+    const pinnedPaths = useMemo(() => projectId ? new Set(pinned[projectId] || []) : new Set(), [pinned, projectId]);
 
     const stats = useMemo(() => {
         if (!projectStructure || !projectId) return { files: 0, lines: 0, lastUpdate: '-' };
@@ -78,6 +63,18 @@ const SyncView = ({ fetchViaBackground }) => {
         navigator.clipboard.writeText(formattedPath);
         showNotification(`Caminho copiado: ${formattedPath}`, 'success');
     }, [showNotification]);
+
+    const handleToggleSelection = useCallback((node, shouldSelect) => {
+        const collect = (n) => [...(n.type === 'file' ? [n.path] : []), ...(n.children ? n.children.flatMap(collect) : [])];
+        const target = collect(node);
+        const next = new Set(selectedPaths);
+        target.forEach(p => shouldSelect ? next.add(p) : next.delete(p));
+        setProjectSelection(projectId, Array.from(next));
+    }, [selectedPaths, projectId, setProjectSelection]);
+
+    const handleTogglePin = useCallback((path) => {
+        if (projectId) togglePin(projectId, path);
+    }, [projectId, togglePin]);
 
     useEffect(() => {
         let isMounted = true;
@@ -216,19 +213,12 @@ const SyncView = ({ fetchViaBackground }) => {
                                 node={projectStructure}
                                 selectedPaths={selectedPaths}
                                 expandedPaths={expandedPaths}
+                                pinnedPaths={pinnedPaths}
                                 isCopyMode={isCopyMode}
                                 onCopyPath={handleCopyPath}
-                                onToggleSelection={(n, s) => {
-                                    const collect = (node) => [
-                                        ...(node.type === 'file' ? [node.path] : []),
-                                        ...(node.children ? node.children.flatMap(collect) : [])
-                                    ];
-                                    const target = collect(n);
-                                    const next = new Set(selectedPaths);
-                                    target.forEach(p => s ? next.add(p) : next.delete(p));
-                                    setProjectSelection(projectId, Array.from(next));
-                                }}
+                                onToggleSelection={handleToggleSelection}
                                 onToggleExpansion={(path) => toggleExpansion(projectId, path)}
+                                onTogglePin={handleTogglePin}
                                 searchTerm={searchTerm}
                             />
                         </Box>
@@ -247,6 +237,12 @@ const SyncView = ({ fetchViaBackground }) => {
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                         <FormatAlignLeftIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.lines}</Typography>
+                                    </Box>
+                                </Tooltip>
+                                <Tooltip title="Favoritos">
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <StarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{pinnedPaths.size}</Typography>
                                     </Box>
                                 </Tooltip>
                             </Box>

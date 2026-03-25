@@ -1,18 +1,21 @@
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useTheme, alpha } from '@mui/material/styles';
 import FolderIcon from '@mui/icons-material/Folder';
+import StarIcon from '@mui/icons-material/Star';
 
-import FileIcon from '../../../../components/fileIcon/index.jsx';
 import useConfigStore from '../../../../store/configStore.js';
+import FileIcon from '../../../../components/fileIcon/index.jsx';
 
-const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMode, onCopyPath, onToggleSelection, onToggleExpansion, searchTerm }) => {
+const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPaths, isCopyMode, onCopyPath, onToggleSelection, onToggleExpansion, onTogglePin, searchTerm }) => {
   const { compactMode } = useConfigStore();
   const theme = useTheme();
 
   const isExpanded = (searchTerm && searchTerm.length > 0) || expandedPaths.has(node.path);
+  const isPinned = node.type === 'file' && pinnedPaths.has(node.path);
 
   const getAllChildrenPaths = (n) => [
     ...(n.type === 'file' ? [n.path] : []),
@@ -42,7 +45,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
   };
 
   const handleItemClick = (e) => {
-    if (e.target.closest('.expand-icon')) return;
+    if (e.target.closest('.action-btn')) return;
     if (isCopyMode) return onCopyPath(node.path);
     const shouldSelect = selectedDescendantsCount === 0;
     onToggleSelection(node, shouldSelect);
@@ -71,14 +74,15 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
           width: '100%',
           cursor: 'pointer',
           transition: 'background-color 0.2s',
-          '&:hover': { bgcolor: 'action.hover' },
           bgcolor: isSelected || isPartiallySelected ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
-          minHeight: compactMode ? 24 : 32
+          minHeight: compactMode ? 24 : 32,
+          '&:hover': { bgcolor: 'action.hover' },
+          '&:hover .star-btn': { opacity: 1 }
         }}
       >
         {node.type === 'directory' ? (
           <IconButton
-            className="expand-icon"
+            className="action-btn"
             size="small"
             onClick={handleExpandClick}
             sx={{ p: 0.5, mr: 0.5 }}
@@ -99,7 +103,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
           />
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden', flexGrow: 1 }}>
             {node.type === 'directory' ?
                 (isExpanded ? <FolderOpenIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <FolderIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
                 :
@@ -116,6 +120,17 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
                 </Typography>
             )}
         </Box>
+
+        {!isCopyMode && node.type === 'file' && (
+            <IconButton
+                className="action-btn star-btn"
+                size="small"
+                onClick={(e) => { e.stopPropagation(); onTogglePin(node.path); }}
+                sx={{ p: 0.25, ml: 1, opacity: isPinned ? 1 : 0, transition: 'opacity 0.2s' }}
+            >
+                {isPinned ? <StarIcon sx={{ fontSize: iconSize - 2, color: 'warning.main' }} /> : <StarOutlineIcon sx={{ fontSize: iconSize - 2 }} />}
+            </IconButton>
+        )}
       </Box>
 
       {node.children && (
@@ -127,10 +142,12 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, isCopyMod
               level={level + 1}
               selectedPaths={selectedPaths}
               expandedPaths={expandedPaths}
+              pinnedPaths={pinnedPaths}
               isCopyMode={isCopyMode}
               onCopyPath={onCopyPath}
               onToggleSelection={onToggleSelection}
               onToggleExpansion={onToggleExpansion}
+              onTogglePin={onTogglePin}
               searchTerm={searchTerm}
             />
           ))}

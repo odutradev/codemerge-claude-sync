@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { create } from 'zustand';
 
 const useSelectionStore = create(
     persist(
@@ -7,6 +7,7 @@ const useSelectionStore = create(
             selections: {},
             expansions: {},
             timestamps: {},
+            pinned: {},
 
             toggleSelection: (projectId, path) => set((state) => {
                 const currentSelections = new Set(state.selections[projectId] || []);
@@ -42,6 +43,21 @@ const useSelectionStore = create(
                 };
             }),
 
+            togglePin: (projectId, path) => set((state) => {
+                const currentPinned = new Set(state.pinned[projectId] || []);
+                if (currentPinned.has(path)) {
+                    currentPinned.delete(path);
+                } else {
+                    currentPinned.add(path);
+                }
+                return {
+                    pinned: {
+                        ...state.pinned,
+                        [projectId]: Array.from(currentPinned)
+                    }
+                };
+            }),
+
             setProjectSelection: (projectId, paths) => set((state) => ({
                 selections: {
                     ...state.selections,
@@ -70,7 +86,8 @@ const useSelectionStore = create(
             clearAllSelections: () => set({
                 selections: {},
                 expansions: {},
-                timestamps: {}
+                timestamps: {},
+                pinned: {}
             }),
 
             checkExpiration: () => set((state) => {
@@ -111,7 +128,7 @@ const useSelectionStore = create(
         }),
         {
             name: 'codemerge-selection-storage',
-            version: 3,
+            version: 4,
         }
     )
 );
