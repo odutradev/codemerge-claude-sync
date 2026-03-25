@@ -1,0 +1,2 @@
+export const headerBoxStyles = { px: 2, py: 1, display: 'flex', alignItems: 'center', bgcolor: 'action.hover', borderBottom: 1, borderColor: 'divider' };
+export const listItemStyles = (isSelected) => ({ p: 0.5, px: 2, cursor: 'pointer', transition: 'all 0.2s', bgcolor: isSelected ? 'action.selected' : 'transparent', '&:hover': { bgcolor: 'action.hover' } });

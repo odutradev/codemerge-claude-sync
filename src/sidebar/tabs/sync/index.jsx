@@ -1,21 +1,12 @@
 import { Box, Button, TextField, Typography, Paper, CircularProgress, Alert, Snackbar, InputAdornment, IconButton, Tooltip } from '@mui/material';
-import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { PushPinOutlined, FormatAlignLeft, InsertDriveFile, ContentCopy, CloudUpload, AccessTime, PushPin, Refresh, Search, Star } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { keyframes, alpha } from '@mui/material/styles';
-import PushPinIcon from '@mui/icons-material/PushPin';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import SearchIcon from '@mui/icons-material/Search';
-import StarIcon from '@mui/icons-material/Star';
 
 import FileTreeItem from './subcomponents/filetreeItem/index.jsx';
 import useSelectionStore from '../../store/selectionStore.js';
-import { processCode } from '../../utils/codeProcessor.js';
 import useConfigStore from '../../store/configStore.js';
+import { processCode } from '../../utils/codeProcessor.js';
 
 const pulseGreen = keyframes`0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }`;
 const pulseRed = keyframes`0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }`;
@@ -68,13 +59,31 @@ const SyncView = ({ fetchViaBackground }) => {
         const collect = (n) => [...(n.type === 'file' ? [n.path] : []), ...(n.children ? n.children.flatMap(collect) : [])];
         const target = collect(node);
         const next = new Set(selectedPaths);
-        target.forEach(p => shouldSelect ? next.add(p) : next.delete(p));
+        target.forEach(p => {
+            if (shouldSelect) {
+                next.add(p);
+            } else {
+                if (node.type === 'file' && node.path === p) {
+                    next.delete(p);
+                    if (pinnedPaths.has(p)) togglePin(projectId, p);
+                } else if (!pinnedPaths.has(p)) {
+                    next.delete(p);
+                }
+            }
+        });
         setProjectSelection(projectId, Array.from(next));
-    }, [selectedPaths, projectId, setProjectSelection]);
+    }, [selectedPaths, projectId, setProjectSelection, pinnedPaths, togglePin]);
 
     const handleTogglePin = useCallback((path) => {
-        if (projectId) togglePin(projectId, path);
-    }, [projectId, togglePin]);
+        if (!projectId) return;
+        const isPinning = !pinnedPaths.has(path);
+        togglePin(projectId, path);
+        if (isPinning && !selectedPaths.has(path)) {
+            const next = new Set(selectedPaths);
+            next.add(path);
+            setProjectSelection(projectId, Array.from(next));
+        }
+    }, [projectId, togglePin, pinnedPaths, selectedPaths, setProjectSelection]);
 
     useEffect(() => {
         let isMounted = true;
@@ -184,7 +193,7 @@ const SyncView = ({ fetchViaBackground }) => {
                         sx={{ '& .MuiOutlinedInput-root': { animation: statusProps.borderAnimation, '& fieldset': { borderColor: statusProps.borderColor } } }}
                     />
                     <Button variant="outlined" onClick={handleFetchStructure} disabled={loading || isChecking || serverStatus !== 'connected'} sx={{ minWidth: 'auto', px: 2 }}>
-                        {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
+                        {loading ? <CircularProgress size={20} /> : <Refresh />}
                     </Button>
                 </Box>
             </Box>
@@ -193,17 +202,17 @@ const SyncView = ({ fetchViaBackground }) => {
                 <>
                     <Paper variant="outlined" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', mb: 2 }}>
                         <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
-                            <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                            <Search sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
                                 placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             <Tooltip title={isCopyMode ? "Modo de cópia ativado" : "Ativar modo de cópia de caminho"}>
                                 <IconButton size="small" onClick={() => setIsCopyMode(!isCopyMode)} color={isCopyMode ? "primary" : "default"}>
-                                    <ContentCopyIcon fontSize="small" />
+                                    <ContentCopy fontSize="small" />
                                 </IconButton>
                             </Tooltip>
                             <Tooltip title={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}>
                                 <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
-                                    {persistSelection ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+                                    {persistSelection ? <PushPin fontSize="small" /> : <PushPinOutlined fontSize="small" />}
                                 </IconButton>
                             </Tooltip>
                         </Box>
@@ -229,33 +238,33 @@ const SyncView = ({ fetchViaBackground }) => {
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 <Tooltip title="Arquivos selecionados">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <InsertDriveFileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <InsertDriveFile sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.files}</Typography>
                                     </Box>
                                 </Tooltip>
                                 <Tooltip title="Total de linhas">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <FormatAlignLeftIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <FormatAlignLeft sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.lines}</Typography>
                                     </Box>
                                 </Tooltip>
                                 <Tooltip title="Favoritos">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <StarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Star sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{pinnedPaths.size}</Typography>
                                     </Box>
                                 </Tooltip>
                             </Box>
                             <Tooltip title="Última atualização da árvore">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                    <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
                                     <Typography variant="caption" color="text.secondary">{stats.lastUpdate}</Typography>
                                 </Box>
                             </Tooltip>
                         </Box>
                     </Paper>
 
-                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<CloudUploadIcon />}>
+                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<CloudUpload />}>
                         Sincronizar Selecionados
                     </Button>
                 </>

@@ -1,14 +1,9 @@
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { KeyboardArrowRight, KeyboardArrowDown, StarOutline, FolderOpen, Folder, Star } from '@mui/icons-material';
 import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
-import StarOutlineIcon from '@mui/icons-material/StarOutline';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useTheme, alpha } from '@mui/material/styles';
-import FolderIcon from '@mui/icons-material/Folder';
-import StarIcon from '@mui/icons-material/Star';
 
-import useConfigStore from '../../../../store/configStore.js';
 import FileIcon from '../../../../components/fileIcon/index.jsx';
+import useConfigStore from '../../../../store/configStore.js';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPaths, isCopyMode, onCopyPath, onToggleSelection, onToggleExpansion, onTogglePin, searchTerm }) => {
   const { compactMode } = useConfigStore();
@@ -77,7 +72,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
           bgcolor: isSelected || isPartiallySelected ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
           minHeight: compactMode ? 24 : 32,
           '&:hover': { bgcolor: 'action.hover' },
-          '&:hover .star-btn': { opacity: 1 }
+          '&:hover .star-btn': { opacity: isPinned ? 1 : 0.4 }
         }}
       >
         {node.type === 'directory' ? (
@@ -87,7 +82,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
             onClick={handleExpandClick}
             sx={{ p: 0.5, mr: 0.5 }}
           >
-            {isExpanded ? <KeyboardArrowDownIcon sx={{ fontSize: iconSize }} /> : <KeyboardArrowRightIcon sx={{ fontSize: iconSize }} />}
+            {isExpanded ? <KeyboardArrowDown sx={{ fontSize: iconSize }} /> : <KeyboardArrowRight sx={{ fontSize: iconSize }} />}
           </IconButton>
         ) : (
           <Box sx={{ width: 24, mr: 0.5 }} />
@@ -105,7 +100,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
 
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden', flexGrow: 1 }}>
             {node.type === 'directory' ?
-                (isExpanded ? <FolderOpenIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <FolderIcon sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
+                (isExpanded ? <FolderOpen sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <Folder sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
                 :
                 <Box sx={{ mr: 1, display: 'flex' }}>
                     <FileIcon fileName={node.name} sx={{ fontSize: iconSize }} />
@@ -128,7 +123,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
                 onClick={(e) => { e.stopPropagation(); onTogglePin(node.path); }}
                 sx={{ p: 0.25, ml: 1, opacity: isPinned ? 1 : 0, transition: 'opacity 0.2s' }}
             >
-                {isPinned ? <StarIcon sx={{ fontSize: iconSize - 2, color: 'warning.main' }} /> : <StarOutlineIcon sx={{ fontSize: iconSize - 2 }} />}
+                {isPinned ? <Star sx={{ fontSize: iconSize - 2, color: 'warning.main' }} /> : <StarOutline sx={{ fontSize: iconSize - 2, color: 'text.secondary' }} />}
             </IconButton>
         )}
       </Box>
