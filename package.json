@@ -1,6 +1,6 @@
 {
   "name": "codemerge-sync",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "Selecione e sincronize arquivos do CodeMerge com Claude Projects e Gemini via sidebar (React + Vite)",
   "scripts": {
     "dev": "vite",

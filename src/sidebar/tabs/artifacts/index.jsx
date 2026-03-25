@@ -22,9 +22,14 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
             />
 
             <CommitBox 
+                commitType={state.commitType}
+                setCommitType={actions.setCommitType}
+                translateCommit={state.translateCommit}
+                setTranslateCommit={actions.setTranslateCommit}
                 commitMessage={state.commitMessage}
                 setCommitMessage={actions.setCommitMessage}
                 originalCommitMessage={state.originalCommitMessage}
+                originalCommitType={state.originalCommitType}
                 handleCommit={actions.handleCommit}
                 actionLoading={state.actionLoading}
                 serverStatus={state.serverStatus}

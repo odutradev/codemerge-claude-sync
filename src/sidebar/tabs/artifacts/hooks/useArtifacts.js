@@ -6,12 +6,15 @@ import useConfigStore from '../../../store/configStore';
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
+    const [originalCommitType, setOriginalCommitType] = useState('feat');
+    const [translateCommit, setTranslateCommit] = useState(false);
     const [selectedDeletions, setSelectedDeletions] = useState(new Set());
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
+    const [commitType, setCommitType] = useState('feat');
     const [filesToDelete, setFilesToDelete] = useState([]);
     const [isChecking, setIsChecking] = useState(false);
     const [cmdLoading, setCmdLoading] = useState(false);
@@ -60,12 +63,14 @@ export const useArtifacts = (fetchViaBackground) => {
             if (!response.success) throw new Error(response.error);
             const rawArtifacts = response.artifacts ?? [];
             let parsedCommitMsg = '';
+            let parsedCommitType = 'feat';
             let parsedFilesToDelete = [];
             const filteredArtifacts = rawArtifacts.filter(art => {
                 if (art.name === 'codemerge.result.json') {
                     try {
                         const parsed = JSON.parse(art.code);
                         parsedCommitMsg = parsed.commitMessage ?? '';
+                        parsedCommitType = parsed.commitType ?? 'feat';
                         parsedFilesToDelete = parsed.filesToDelete ?? [];
                     } catch (e) {
                         return false;
@@ -77,6 +82,8 @@ export const useArtifacts = (fetchViaBackground) => {
             setArtifacts(filteredArtifacts);
             setCommitMessage(parsedCommitMsg);
             setOriginalCommitMessage(parsedCommitMsg);
+            setCommitType(parsedCommitType);
+            setOriginalCommitType(parsedCommitType);
             setFilesToDelete(parsedFilesToDelete);
 
             const initialSelection = new Set();
@@ -103,9 +110,10 @@ export const useArtifacts = (fetchViaBackground) => {
         if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
         setActionLoading(true);
         try {
-            const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', message: commitMessage }) });
+            const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', type: commitType, message: commitMessage, translate: translateCommit }) });
             if (!res.success) throw new Error(`Commit: ${res.error}`);
             setOriginalCommitMessage(commitMessage);
+            setOriginalCommitType(commitType);
             setCommitMessage('');
             showNotification('Commit realizado com sucesso!', 'success');
         } catch (error) {
@@ -195,7 +203,7 @@ export const useArtifacts = (fetchViaBackground) => {
     };
 
     return {
-        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, originalCommitMessage, actionLoading },
-        actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage }
+        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading },
+        actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit }
     };
 };
