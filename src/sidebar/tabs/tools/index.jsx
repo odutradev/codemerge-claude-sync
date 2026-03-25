@@ -1,6 +1,6 @@
 import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
-import { CommandDialog } from '../artifacts/subcomponents/CommandDialog';
+import { CommandDialog } from '../../components/commandDialog';
 import { CommitBox } from '../../components/commitBox';
 import { useTools } from './hooks/useTools';
 

@@ -1,11 +1,11 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, IconButton, CircularProgress, Alert, Button } from '@mui/material';
-import TerminalIcon from '@mui/icons-material/Terminal';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import TerminalIcon from '@mui/icons-material/Terminal';
 import CloseIcon from '@mui/icons-material/Close';
 import InputIcon from '@mui/icons-material/Input';
 
 import { dialogTitleStyles, loaderContainerStyles, infoGridStyles, codeBoxStyles } from './styles';
-import { renderAnsi } from '../../../../utils/ansi';
+import { renderAnsi } from './ansi';
 
 export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmdOutput, handleFetchCommandOutput, handleInjectOutput }) => (
     <Dialog open={cmdDialogOpen} onClose={() => setCmdDialogOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>

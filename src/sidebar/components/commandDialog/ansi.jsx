@@ -1,4 +1,3 @@
-
 export const renderAnsi = (text) => {
     if (!text) return null;
     const parts = text.split(/(\x1b\[[\d;]*m)/g);
