@@ -14,7 +14,7 @@ export const PromptPresets = ({ showNotification }) => {
 
     return (
         <>
-            <Accordion sx={accordionStyles} defaultExpanded>
+            <Accordion sx={accordionStyles}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={accordionSummaryStyles}>
                     <Box sx={headerBoxStyles}>
                         <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>PRESETS DE PROMPT</Typography>
@@ -35,22 +35,22 @@ export const PromptPresets = ({ showNotification }) => {
                                         <Typography variant="body2" fontWeight="bold">{preset.title}</Typography>
                                         <Box sx={actionsBoxStyles}>
                                             <Tooltip title="Inserir no chat">
-                                                <IconButton size="small" onClick={() => actions.handleInject(preset.prompt)} color="success">
+                                                <IconButton size="small" onClick={() => actions.handleInject(preset.prompt)} sx={{ color: '#ffffff' }}>
                                                     <InputIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Copiar Prompt">
-                                                <IconButton size="small" onClick={() => actions.handleCopy(preset.prompt)} color="primary">
+                                                <IconButton size="small" onClick={() => actions.handleCopy(preset.prompt)} sx={{ color: '#ffffff' }}>
                                                     <ContentCopyIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Editar">
-                                                <IconButton size="small" onClick={() => actions.handleOpenDialog(preset)}>
+                                                <IconButton size="small" onClick={() => actions.handleOpenDialog(preset)} sx={{ color: '#ffffff' }}>
                                                     <EditIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Remover">
-                                                <IconButton size="small" onClick={() => actions.handleDelete(preset.id)} color="error">
+                                                <IconButton size="small" onClick={() => actions.handleDelete(preset.id)} sx={{ color: '#ffffff' }}>
                                                 <DeleteIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
