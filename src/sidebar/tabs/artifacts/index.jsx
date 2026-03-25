@@ -11,17 +11,21 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default' }}>
-            <Header 
-                serverStatus={state.serverStatus} 
-                isChecking={state.isChecking} 
-                handleFetchArtifacts={actions.handleFetchArtifacts} 
-                loading={state.actionLoading || state.fetching} 
-                handleOpenCmdDialog={actions.handleOpenCmdDialog} 
-                removeComments={state.removeComments} 
-                setRemoveComments={actions.setRemoveComments} 
+            <Header
+                serverStatus={state.serverStatus}
+                isChecking={state.isChecking}
+                handleFetchArtifacts={actions.handleFetchArtifacts}
+                loading={state.actionLoading || state.fetching}
+                handleOpenCmdDialog={actions.handleOpenCmdDialog}
+                removeComments={state.removeComments}
+                setRemoveComments={actions.setRemoveComments}
+                historyLength={state.historyLength}
+                currentHistoryIndex={state.currentHistoryIndex}
+                handlePrevHistory={actions.handlePrevHistory}
+                handleNextHistory={actions.handleNextHistory}
             />
 
-            <CommitBox 
+            <CommitBox
                 commitType={state.commitType}
                 setCommitType={actions.setCommitType}
                 translateCommit={state.translateCommit}
@@ -35,27 +39,27 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 serverStatus={state.serverStatus}
             />
 
-            <ArtifactList 
-                fetching={state.fetching} 
-                artifacts={state.artifacts} 
+            <ArtifactList
+                fetching={state.fetching}
+                artifacts={state.artifacts}
                 filesToDelete={state.filesToDelete}
-                selectedIndices={state.selectedIndices} 
+                selectedIndices={state.selectedIndices}
                 selectedDeletions={state.selectedDeletions}
-                toggleSelection={actions.toggleSelection} 
+                toggleSelection={actions.toggleSelection}
                 toggleDeleteSelection={actions.toggleDeleteSelection}
-                handleDeselectAll={actions.handleDeselectAll} 
-                handleApplyAll={actions.handleApplyAll} 
-                actionLoading={state.actionLoading} 
-                serverStatus={state.serverStatus} 
+                handleDeselectAll={actions.handleDeselectAll}
+                handleApplyAll={actions.handleApplyAll}
+                actionLoading={state.actionLoading}
+                serverStatus={state.serverStatus}
             />
 
-            <CommandDialog 
-                cmdDialogOpen={state.cmdDialogOpen} 
-                setCmdDialogOpen={actions.setCmdDialogOpen} 
-                cmdLoading={state.cmdLoading} 
-                cmdOutput={state.cmdOutput} 
-                handleFetchCommandOutput={actions.handleFetchCommandOutput} 
-                handleInjectOutput={actions.handleInjectOutput} 
+            <CommandDialog
+                cmdDialogOpen={state.cmdDialogOpen}
+                setCmdDialogOpen={actions.setCmdDialogOpen}
+                cmdLoading={state.cmdLoading}
+                cmdOutput={state.cmdOutput}
+                handleFetchCommandOutput={actions.handleFetchCommandOutput}
+                handleInjectOutput={actions.handleInjectOutput}
             />
 
             <Snackbar open={state.message.open} autoHideDuration={2000} onClose={() => actions.setMessage({ ...state.message, open: false })}>

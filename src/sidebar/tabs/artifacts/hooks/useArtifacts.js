@@ -10,6 +10,7 @@ export const useArtifacts = (fetchViaBackground) => {
     const [selectedDeletions, setSelectedDeletions] = useState(new Set());
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
+    const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
@@ -20,6 +21,7 @@ export const useArtifacts = (fetchViaBackground) => {
     const [fetching, setFetching] = useState(false);
     const [cmdOutput, setCmdOutput] = useState(null);
     const [artifacts, setArtifacts] = useState([]);
+    const [history, setHistory] = useState([]);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
 
     const showNotification = useCallback((text, type = 'info') => {
@@ -78,19 +80,36 @@ export const useArtifacts = (fetchViaBackground) => {
                 }
                 return true;
             });
+
+            const initialSelection = new Set();
+            filteredArtifacts.forEach((artifact, index) => {
+                if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
+            });
+            const newDeletions = new Set(parsedFilesToDelete);
+
             setArtifacts(filteredArtifacts);
             setCommitMessage(parsedCommitMsg);
             setOriginalCommitMessage(parsedCommitMsg);
             setCommitType(parsedCommitType);
             setOriginalCommitType(parsedCommitType);
             setFilesToDelete(parsedFilesToDelete);
-
-            const initialSelection = new Set();
-            filteredArtifacts.forEach((artifact, index) => {
-                if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
-            });
             setSelectedIndices(initialSelection);
-            setSelectedDeletions(new Set(parsedFilesToDelete));
+            setSelectedDeletions(newDeletions);
+
+            const snapshot = {
+                artifacts: filteredArtifacts,
+                commitMessage: parsedCommitMsg,
+                commitType: parsedCommitType,
+                filesToDelete: parsedFilesToDelete,
+                selectedIndices: initialSelection,
+                selectedDeletions: newDeletions
+            };
+
+            setHistory(prev => {
+                const nextHist = prev.slice(0, currentHistoryIndex + 1);
+                return [...nextHist, snapshot];
+            });
+            setCurrentHistoryIndex(prev => prev + 1);
 
             if (!silent) showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
         } catch (error) {
@@ -99,11 +118,33 @@ export const useArtifacts = (fetchViaBackground) => {
             setActionLoading(false);
             setFetching(false);
         }
-    }, [showNotification]);
+    }, [showNotification, currentHistoryIndex]);
+
+    const applySnapshot = useCallback((index) => {
+        const snap = history[index];
+        if (!snap) return;
+        setCurrentHistoryIndex(index);
+        setArtifacts(snap.artifacts);
+        setCommitMessage(snap.commitMessage);
+        setOriginalCommitMessage(snap.commitMessage);
+        setCommitType(snap.commitType);
+        setOriginalCommitType(snap.commitType);
+        setFilesToDelete(snap.filesToDelete);
+        setSelectedIndices(snap.selectedIndices);
+        setSelectedDeletions(snap.selectedDeletions);
+    }, [history]);
+
+    const handlePrevHistory = useCallback(() => {
+        if (currentHistoryIndex > 0) applySnapshot(currentHistoryIndex - 1);
+    }, [currentHistoryIndex, applySnapshot]);
+
+    const handleNextHistory = useCallback(() => {
+        if (currentHistoryIndex < history.length - 1) applySnapshot(currentHistoryIndex + 1);
+    }, [currentHistoryIndex, history.length, applySnapshot]);
 
     useEffect(() => {
-        if (serverStatus === 'connected') handleFetchArtifacts(true);
-    }, [serverStatus, handleFetchArtifacts]);
+        if (serverStatus === 'connected' && history.length === 0) handleFetchArtifacts(true);
+    }, [serverStatus, handleFetchArtifacts, history.length]);
 
     const handleCommit = async () => {
         if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
@@ -111,14 +152,14 @@ export const useArtifacts = (fetchViaBackground) => {
         try {
             const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', type: commitType, message: commitMessage, translate: translateCommit }) });
             if (!res.success) throw new Error(`Commit: ${res.error}`);
-            
+
             const responseData = res.data ? JSON.parse(res.data) : {};
 
             setOriginalCommitMessage(commitMessage);
             setOriginalCommitType(commitType);
             setCommitMessage('');
             showNotification('Commit realizado com sucesso!', 'success');
-            
+
             setCmdOutput({
                 type: 'commit',
                 command: `git commit -m "${commitType}: ${commitMessage}"`,
@@ -225,7 +266,7 @@ export const useArtifacts = (fetchViaBackground) => {
     };
 
     return {
-        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading },
-        actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit }
+        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength: history.length, currentHistoryIndex },
+        actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, handlePrevHistory, handleNextHistory, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit }
     };
 };

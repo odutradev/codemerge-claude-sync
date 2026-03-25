@@ -16,4 +16,5 @@ export const getStatusProps = (status, isChecking) => {
 
 export const containerStyles = { display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 };
 export const actionsContainerStyles = { display: 'flex', gap: 1, mb: 2 };
-export const iconButtonStyles = (isActive) => ({ border: '1px solid', borderColor: isActive ? 'primary.main' : 'divider', borderRadius: 2, width: 36, height: 36 });
+export const iconButtonStyles = (isActive) => ({ border: '1px solid', borderColor: isActive ? 'primary.main' : 'divider', borderRadius: 2, width: 36, height: 36, flexShrink: 0 });
+export const historyBoxStyles = { display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 2, px: 0.5, height: 36, flexShrink: 0 };
