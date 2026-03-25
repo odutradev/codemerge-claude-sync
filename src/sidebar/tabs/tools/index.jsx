@@ -1,7 +1,7 @@
 import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
-import { PromptPresets } from './subcomponents/PromptPresets';
 import { CommandDialog } from '../../components/commandDialog';
+import { PromptPresets } from './subcomponents/PromptPresets';
 import { CommitBox } from '../../components/commitBox';
 import { useTools } from './hooks/useTools';
 
@@ -9,7 +9,7 @@ export const ToolsView = ({ fetchViaBackground }) => {
     const { state, actions } = useTools(fetchViaBackground);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default', overflowY: 'auto', overflowX: 'hidden' }}>
             <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>Ferramentas Globais</Typography>
 
             <CommitBox
