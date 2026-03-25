@@ -1,6 +1,12 @@
 import { getClaudeArtifacts } from '../../services/claudeService';
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'INJECT_TEXT') {
+        window.postMessage({ type: 'CLAUDE_INJECT_TEXT', text: message.text }, '*');
+        sendResponse({ success: true });
+        return true;
+    }
+
     if (message.type === 'ADD_FILE') {
         const messageListener = (event) => {
             if (event.source !== window) return;

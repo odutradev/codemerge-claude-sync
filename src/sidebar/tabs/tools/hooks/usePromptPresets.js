@@ -43,8 +43,21 @@ export const usePromptPresets = (showNotification) => {
         showNotification('Prompt copiado para a área de transferência', 'success');
     }, [showNotification]);
 
+    const handleInject = useCallback(async (promptText) => {
+        try {
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            const activeTab = tabs[0];
+            if (!activeTab) throw new Error('Aba ativa não encontrada');
+
+            await chrome.tabs.sendMessage(activeTab.id, { type: 'INJECT_TEXT', text: promptText });
+            showNotification('Prompt inserido no chat', 'success');
+        } catch (err) {
+            showNotification(`Erro ao inserir no chat: ${err.message}`, 'error');
+        }
+    }, [showNotification]);
+
     return {
         state: { presets, dialogOpen, formData },
-        actions: { handleOpenDialog, handleCloseDialog, handleSave, handleDelete, handleCopy, setFormData }
+        actions: { handleOpenDialog, handleCloseDialog, handleSave, handleDelete, handleCopy, handleInject, setFormData }
     };
 };

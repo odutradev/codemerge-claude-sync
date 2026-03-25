@@ -1,6 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Button, TextField, Paper, IconButton, List, ListItem, Tooltip } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
+import InputIcon from '@mui/icons-material/Input';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -29,6 +30,11 @@ export const PromptPresets = ({ showNotification }) => {
                                 <Box sx={itemHeaderStyles}>
                                     <Typography variant="body2" fontWeight="bold">{preset.title}</Typography>
                                     <Box sx={actionsBoxStyles}>
+                                        <Tooltip title="Inserir no chat">
+                                            <IconButton size="small" onClick={() => actions.handleInject(preset.prompt)} color="success">
+                                                <InputIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
                                         <Tooltip title="Copiar Prompt">
                                             <IconButton size="small" onClick={() => actions.handleCopy(preset.prompt)} color="primary">
                                                 <ContentCopyIcon fontSize="small" />
@@ -41,7 +47,7 @@ export const PromptPresets = ({ showNotification }) => {
                                         </Tooltip>
                                         <Tooltip title="Remover">
                                             <IconButton size="small" onClick={() => actions.handleDelete(preset.id)} color="error">
-                                                <DeleteIcon fontSize="small" />
+                                            <DeleteIcon fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
                                     </Box>
