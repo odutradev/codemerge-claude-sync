@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { processCode } from '../../../utils/codeProcessor';
 import useSelectionStore from '../../../store/selectionStore';
 import useHistoryStore from '../../../store/historyStore';
+import { processCode } from '../../../utils/codeProcessor';
 import useConfigStore from '../../../store/configStore';
 
 export const useArtifacts = (fetchViaBackground) => {
@@ -251,7 +251,6 @@ export const useArtifacts = (fetchViaBackground) => {
             if (selectedDeletions.size > 0) {
                 const res = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: Array.from(selectedDeletions) }) });
                 if (!res.success) throw new Error(`Deleção: ${res.error}`);
-                setFilesToDelete(prev => prev.filter(p => !selectedDeletions.has(p)));
                 setSelectedDeletions(new Set());
             }
             showNotification('Sincronização e deleções aplicadas!', 'success');
