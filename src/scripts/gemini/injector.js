@@ -4,11 +4,19 @@ window.addEventListener('message', async (event) => {
     if (event.data.type === 'GEMINI_INJECT_TEXT') {
         const editor = document.querySelector('.ql-editor') || document.querySelector('div[contenteditable="true"]');
         if (!editor) return;
+
         editor.focus();
-        const dataTransfer = new DataTransfer();
-        dataTransfer.setData('text/plain', event.data.text);
-        const pasteEvent = new ClipboardEvent('paste', { bubbles: true, cancelable: true, composed: true, clipboardData: dataTransfer });
-        editor.dispatchEvent(pasteEvent);
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!document.execCommand('insertText', false, event.data.text)) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/plain', event.data.text);
+            const pasteEvent = new ClipboardEvent('paste', { bubbles: true, cancelable: true, composed: true, clipboardData: dataTransfer });
+            editor.dispatchEvent(pasteEvent);
+        }
+
+        editor.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
         return;
     }
 
