@@ -1,5 +1,5 @@
-import { Box, Button, TextField, Typography, Paper, CircularProgress, Alert, Snackbar, InputAdornment, IconButton, Tooltip } from '@mui/material';
-import { PushPinOutlined, FormatAlignLeft, InsertDriveFile, ContentCopy, CloudUpload, AccessTime, PushPin, Refresh, Search, Star } from '@mui/icons-material';
+import { CircularProgress, InputAdornment, IconButton, Typography, TextField, Snackbar, Tooltip, Button, Alert, Paper, Box } from '@mui/material';
+import { FormatAlignLeft, InsertDriveFile, PushPinOutlined, ContentCopy, CloudUpload, AccessTime, PushPin, Refresh, Search, Star } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { keyframes, alpha } from '@mui/material/styles';
 
@@ -16,10 +16,9 @@ const flattenStructure = (node) => [...(node.type === 'file' ? [node] : []), ...
 
 const SyncView = ({ fetchViaBackground }) => {
     const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
-    const { selections, expansions, pinned, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
+    const { selections, expansions, pinned, activeProjectId, setActiveProjectId, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
 
     const [projectStructure, setProjectStructure] = useState(null);
-    const [projectId, setProjectId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
@@ -28,12 +27,12 @@ const SyncView = ({ fetchViaBackground }) => {
     const [lastTreeFetchTime, setLastTreeFetchTime] = useState(null);
     const [isCopyMode, setIsCopyMode] = useState(false);
 
-    const selectedPaths = useMemo(() => projectId ? new Set(selections[projectId] || []) : new Set(), [selections, projectId]);
-    const expandedPaths = useMemo(() => projectId ? new Set(expansions[projectId] || []) : new Set(), [expansions, projectId]);
-    const pinnedPaths = useMemo(() => projectId ? new Set(pinned[projectId] || []) : new Set(), [pinned, projectId]);
+    const selectedPaths = useMemo(() => activeProjectId ? new Set(selections[activeProjectId] || []) : new Set(), [selections, activeProjectId]);
+    const expandedPaths = useMemo(() => activeProjectId ? new Set(expansions[activeProjectId] || []) : new Set(), [expansions, activeProjectId]);
+    const pinnedPaths = useMemo(() => activeProjectId ? new Set(pinned[activeProjectId] || []) : new Set(), [pinned, activeProjectId]);
 
     const stats = useMemo(() => {
-        if (!projectStructure || !projectId) return { files: 0, lines: 0, lastUpdate: '-' };
+        if (!projectStructure || !activeProjectId) return { files: 0, lines: 0, lastUpdate: '-' };
         const allFiles = flattenStructure(projectStructure);
         const fileMap = allFiles.reduce((acc, file) => ({ ...acc, [file.path]: file.lines || 0 }), {});
         const selectedList = Array.from(selectedPaths);
@@ -41,7 +40,7 @@ const SyncView = ({ fetchViaBackground }) => {
         const totalLines = selectedList.reduce((sum, path) => sum + (fileMap[path] || 0), 0);
         const lastUpdate = lastTreeFetchTime ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
         return { files: filesCount, lines: totalLines, lastUpdate };
-    }, [projectStructure, selectedPaths, projectId, lastTreeFetchTime]);
+    }, [projectStructure, selectedPaths, activeProjectId, lastTreeFetchTime]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
@@ -65,25 +64,25 @@ const SyncView = ({ fetchViaBackground }) => {
             } else {
                 if (node.type === 'file' && node.path === p) {
                     next.delete(p);
-                    if (pinnedPaths.has(p)) togglePin(projectId, p);
+                    if (pinnedPaths.has(p)) togglePin(activeProjectId, p);
                 } else if (!pinnedPaths.has(p)) {
                     next.delete(p);
                 }
             }
         });
-        setProjectSelection(projectId, Array.from(next));
-    }, [selectedPaths, projectId, setProjectSelection, pinnedPaths, togglePin]);
+        setProjectSelection(activeProjectId, Array.from(next));
+    }, [selectedPaths, activeProjectId, setProjectSelection, pinnedPaths, togglePin]);
 
     const handleTogglePin = useCallback((path) => {
-        if (!projectId) return;
+        if (!activeProjectId) return;
         const isPinning = !pinnedPaths.has(path);
-        togglePin(projectId, path);
+        togglePin(activeProjectId, path);
         if (isPinning && !selectedPaths.has(path)) {
             const next = new Set(selectedPaths);
             next.add(path);
-            setProjectSelection(projectId, Array.from(next));
+            setProjectSelection(activeProjectId, Array.from(next));
         }
-    }, [projectId, togglePin, pinnedPaths, selectedPaths, setProjectSelection]);
+    }, [activeProjectId, togglePin, pinnedPaths, selectedPaths, setProjectSelection]);
 
     useEffect(() => {
         let isMounted = true;
@@ -113,7 +112,7 @@ const SyncView = ({ fetchViaBackground }) => {
             setProjectStructure(data.root);
             setLastTreeFetchTime(Date.now());
             const newProjectId = data.project || 'default-project';
-            setProjectId(newProjectId);
+            setActiveProjectId(newProjectId);
             if (!persistSelection || !hasStoredSelection(newProjectId)) {
                 const allFiles = flattenStructure(data.root);
                 const defaultSelection = allFiles.filter(f => !f.name.toLowerCase().endsWith('.md')).map(f => f.path);
@@ -124,7 +123,7 @@ const SyncView = ({ fetchViaBackground }) => {
         } finally {
             setLoading(false);
         }
-    }, [serverUrl, fetchViaBackground, showNotification, persistSelection, hasStoredSelection, setProjectSelection]);
+    }, [serverUrl, fetchViaBackground, showNotification, persistSelection, hasStoredSelection, setProjectSelection, setActiveProjectId]);
 
     useEffect(() => {
         if (serverStatus === 'connected' && !projectStructure && !loading) handleFetchStructure();
@@ -226,7 +225,7 @@ const SyncView = ({ fetchViaBackground }) => {
                                 isCopyMode={isCopyMode}
                                 onCopyPath={handleCopyPath}
                                 onToggleSelection={handleToggleSelection}
-                                onToggleExpansion={(path) => toggleExpansion(projectId, path)}
+                                onToggleExpansion={(path) => toggleExpansion(activeProjectId, path)}
                                 onTogglePin={handleTogglePin}
                                 searchTerm={searchTerm}
                             />

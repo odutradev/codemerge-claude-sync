@@ -8,6 +8,24 @@ const useSelectionStore = create(
             expansions: {},
             timestamps: {},
             pinned: {},
+            activeProjectId: null,
+
+            setActiveProjectId: (id) => set({ activeProjectId: id }),
+
+            addPathsToSelection: (projectId, paths) => set((state) => {
+                const currentSelections = new Set(state.selections[projectId] || []);
+                paths.forEach(p => currentSelections.add(p));
+                return {
+                    selections: {
+                        ...state.selections,
+                        [projectId]: Array.from(currentSelections)
+                    },
+                    timestamps: {
+                        ...state.timestamps,
+                        [projectId]: Date.now()
+                    }
+                };
+            }),
 
             toggleSelection: (projectId, path) => set((state) => {
                 const currentSelections = new Set(state.selections[projectId] || []);
@@ -128,7 +146,7 @@ const useSelectionStore = create(
         }),
         {
             name: 'codemerge-selection-storage',
-            version: 4,
+            version: 5,
         }
     )
 );

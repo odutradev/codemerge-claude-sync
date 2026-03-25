@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import { processCode } from '../../../utils/codeProcessor';
+import useSelectionStore from '../../../store/selectionStore';
 import useHistoryStore from '../../../store/historyStore';
 import useConfigStore from '../../../store/configStore';
+import { processCode } from '../../../utils/codeProcessor';
 
 export const useArtifacts = (fetchViaBackground) => {
-    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, setRemoveComments, setTranslateCommit } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
+    const { activeProjectId, addPathsToSelection } = useSelectionStore();
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
@@ -234,6 +236,10 @@ export const useArtifacts = (fetchViaBackground) => {
                 });
                 const res = await fetchViaBackground(`${serverUrl}/upsert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: selectedFiles }) });
                 if (!res.success) throw new Error(`Sync: ${res.error}`);
+
+                if (autoSelectSynced && activeProjectId) {
+                    addPathsToSelection(activeProjectId, selectedFiles.map(f => f.path));
+                }
             }
             if (selectedDeletions.size > 0) {
                 const res = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: Array.from(selectedDeletions) }) });

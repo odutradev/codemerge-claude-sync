@@ -13,7 +13,8 @@ const DEFAULT_CONFIG = {
     removeEmptyLines: false,
     removeLogs: false,
     translateCommit: true,
-    showCommandModal: true
+    showCommandModal: true,
+    autoSelectSynced: true
 };
 
 const useConfigStore = create(
@@ -35,6 +36,7 @@ const useConfigStore = create(
             setRemoveLogs: (enabled) => { set({ removeLogs: enabled }); get().syncToBackground(); },
             setTranslateCommit: (enabled) => { set({ translateCommit: enabled }); get().syncToBackground(); },
             setShowCommandModal: (enabled) => { set({ showCommandModal: enabled }); get().syncToBackground(); },
+            setAutoSelectSynced: (enabled) => { set({ autoSelectSynced: enabled }); get().syncToBackground(); },
             resetConfig: () => { set(DEFAULT_CONFIG); get().syncToBackground(); },
             loadFromBackground: () => {
                 if (typeof chrome !== 'undefined' && chrome.runtime) {
@@ -60,7 +62,8 @@ const useConfigStore = create(
                             removeEmptyLines: config.removeEmptyLines,
                             removeLogs: config.removeLogs,
                             translateCommit: config.translateCommit,
-                            showCommandModal: config.showCommandModal
+                            showCommandModal: config.showCommandModal,
+                            autoSelectSynced: config.autoSelectSynced
                         }
                     });
                 }

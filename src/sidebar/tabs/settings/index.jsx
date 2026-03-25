@@ -1,5 +1,5 @@
-import { ToggleButton, ToggleButtonGroup, InputAdornment, FormControlLabel, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
-import { SettingsBrightness, NotificationsOff, Notifications, DeleteSweep, PushPinOutlined, ViewHeadline, ErrorOutline, AutoFixHigh, ViewCompact, RestartAlt, ColorLens, LightMode, PushPin, DarkMode, Timer, Translate, Terminal } from '@mui/icons-material';
+import { ToggleButtonGroup, FormControlLabel, InputAdornment, ToggleButton, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
+import { SettingsBrightness, PushPinOutlined, LibraryAddCheck, NotificationsOff, DeleteSweep, Notifications, ErrorOutline, AutoFixHigh, ViewHeadline, ViewCompact, RestartAlt, ColorLens, LightMode, DarkMode, PushPin, Terminal, Translate, Timer } from '@mui/icons-material';
 import React, { useRef, useState, useEffect } from 'react';
 
 import useSelectionStore from '../../store/selectionStore';
@@ -10,10 +10,10 @@ const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'
 const SettingsView = () => {
     const {
         checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection,
-        removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal,
+        removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced,
         setCheckInterval, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity,
-        setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs, 
-        setTranslateCommit, setShowCommandModal, resetConfig
+        setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs,
+        setTranslateCommit, setShowCommandModal, setAutoSelectSynced, resetConfig
     } = useConfigStore();
 
     const { clearAllSelections } = useSelectionStore();
@@ -127,6 +127,13 @@ const SettingsView = () => {
                     <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={(_, v) => v && setPersistSelection(v === 'on')} size="small" fullWidth>
                         <ToggleButton value="off"><PushPinOutlined fontSize="small" sx={{ mr: 1 }} />Volátil</ToggleButton>
                         <ToggleButton value="on"><PushPin fontSize="small" sx={{ mr: 1 }} />Manter Seleção</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Auto-selecionar Artefatos</Typography>
+                    <ToggleButtonGroup value={autoSelectSynced ? 'on' : 'off'} exclusive onChange={(_, v) => v && setAutoSelectSynced(v === 'on')} size="small" fullWidth>
+                        <ToggleButton value="off">Inativo</ToggleButton>
+                        <ToggleButton value="on" color="primary"><LibraryAddCheck fontSize="small" sx={{ mr: 1 }} />Ativo</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Button variant="outlined" color="warning" startIcon={<DeleteSweep />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache limpo', type: 'success' }); }} fullWidth size="small" sx={{ mb: 2 }}>Limpar Cache de Seleções</Button>
