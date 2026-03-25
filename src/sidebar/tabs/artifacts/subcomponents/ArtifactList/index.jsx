@@ -1,4 +1,4 @@
-import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress } from '@mui/material';
+import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress, Tooltip } from '@mui/material';
 import DeselectIcon from '@mui/icons-material/Deselect';
 import UploadIcon from '@mui/icons-material/Upload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -42,9 +42,11 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
                                     <FileIcon fileName={path} />
                                 </Box>
                                 <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
-                                    <Typography variant="body2" noWrap sx={{ color: 'error.main', fontWeight: 500, textDecoration: selectedDeletions.has(path) ? 'line-through' : 'none' }}>
-                                        {path}
-                                    </Typography>
+                                    <Tooltip title={path} placement="top-start" enterDelay={500}>
+                                        <Typography variant="body2" noWrap sx={{ color: 'error.main', fontWeight: 500, textDecoration: selectedDeletions.has(path) ? 'line-through' : 'none' }}>
+                                            {path}
+                                        </Typography>
+                                    </Tooltip>
                                 </Box>
                                 <DeleteIcon sx={{ fontSize: 16, color: 'error.main', opacity: 0.7 }} />
                             </Box>
@@ -58,9 +60,11 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
                                     <FileIcon fileName={artifact.name} />
                                 </Box>
                                 <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
-                                    <Typography variant="body2" noWrap sx={{ color: 'text.primary', fontWeight: 500 }}>
-                                        {artifact.name}
-                                    </Typography>
+                                    <Tooltip title={artifact.name} placement="top-start" enterDelay={500}>
+                                        <Typography variant="body2" noWrap sx={{ color: 'text.primary', fontWeight: 500 }}>
+                                            {artifact.name}
+                                        </Typography>
+                                    </Tooltip>
                                 </Box>
                                 <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', opacity: 0.7 }}>
                                     {artifact.code.split('\n').length}
