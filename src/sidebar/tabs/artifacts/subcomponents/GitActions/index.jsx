@@ -1,16 +1,15 @@
 import { Box, Typography, Button, TextField, Paper, IconButton, Select, MenuItem, Tooltip } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import TranslateIcon from '@mui/icons-material/Translate';
-import { useState, useEffect, useMemo } from 'react';
-import CommitIcon from '@mui/icons-material/Commit';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CommitIcon from '@mui/icons-material/Commit';
+import { useState, useEffect, useMemo } from 'react';
 import { alpha } from '@mui/material/styles';
 
 import FileTreeItem from '../../../sync/subcomponents/filetreeItem';
 import { buildTreeFromPaths } from '../../../../utils/treeBuilder';
-
-const COMMIT_TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
+import { CommitBox } from '../../../../components/commitBox';
 
 export const GitActions = ({
     commitType,
@@ -58,55 +57,25 @@ export const GitActions = ({
     };
 
     const handleClearSelection = () => setSelectedPaths(new Set());
-    const handleResetCommit = () => { setCommitMessage(originalCommitMessage); setCommitType(originalCommitType); };
 
     if (!filesToDelete.length && !commitMessage && !originalCommitMessage) return null;
 
     return (
         <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {(originalCommitMessage || commitMessage) && (
-                <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>MENSAGEM DE COMMIT</Typography>
-                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                            <Select size="small" value={commitType} onChange={(e) => setCommitType(e.target.value)} disabled={actionLoading} sx={{ height: 28, fontSize: '0.75rem', fontFamily: 'monospace', mr: 0.5 }}>
-                                {COMMIT_TYPES.map(type => <MenuItem key={type} value={type} sx={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>{type}</MenuItem>)}
-                            </Select>
-                            <Tooltip title={translateCommit ? 'Tradução Automática: Ativada' : 'Tradução Automática: Desativada'}>
-                                <IconButton size="small" onClick={() => setTranslateCommit(!translateCommit)} color={translateCommit ? 'primary' : 'default'} disabled={actionLoading}>
-                                    <TranslateIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Restaurar Mensagem Original">
-                                <IconButton size="small" onClick={handleResetCommit} disabled={(commitMessage === originalCommitMessage && commitType === originalCommitType) || actionLoading}>
-                                    <RestartAltIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </Box>
-                    <TextField
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        maxRows={5}
-                        value={commitMessage}
-                        onChange={(e) => setCommitMessage(e.target.value)}
-                        disabled={actionLoading}
-                        size="small"
-                        sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem', fontFamily: 'monospace' } }}
-                    />
-                    <Button
-                        variant="contained"
-                        onClick={handleCommit}
-                        disabled={actionLoading || !commitMessage.trim() || serverStatus !== 'connected'}
-                        startIcon={<CommitIcon />}
-                        fullWidth
-                        disableElevation
-                        sx={{ textTransform: 'none' }}
-                    >
-                        Commitar Alterações
-                    </Button>
-                </Paper>
+                <CommitBox
+                    commitType={commitType}
+                    setCommitType={setCommitType}
+                    translateCommit={translateCommit}
+                    setTranslateCommit={setTranslateCommit}
+                    commitMessage={commitMessage}
+                    setCommitMessage={setCommitMessage}
+                    originalCommitMessage={originalCommitMessage}
+                    originalCommitType={originalCommitType}
+                    handleCommit={handleCommit}
+                    actionLoading={actionLoading}
+                    serverStatus={serverStatus}
+                />
             )}
 
             {filesToDelete.length > 0 && (

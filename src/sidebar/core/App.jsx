@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Tabs, Tab, useMediaQuery, CssBaseline } from '@mui/material';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
+import React, { useState, useEffect, useMemo } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
+import BuildIcon from '@mui/icons-material/Build';
+
 import useSelectionStore from '../store/selectionStore';
 import useConfigStore from '../store/configStore';
 import ArtifactsView from '../tabs/artifacts';
 import SettingsView from '../tabs/settings';
+import ToolsView from '../tabs/tools';
 import SyncView from '../tabs/sync';
 
 const App = () => {
@@ -94,6 +97,7 @@ const App = () => {
                     >
                         <Tab label="Sync" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
                         <Tab label="Artefatos" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
+                        <Tab icon={<BuildIcon fontSize="small" />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
                         <Tab icon={<SettingsIcon fontSize="small" />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
                     </Tabs>
                 </Box>
@@ -105,7 +109,10 @@ const App = () => {
                     {currentTab === 1 && <ArtifactsView fetchViaBackground={fetchViaBackground} />}
                 </Box>
                 <Box role="tabpanel" hidden={currentTab !== 2} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 2 && <SettingsView />}
+                    {currentTab === 2 && <ToolsView fetchViaBackground={fetchViaBackground} />}
+                </Box>
+                <Box role="tabpanel" hidden={currentTab !== 3} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
+                    {currentTab === 3 && <SettingsView />}
                 </Box>
             </Box>
         </ThemeProvider>

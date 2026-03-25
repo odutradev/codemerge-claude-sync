@@ -2,7 +2,7 @@ import { Box, Snackbar, Alert } from '@mui/material';
 
 import { CommandDialog } from './subcomponents/CommandDialog';
 import { ArtifactList } from './subcomponents/ArtifactList';
-import { CommitBox } from './subcomponents/CommitBox';
+import { CommitBox } from '../../components/commitBox';
 import { useArtifacts } from './hooks/useArtifacts';
 import { Header } from './subcomponents/Header';
 
@@ -25,19 +25,21 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 handleNextHistory={actions.handleNextHistory}
             />
 
-            <CommitBox
-                commitType={state.commitType}
-                setCommitType={actions.setCommitType}
-                translateCommit={state.translateCommit}
-                setTranslateCommit={actions.setTranslateCommit}
-                commitMessage={state.commitMessage}
-                setCommitMessage={actions.setCommitMessage}
-                originalCommitMessage={state.originalCommitMessage}
-                originalCommitType={state.originalCommitType}
-                handleCommit={actions.handleCommit}
-                actionLoading={state.actionLoading}
-                serverStatus={state.serverStatus}
-            />
+            {!!(state.originalCommitMessage || state.commitMessage) && (
+                <CommitBox
+                    commitType={state.commitType}
+                    setCommitType={actions.setCommitType}
+                    translateCommit={state.translateCommit}
+                    setTranslateCommit={actions.setTranslateCommit}
+                    commitMessage={state.commitMessage}
+                    setCommitMessage={actions.setCommitMessage}
+                    originalCommitMessage={state.originalCommitMessage}
+                    originalCommitType={state.originalCommitType}
+                    handleCommit={actions.handleCommit}
+                    actionLoading={state.actionLoading}
+                    serverStatus={state.serverStatus}
+                />
+            )}
 
             <ArtifactList
                 fetching={state.fetching}
