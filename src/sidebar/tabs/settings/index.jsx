@@ -1,6 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
 import { ToggleButton, ToggleButtonGroup, InputAdornment, FormControlLabel, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
-import { SettingsBrightness, NotificationsOff, Notifications, DeleteSweep, PushPinOutlined, ViewHeadline, ErrorOutline, AutoFixHigh, ViewCompact, RestartAlt, ColorLens, LightMode, PushPin, DarkMode, CodeOff, Timer, Code } from '@mui/icons-material';
+import { SettingsBrightness, NotificationsOff, Notifications, DeleteSweep, PushPinOutlined, ViewHeadline, ErrorOutline, AutoFixHigh, ViewCompact, RestartAlt, ColorLens, LightMode, PushPin, DarkMode, Timer, Translate, Terminal } from '@mui/icons-material';
+import React, { useRef, useState, useEffect } from 'react';
+
 import useSelectionStore from '../../store/selectionStore';
 import useConfigStore from '../../store/configStore';
 
@@ -9,9 +10,10 @@ const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'
 const SettingsView = () => {
     const {
         checkInterval, themeMode, primaryColor, compactMode, verbosity, persistSelection,
-        removeComments, removeEmptyLines, removeLogs,
+        removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal,
         setCheckInterval, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity,
-        setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs, resetConfig
+        setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs, 
+        setTranslateCommit, setShowCommandModal, resetConfig
     } = useConfigStore();
 
     const { clearAllSelections } = useSelectionStore();
@@ -78,6 +80,26 @@ const SettingsView = () => {
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
                         </Box>
                     </Box>
+                </Box>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                    <AutoFixHigh fontSize="small" sx={{ mr: 1 }} /> Git & Comandos
+                </Typography>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Tradução Automática de Commits</Typography>
+                    <ToggleButtonGroup value={translateCommit ? 'on' : 'off'} exclusive onChange={(_, v) => v && setTranslateCommit(v === 'on')} size="small" fullWidth>
+                        <ToggleButton value="off">Inativo</ToggleButton>
+                        <ToggleButton value="on" color="primary"><Translate fontSize="small" sx={{ mr: 1 }} />Ativo</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+                <Box sx={{ mb: 1 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Modal de Output</Typography>
+                    <ToggleButtonGroup value={showCommandModal ? 'on' : 'off'} exclusive onChange={(_, v) => v && setShowCommandModal(v === 'on')} size="small" fullWidth>
+                        <ToggleButton value="off">Ocultar</ToggleButton>
+                        <ToggleButton value="on" color="primary"><Terminal fontSize="small" sx={{ mr: 1 }} />Exibir</ToggleButton>
+                    </ToggleButtonGroup>
                 </Box>
             </Paper>
 

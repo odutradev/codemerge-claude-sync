@@ -12,65 +12,34 @@ const DEFAULT_CONFIG = {
     removeComments: false,
     removeEmptyLines: false,
     removeLogs: false,
+    translateCommit: true,
+    showCommandModal: true
 };
 
 const useConfigStore = create(
     persist(
         (set, get) => ({
             ...DEFAULT_CONFIG,
-            setServerUrl: (url) => {
-                set({ serverUrl: url });
-                get().syncToBackground();
-            },
+            setServerUrl: (url) => { set({ serverUrl: url }); get().syncToBackground(); },
             setCheckInterval: (interval) => {
                 const val = parseInt(interval, 10);
-                if (!isNaN(val) && val > 0) {
-                    set({ checkInterval: val });
-                    get().syncToBackground();
-                }
+                if (!isNaN(val) && val > 0) { set({ checkInterval: val }); get().syncToBackground(); }
             },
-            setThemeMode: (mode) => {
-                set({ themeMode: mode });
-                get().syncToBackground();
-            },
-            setPrimaryColor: (color) => {
-                set({ primaryColor: color });
-                get().syncToBackground();
-            },
-            setCompactMode: (mode) => {
-                set({ compactMode: mode });
-                get().syncToBackground();
-            },
-            setVerbosity: (level) => {
-                set({ verbosity: level });
-                get().syncToBackground();
-            },
-            setPersistSelection: (enabled) => {
-                set({ persistSelection: enabled });
-                get().syncToBackground();
-            },
-            setRemoveComments: (enabled) => {
-                set({ removeComments: enabled });
-                get().syncToBackground();
-            },
-            setRemoveEmptyLines: (enabled) => {
-                set({ removeEmptyLines: enabled });
-                get().syncToBackground();
-            },
-            setRemoveLogs: (enabled) => {
-                set({ removeLogs: enabled });
-                get().syncToBackground();
-            },
-            resetConfig: () => {
-                set(DEFAULT_CONFIG);
-                get().syncToBackground();
-            },
+            setThemeMode: (mode) => { set({ themeMode: mode }); get().syncToBackground(); },
+            setPrimaryColor: (color) => { set({ primaryColor: color }); get().syncToBackground(); },
+            setCompactMode: (mode) => { set({ compactMode: mode }); get().syncToBackground(); },
+            setVerbosity: (level) => { set({ verbosity: level }); get().syncToBackground(); },
+            setPersistSelection: (enabled) => { set({ persistSelection: enabled }); get().syncToBackground(); },
+            setRemoveComments: (enabled) => { set({ removeComments: enabled }); get().syncToBackground(); },
+            setRemoveEmptyLines: (enabled) => { set({ removeEmptyLines: enabled }); get().syncToBackground(); },
+            setRemoveLogs: (enabled) => { set({ removeLogs: enabled }); get().syncToBackground(); },
+            setTranslateCommit: (enabled) => { set({ translateCommit: enabled }); get().syncToBackground(); },
+            setShowCommandModal: (enabled) => { set({ showCommandModal: enabled }); get().syncToBackground(); },
+            resetConfig: () => { set(DEFAULT_CONFIG); get().syncToBackground(); },
             loadFromBackground: () => {
                 if (typeof chrome !== 'undefined' && chrome.runtime) {
                     chrome.runtime.sendMessage({ type: 'GET_CONFIG' }, (response) => {
-                        if (response?.config) {
-                            set((state) => ({ ...state, ...response.config }));
-                        }
+                        if (response?.config) set((state) => ({ ...state, ...response.config }));
                     });
                 }
             },
@@ -89,7 +58,9 @@ const useConfigStore = create(
                             persistSelection: config.persistSelection,
                             removeComments: config.removeComments,
                             removeEmptyLines: config.removeEmptyLines,
-                            removeLogs: config.removeLogs
+                            removeLogs: config.removeLogs,
+                            translateCommit: config.translateCommit,
+                            showCommandModal: config.showCommandModal
                         }
                     });
                 }

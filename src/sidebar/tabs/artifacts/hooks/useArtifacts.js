@@ -4,10 +4,9 @@ import { processCode } from '../../../utils/codeProcessor';
 import useConfigStore from '../../../store/configStore';
 
 export const useArtifacts = (fetchViaBackground) => {
-    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, setRemoveComments } = useConfigStore();
+    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, setRemoveComments, setTranslateCommit } = useConfigStore();
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [originalCommitType, setOriginalCommitType] = useState('feat');
-    const [translateCommit, setTranslateCommit] = useState(false);
     const [selectedDeletions, setSelectedDeletions] = useState(new Set());
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
@@ -128,7 +127,7 @@ export const useArtifacts = (fetchViaBackground) => {
                 output: responseData.output ?? 'Commit executado sem retorno de texto.',
                 error: responseData.error ?? null
             });
-            setCmdDialogOpen(true);
+            if (showCommandModal) setCmdDialogOpen(true);
         } catch (error) {
             showNotification(`Erro ao commitar: ${error.message}`, 'error');
             setCmdOutput({
@@ -139,7 +138,7 @@ export const useArtifacts = (fetchViaBackground) => {
                 output: null,
                 error: error.message
             });
-            setCmdDialogOpen(true);
+            if (showCommandModal) setCmdDialogOpen(true);
         } finally {
             setActionLoading(false);
         }
