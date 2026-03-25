@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { processCode } from '../../../utils/codeProcessor';
+import useHistoryStore from '../../../store/historyStore';
 import useConfigStore from '../../../store/configStore';
 
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, setRemoveComments, setTranslateCommit } = useConfigStore();
+    const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
+
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [originalCommitType, setOriginalCommitType] = useState('feat');
     const [selectedDeletions, setSelectedDeletions] = useState(new Set());
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
-    const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
@@ -18,17 +20,47 @@ export const useArtifacts = (fetchViaBackground) => {
     const [filesToDelete, setFilesToDelete] = useState([]);
     const [isChecking, setIsChecking] = useState(false);
     const [cmdLoading, setCmdLoading] = useState(false);
+    const [activeUrl, setActiveUrl] = useState(null);
     const [fetching, setFetching] = useState(false);
     const [cmdOutput, setCmdOutput] = useState(null);
     const [artifacts, setArtifacts] = useState([]);
-    const [history, setHistory] = useState([]);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
+
+    const historyData = activeUrl ? histories[activeUrl] : null;
+    const currentHistoryIndex = historyData?.currentIndex ?? -1;
+    const historyLength = historyData?.snapshots?.length ?? 0;
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
         if (verbosity === 'errors' && type !== 'error') return;
         setMessage({ open: true, text, type });
     }, [verbosity]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const init = async () => {
+            cleanExpired();
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs[0]?.url && isMounted) {
+                const url = tabs[0].url.split('#')[0];
+                setActiveUrl(url);
+                const history = getHistory(url);
+                if (history.currentIndex >= 0) {
+                    const snap = history.snapshots[history.currentIndex];
+                    setArtifacts(snap.artifacts);
+                    setCommitMessage(snap.commitMessage);
+                    setOriginalCommitMessage(snap.commitMessage);
+                    setCommitType(snap.commitType);
+                    setOriginalCommitType(snap.commitType);
+                    setFilesToDelete(snap.filesToDelete);
+                    setSelectedIndices(snap.selectedIndices);
+                    setSelectedDeletions(snap.selectedDeletions);
+                }
+            }
+        };
+        init();
+        return () => { isMounted = false; };
+    }, [cleanExpired, getHistory]);
 
     useEffect(() => {
         let isMounted = true;
@@ -59,13 +91,19 @@ export const useArtifacts = (fetchViaBackground) => {
             const isGemini = activeTab.url.includes('gemini.google.com');
             const isClaude = activeTab.url.includes('claude.ai');
             if (!isGemini && !isClaude) throw new Error('Esta função requer Gemini ou Claude aberto na aba ativa');
+
+            const url = activeTab.url.split('#')[0];
+            if (url !== activeUrl) setActiveUrl(url);
+
             const type = isGemini ? 'GET_GEMINI_ARTIFACTS' : 'GET_CLAUDE_ARTIFACTS';
             const response = await chrome.tabs.sendMessage(activeTab.id, { type });
             if (!response.success) throw new Error(response.error);
+
             const rawArtifacts = response.artifacts ?? [];
             let parsedCommitMsg = '';
             let parsedCommitType = 'feat';
             let parsedFilesToDelete = [];
+
             const filteredArtifacts = rawArtifacts.filter(art => {
                 if (art.name === 'codemerge.result.json') {
                     try {
@@ -105,11 +143,7 @@ export const useArtifacts = (fetchViaBackground) => {
                 selectedDeletions: newDeletions
             };
 
-            setHistory(prev => {
-                const nextHist = prev.slice(0, currentHistoryIndex + 1);
-                return [...nextHist, snapshot];
-            });
-            setCurrentHistoryIndex(prev => prev + 1);
+            addSnapshot(url, snapshot);
 
             if (!silent) showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
         } catch (error) {
@@ -118,12 +152,14 @@ export const useArtifacts = (fetchViaBackground) => {
             setActionLoading(false);
             setFetching(false);
         }
-    }, [showNotification, currentHistoryIndex]);
+    }, [activeUrl, showNotification, addSnapshot]);
 
     const applySnapshot = useCallback((index) => {
-        const snap = history[index];
+        if (!activeUrl) return;
+        const history = getHistory(activeUrl);
+        const snap = history.snapshots[index];
         if (!snap) return;
-        setCurrentHistoryIndex(index);
+        setHistoryIndex(activeUrl, index);
         setArtifacts(snap.artifacts);
         setCommitMessage(snap.commitMessage);
         setOriginalCommitMessage(snap.commitMessage);
@@ -132,19 +168,21 @@ export const useArtifacts = (fetchViaBackground) => {
         setFilesToDelete(snap.filesToDelete);
         setSelectedIndices(snap.selectedIndices);
         setSelectedDeletions(snap.selectedDeletions);
-    }, [history]);
+    }, [activeUrl, getHistory, setHistoryIndex]);
 
     const handlePrevHistory = useCallback(() => {
         if (currentHistoryIndex > 0) applySnapshot(currentHistoryIndex - 1);
     }, [currentHistoryIndex, applySnapshot]);
 
     const handleNextHistory = useCallback(() => {
-        if (currentHistoryIndex < history.length - 1) applySnapshot(currentHistoryIndex + 1);
-    }, [currentHistoryIndex, history.length, applySnapshot]);
+        if (currentHistoryIndex < historyLength - 1) applySnapshot(currentHistoryIndex + 1);
+    }, [currentHistoryIndex, historyLength, applySnapshot]);
 
     useEffect(() => {
-        if (serverStatus === 'connected' && history.length === 0) handleFetchArtifacts(true);
-    }, [serverStatus, handleFetchArtifacts, history.length]);
+        if (serverStatus === 'connected' && historyLength === 0 && activeUrl && !fetching) {
+            handleFetchArtifacts(true);
+        }
+    }, [serverStatus, historyLength, activeUrl, fetching, handleFetchArtifacts]);
 
     const handleCommit = async () => {
         if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
@@ -266,7 +304,7 @@ export const useArtifacts = (fetchViaBackground) => {
     };
 
     return {
-        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength: history.length, currentHistoryIndex },
+        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength, currentHistoryIndex },
         actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, handlePrevHistory, handleNextHistory, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit }
     };
 };
