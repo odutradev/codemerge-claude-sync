@@ -12,8 +12,6 @@ export const ToolsView = ({ fetchViaBackground }) => {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>Ferramentas Globais</Typography>
 
-            <PromptPresets showNotification={actions.showNotification} />
-
             <CommitBox
                 commitType={state.commitType}
                 setCommitType={actions.setCommitType}
@@ -27,6 +25,8 @@ export const ToolsView = ({ fetchViaBackground }) => {
                 actionLoading={state.actionLoading}
                 serverStatus={state.serverStatus}
             />
+
+            <PromptPresets showNotification={actions.showNotification} />
 
             <CommandDialog
                 cmdDialogOpen={state.cmdDialogOpen}
