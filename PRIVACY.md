@@ -1,6 +1,7 @@
 # Política de Privacidade - CodeMerge Sync
 
-**Última atualização:** 20 de janeiro de 2026
+**Última atualização:** 25 de março de 2026
+**Versão da extensão:** 4.0.3
 
 Esta Política de Privacidade descreve como a extensão CodeMerge Sync coleta, usa, armazena e compartilha seus dados. Comprometemo-nos com a transparência total e a segurança das suas informações.
 
@@ -10,9 +11,9 @@ A funcionalidade principal desta extensão é transferir contexto de desenvolvim
 
 ### Dados Coletados e Processados:
 
-* **Código Fonte e Estrutura de Arquivos:** A extensão lê arquivos do seu servidor local (`localhost`) via CodeMerge CLI.
+* **Código Fonte e Estrutura de Arquivos:** A extensão lê arquivos do seu servidor local (`localhost:9876`) via CodeMerge CLI.
 * **Metadados do Projeto:** Nomes de arquivos, caminhos de diretórios e linguagem de programação.
-* **Configurações da Extensão:** Preferências de UI, URL do servidor local e filtros de exclusão.
+* **Configurações da Extensão:** Preferências de UI, URL do servidor local, histórico de sincronizações e filtros de exclusão.
 
 ### Finalidade do Uso:
 
@@ -39,22 +40,23 @@ Os dados (conteúdo dos seus arquivos de código) são compartilhados com as seg
 
 ## 3. Armazenamento e Retenção de Dados
 
-* **Armazenamento Local:** As configurações da extensão e o estado da seleção de arquivos são armazenados localmente no seu navegador usando a API `chrome.storage.local`.
+* **Armazenamento Local:** As configurações da extensão, o estado da seleção de arquivos e o histórico de sincronizações são armazenados localmente no seu navegador usando a API `chrome.storage.local`.
 * **Sem Banco de Dados Externo:** Não mantemos bancos de dados externos. Todos os dados transitam diretamente entre: `Seu Computador` ↔ `Extensão` ↔ `Provedor de IA (Google/Anthropic)`.
 * **Tokens de Sessão:** Tokens necessários para a comunicação com o Gemini (como `WIZ_global_data`) são mantidos estritamente na memória local do navegador e nunca são transmitidos para nós.
 
 ## 4. Medidas de Segurança
 
-* A comunicação com o servidor local (`localhost`) ocorre via HTTP direto, sem passar pela internet pública.
+* A comunicação com o servidor local (`localhost:9876`) ocorre via HTTP direto, sem passar pela internet pública.
 * A comunicação com os provedores de IA ocorre via HTTPS criptografado dentro do contexto seguro do navegador.
 
 ## 5. Permissões do Navegador
 
 Solicitamos apenas as permissões estritamente necessárias:
 
-* `storage`: Para salvar preferências locais.
-* `activeTab` / `scripting`: Para interagir com as páginas do Gemini e Claude.
-* `host_permissions`: Para conectar ao `localhost` (ler seus arquivos) e aos domínios das IAs (escrever/ler o chat).
+* `storage`: Para salvar preferências e histórico locais.
+* `sidePanel`: Para exibir a interface da extensão em um painel lateral dedicado.
+* `activeTab`: Para interagir com a aba ativa nas páginas do Gemini e Claude.
+* `host_permissions`: Para conectar ao `localhost:9876` (ler seus arquivos) e aos domínios `claude.ai` e `gemini.google.com` (escrever/ler o chat).
 
 ## 6. Contato e Controle
 
