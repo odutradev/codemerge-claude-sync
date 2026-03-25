@@ -10,8 +10,9 @@ const useHistoryStore = create(
             addSnapshot: async (url, snapshot) => {
                 const serializedSnapshot = {
                     ...snapshot,
-                    selectedIndices: Array.from(snapshot.selectedIndices || []),
-                    selectedDeletions: Array.from(snapshot.selectedDeletions || [])
+                    selectedDeletions: Array.from(snapshot.selectedDeletions || []),
+                    selectedCommands: Array.from(snapshot.selectedCommands || []),
+                    selectedIndices: Array.from(snapshot.selectedIndices || [])
                 };
 
                 const msgUint8 = new TextEncoder().encode(JSON.stringify(serializedSnapshot));
@@ -26,57 +27,29 @@ const useHistoryStore = create(
                     const lastSnapshot = nextSnapshots.length > 0 ? nextSnapshots[nextSnapshots.length - 1] : null;
 
                     if (lastSnapshot?.hash === snapshotHash) {
-                        return {
-                            histories: {
-                                ...state.histories,
-                                [url]: {
-                                    ...currentHistory,
-                                    timestamp: now
-                                }
-                            }
-                        };
+                        return { histories: { ...state.histories, [url]: { ...currentHistory, timestamp: now } } };
                     }
 
                     nextSnapshots.push({ ...serializedSnapshot, hash: snapshotHash });
 
-                    return {
-                        histories: {
-                            ...state.histories,
-                            [url]: {
-                                snapshots: nextSnapshots,
-                                currentIndex: nextSnapshots.length - 1,
-                                timestamp: now
-                            }
-                        }
-                    };
+                    return { histories: { ...state.histories, [url]: { snapshots: nextSnapshots, currentIndex: nextSnapshots.length - 1, timestamp: now } } };
                 });
             },
             setHistoryIndex: (url, index) => set((state) => {
                 const currentHistory = state.histories[url];
                 if (!currentHistory) return state;
-                return {
-                    histories: {
-                        ...state.histories,
-                        [url]: {
-                            ...currentHistory,
-                            currentIndex: index,
-                            timestamp: Date.now()
-                        }
-                    }
-                };
+                return { histories: { ...state.histories, [url]: { ...currentHistory, currentIndex: index, timestamp: Date.now() } } };
             }),
             getHistory: (url) => {
                 const history = get().histories[url];
                 if (!history) return { snapshots: [], currentIndex: -1 };
                 const deserializedSnapshots = history.snapshots.map(snap => ({
                     ...snap,
-                    selectedIndices: new Set(snap.selectedIndices),
-                    selectedDeletions: new Set(snap.selectedDeletions)
+                    selectedDeletions: new Set(snap.selectedDeletions),
+                    selectedCommands: new Set(snap.selectedCommands),
+                    selectedIndices: new Set(snap.selectedIndices)
                 }));
-                return {
-                    ...history,
-                    snapshots: deserializedSnapshots
-                };
+                return { ...history, snapshots: deserializedSnapshots };
             },
             cleanExpired: () => set((state) => {
                 const now = Date.now();
@@ -94,7 +67,7 @@ const useHistoryStore = create(
         }),
         {
             name: 'codemerge-history-storage',
-            version: 1
+            version: 2
         }
     )
 );

@@ -1,5 +1,6 @@
 import { Box, Snackbar, Alert } from '@mui/material';
 
+import { CommandActions } from './subcomponents/CommandActions';
 import { CommandDialog } from '../../components/commandDialog';
 import { ArtifactList } from './subcomponents/ArtifactList';
 import { CommitBox } from '../../components/commitBox';
@@ -41,6 +42,15 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                     serverStatus={state.serverStatus}
                 />
             )}
+
+            <CommandActions
+                commandsToExecute={state.commandsToExecute}
+                selectedCommands={state.selectedCommands}
+                toggleCommandSelection={actions.toggleCommandSelection}
+                handleExecuteCommands={actions.handleExecuteCommands}
+                actionLoading={state.actionLoading}
+                serverStatus={state.serverStatus}
+            />
 
             <ArtifactList
                 fetching={state.fetching}
