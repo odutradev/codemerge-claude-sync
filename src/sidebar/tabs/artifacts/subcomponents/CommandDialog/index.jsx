@@ -47,11 +47,11 @@ export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmd
                 </Box>
             )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-            {cmdOutput?.type !== 'commit' && (
+        {cmdOutput?.type !== 'commit' && (
+            <DialogActions sx={{ px: 3, py: 2 }}>
                 <Button startIcon={<RefreshIcon />} onClick={handleFetchCommandOutput} disabled={cmdLoading}>Atualizar</Button>
-            )}
-            <Button variant="contained" startIcon={<InputIcon />} onClick={handleInjectOutput} disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'} disableElevation>Inserir no Chat</Button>
-        </DialogActions>
+                <Button variant="contained" startIcon={<InputIcon />} onClick={handleInjectOutput} disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'} disableElevation>Inserir no Chat</Button>
+            </DialogActions>
+        )}
     </Dialog>
 );
