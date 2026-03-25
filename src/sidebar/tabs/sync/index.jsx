@@ -5,8 +5,8 @@ import { keyframes, alpha } from '@mui/material/styles';
 
 import FileTreeItem from './subcomponents/filetreeItem/index.jsx';
 import useSelectionStore from '../../store/selectionStore.js';
-import useConfigStore from '../../store/configStore.js';
 import { processCode } from '../../utils/codeProcessor.js';
+import useConfigStore from '../../store/configStore.js';
 
 const pulseGreen = keyframes`0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }`;
 const pulseRed = keyframes`0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }`;
@@ -27,20 +27,30 @@ const SyncView = ({ fetchViaBackground }) => {
     const [lastTreeFetchTime, setLastTreeFetchTime] = useState(null);
     const [isCopyMode, setIsCopyMode] = useState(false);
 
-    const selectedPaths = useMemo(() => activeProjectId ? new Set(selections[activeProjectId] || []) : new Set(), [selections, activeProjectId]);
+    const allFilesMap = useMemo(() => {
+        if (!projectStructure) return new Map();
+        return new Map(flattenStructure(projectStructure).map(f => [f.path, f.lines || 0]));
+    }, [projectStructure]);
+
+    const selectedPaths = useMemo(() => {
+        const paths = activeProjectId ? (selections[activeProjectId] || []) : [];
+        return new Set(paths.filter(p => allFilesMap.has(p)));
+    }, [selections, activeProjectId, allFilesMap]);
+
     const expandedPaths = useMemo(() => activeProjectId ? new Set(expansions[activeProjectId] || []) : new Set(), [expansions, activeProjectId]);
-    const pinnedPaths = useMemo(() => activeProjectId ? new Set(pinned[activeProjectId] || []) : new Set(), [pinned, activeProjectId]);
+
+    const pinnedPaths = useMemo(() => {
+        const paths = activeProjectId ? (pinned[activeProjectId] || []) : [];
+        return new Set(paths.filter(p => allFilesMap.has(p)));
+    }, [pinned, activeProjectId, allFilesMap]);
 
     const stats = useMemo(() => {
         if (!projectStructure || !activeProjectId) return { files: 0, lines: 0, lastUpdate: '-' };
-        const allFiles = flattenStructure(projectStructure);
-        const fileMap = allFiles.reduce((acc, file) => ({ ...acc, [file.path]: file.lines || 0 }), {});
         const selectedList = Array.from(selectedPaths);
-        const filesCount = selectedList.length;
-        const totalLines = selectedList.reduce((sum, path) => sum + (fileMap[path] || 0), 0);
+        const totalLines = selectedList.reduce((sum, path) => sum + (allFilesMap.get(path) || 0), 0);
         const lastUpdate = lastTreeFetchTime ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
-        return { files: filesCount, lines: totalLines, lastUpdate };
-    }, [projectStructure, selectedPaths, activeProjectId, lastTreeFetchTime]);
+        return { files: selectedList.length, lines: totalLines, lastUpdate };
+    }, [projectStructure, selectedPaths, activeProjectId, lastTreeFetchTime, allFilesMap]);
 
     const showNotification = useCallback((text, type = 'info') => {
         if (verbosity === 'silent') return;
