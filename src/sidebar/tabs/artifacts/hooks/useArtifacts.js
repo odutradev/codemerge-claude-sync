@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { processCode } from '../../../utils/codeProcessor';
 import useSelectionStore from '../../../store/selectionStore';
 import useHistoryStore from '../../../store/historyStore';
 import useConfigStore from '../../../store/configStore';
-import { processCode } from '../../../utils/codeProcessor';
 
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
@@ -28,6 +28,8 @@ export const useArtifacts = (fetchViaBackground) => {
     const [artifacts, setArtifacts] = useState([]);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
 
+    const autoFetchedUrls = useRef(new Set());
+
     const historyData = activeUrl ? histories[activeUrl] : null;
     const currentHistoryIndex = historyData?.currentIndex ?? -1;
     const historyLength = historyData?.snapshots?.length ?? 0;
@@ -43,22 +45,23 @@ export const useArtifacts = (fetchViaBackground) => {
         const init = async () => {
             cleanExpired();
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (tabs[0]?.url && isMounted) {
-                const url = tabs[0].url.split('#')[0];
-                setActiveUrl(url);
-                const history = getHistory(url);
-                if (history.currentIndex >= 0) {
-                    const snap = history.snapshots[history.currentIndex];
-                    setArtifacts(snap.artifacts);
-                    setCommitMessage(snap.commitMessage);
-                    setOriginalCommitMessage(snap.commitMessage);
-                    setCommitType(snap.commitType);
-                    setOriginalCommitType(snap.commitType);
-                    setFilesToDelete(snap.filesToDelete);
-                    setSelectedIndices(snap.selectedIndices);
-                    setSelectedDeletions(snap.selectedDeletions);
-                }
-            }
+            if (!tabs[0]?.url || !isMounted) return;
+
+            const url = tabs[0].url.split('#')[0];
+            setActiveUrl(url);
+
+            const history = getHistory(url);
+            if (history.currentIndex < 0) return;
+
+            const snap = history.snapshots[history.currentIndex];
+            setArtifacts(snap.artifacts);
+            setCommitMessage(snap.commitMessage);
+            setOriginalCommitMessage(snap.commitMessage);
+            setCommitType(snap.commitType);
+            setOriginalCommitType(snap.commitType);
+            setFilesToDelete(snap.filesToDelete);
+            setSelectedIndices(snap.selectedIndices);
+            setSelectedDeletions(snap.selectedDeletions);
         };
         init();
         return () => { isMounted = false; };
@@ -90,6 +93,7 @@ export const useArtifacts = (fetchViaBackground) => {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const activeTab = tabs[0];
             if (!activeTab) throw new Error('Aba ativa não encontrada');
+
             const isGemini = activeTab.url.includes('gemini.google.com');
             const isClaude = activeTab.url.includes('claude.ai');
             if (!isGemini && !isClaude) throw new Error('Esta função requer Gemini ou Claude aberto na aba ativa');
@@ -125,6 +129,7 @@ export const useArtifacts = (fetchViaBackground) => {
             filteredArtifacts.forEach((artifact, index) => {
                 if (!artifact.name.toLowerCase().endsWith('.md')) initialSelection.add(index);
             });
+
             const newDeletions = new Set(parsedFilesToDelete);
 
             setArtifacts(filteredArtifacts);
@@ -161,6 +166,7 @@ export const useArtifacts = (fetchViaBackground) => {
         const history = getHistory(activeUrl);
         const snap = history.snapshots[index];
         if (!snap) return;
+
         setHistoryIndex(activeUrl, index);
         setArtifacts(snap.artifacts);
         setCommitMessage(snap.commitMessage);
@@ -181,7 +187,8 @@ export const useArtifacts = (fetchViaBackground) => {
     }, [currentHistoryIndex, historyLength, applySnapshot]);
 
     useEffect(() => {
-        if (serverStatus === 'connected' && historyLength === 0 && activeUrl && !fetching) {
+        if (serverStatus === 'connected' && historyLength === 0 && activeUrl && !fetching && !autoFetchedUrls.current.has(activeUrl)) {
+            autoFetchedUrls.current.add(activeUrl);
             handleFetchArtifacts(true);
         }
     }, [serverStatus, historyLength, activeUrl, fetching, handleFetchArtifacts]);
