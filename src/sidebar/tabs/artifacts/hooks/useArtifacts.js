@@ -112,12 +112,34 @@ export const useArtifacts = (fetchViaBackground) => {
         try {
             const res = await fetchViaBackground(`${serverUrl}/commit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', type: commitType, message: commitMessage, translate: translateCommit }) });
             if (!res.success) throw new Error(`Commit: ${res.error}`);
+            
+            const responseData = res.data ? JSON.parse(res.data) : {};
+
             setOriginalCommitMessage(commitMessage);
             setOriginalCommitType(commitType);
             setCommitMessage('');
             showNotification('Commit realizado com sucesso!', 'success');
+            
+            setCmdOutput({
+                type: 'commit',
+                command: `git commit -m "${commitType}: ${commitMessage}"`,
+                timestamp: Date.now(),
+                success: responseData.success ?? true,
+                output: responseData.output ?? 'Commit executado sem retorno de texto.',
+                error: responseData.error ?? null
+            });
+            setCmdDialogOpen(true);
         } catch (error) {
             showNotification(`Erro ao commitar: ${error.message}`, 'error');
+            setCmdOutput({
+                type: 'commit',
+                command: `git commit -m "${commitType}: ${commitMessage}"`,
+                timestamp: Date.now(),
+                success: false,
+                output: null,
+                error: error.message
+            });
+            setCmdDialogOpen(true);
         } finally {
             setActionLoading(false);
         }
@@ -154,10 +176,11 @@ export const useArtifacts = (fetchViaBackground) => {
         try {
             const response = await fetchViaBackground(`${serverUrl}/command-output`);
             if (!response.success) throw new Error(response.error);
-            setCmdOutput(JSON.parse(response.data));
+            const data = JSON.parse(response.data);
+            setCmdOutput({ ...data, type: 'hook' });
         } catch (error) {
             showNotification(`Erro ao buscar output: ${error.message}`, 'error');
-            setCmdOutput({ error: error.message });
+            setCmdOutput({ error: error.message, type: 'hook' });
         } finally {
             setCmdLoading(false);
         }

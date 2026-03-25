@@ -12,7 +12,7 @@ export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmd
         <DialogTitle sx={dialogTitleStyles}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <TerminalIcon color="primary" />
-                <Typography variant="h6">Output do Comando</Typography>
+                <Typography variant="h6">{cmdOutput?.type === 'commit' ? 'Output do Commit' : 'Output do Comando'}</Typography>
             </Box>
             <IconButton size="small" onClick={() => setCmdDialogOpen(false)}>
                 <CloseIcon />
@@ -48,7 +48,9 @@ export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmd
             )}
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
-            <Button startIcon={<RefreshIcon />} onClick={handleFetchCommandOutput} disabled={cmdLoading}>Atualizar</Button>
+            {cmdOutput?.type !== 'commit' && (
+                <Button startIcon={<RefreshIcon />} onClick={handleFetchCommandOutput} disabled={cmdLoading}>Atualizar</Button>
+            )}
             <Button variant="contained" startIcon={<InputIcon />} onClick={handleInjectOutput} disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'} disableElevation>Inserir no Chat</Button>
         </DialogActions>
     </Dialog>
