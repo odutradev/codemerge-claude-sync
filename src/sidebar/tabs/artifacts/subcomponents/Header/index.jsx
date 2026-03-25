@@ -1,15 +1,14 @@
-import { Box, Typography, Button, Tooltip, IconButton } from '@mui/material';
+import { Box, Typography, Button, Tooltip, IconButton, CircularProgress } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DownloadIcon from '@mui/icons-material/Download';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import CodeIcon from '@mui/icons-material/Code';
-import React from 'react';
 
 import { getStatusProps, containerStyles, actionsContainerStyles, iconButtonStyles, historyBoxStyles } from './styles';
 
-export const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory }) => {
+export const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory, hookStatus }) => {
     const statusProps = getStatusProps(serverStatus, isChecking);
 
     return (
@@ -41,8 +40,8 @@ export const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading
                 </Button>
 
                 <Tooltip title="Output do Comando (Hooks)">
-                    <IconButton size="small" onClick={handleOpenCmdDialog} disabled={serverStatus !== 'connected'} sx={iconButtonStyles(false)}>
-                        <TerminalIcon fontSize="small" />
+                    <IconButton size="small" onClick={handleOpenCmdDialog} disabled={serverStatus !== 'connected' || hookStatus === 'loading'} sx={iconButtonStyles(false, hookStatus)}>
+                        {hookStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : <TerminalIcon fontSize="small" />}
                     </IconButton>
                 </Tooltip>
 

@@ -11,13 +11,14 @@ export const useArtifacts = (fetchViaBackground) => {
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
-    const [originalCommitType, setOriginalCommitType] = useState('feat');
     const [selectedDeletions, setSelectedDeletions] = useState(new Set());
+    const [originalCommitType, setOriginalCommitType] = useState('feat');
     const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [serverStatus, setServerStatus] = useState('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
+    const [hookStatus, setHookStatus] = useState('idle');
     const [commitType, setCommitType] = useState('feat');
     const [filesToDelete, setFilesToDelete] = useState([]);
     const [isChecking, setIsChecking] = useState(false);
@@ -234,6 +235,7 @@ export const useArtifacts = (fetchViaBackground) => {
 
     const handleApplyAll = async () => {
         setActionLoading(true);
+        setHookStatus('loading');
         try {
             if (selectedIndices.size > 0) {
                 const selectedFiles = Array.from(selectedIndices).map(index => {
@@ -254,10 +256,13 @@ export const useArtifacts = (fetchViaBackground) => {
                 setSelectedDeletions(new Set());
             }
             showNotification('Sincronização e deleções aplicadas!', 'success');
+            setHookStatus('success');
         } catch (error) {
             showNotification(`Erro: ${error.message}`, 'error');
+            setHookStatus('error');
         } finally {
             setActionLoading(false);
+            setTimeout(() => setHookStatus((prev) => prev !== 'loading' ? 'idle' : prev), 4000);
         }
     };
 
@@ -316,7 +321,7 @@ export const useArtifacts = (fetchViaBackground) => {
     };
 
     return {
-        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength, currentHistoryIndex },
+        state: { artifacts, filesToDelete, selectedIndices, selectedDeletions, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength, currentHistoryIndex, hookStatus },
         actions: { handleFetchArtifacts, handleApplyAll, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll, handlePrevHistory, handleNextHistory, setCmdDialogOpen, toggleSelection, toggleDeleteSelection, setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit }
     };
 };

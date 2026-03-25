@@ -23,6 +23,7 @@ export const ArtifactsView = ({ fetchViaBackground }) => {
                 currentHistoryIndex={state.currentHistoryIndex}
                 handlePrevHistory={actions.handlePrevHistory}
                 handleNextHistory={actions.handleNextHistory}
+                hookStatus={state.hookStatus}
             />
 
             {!!(state.originalCommitMessage || state.commitMessage) && (
