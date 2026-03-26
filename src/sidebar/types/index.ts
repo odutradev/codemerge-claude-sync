@@ -1,3 +1,8 @@
+declare module '@mui/material/styles' {
+    interface Palette { fileColors: Record<string, string>; }
+    interface PaletteOptions { fileColors?: Record<string, string>; }
+}
+
 export type ThemeMode = 'light' | 'system' | 'dark';
 export type Verbosity = 'all' | 'errors' | 'silent';
 export type ServerStatus = 'connected' | 'disconnected' | 'checking';
