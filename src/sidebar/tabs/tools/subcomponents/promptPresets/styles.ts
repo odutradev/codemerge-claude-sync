@@ -1,0 +1,9 @@
+export const accordionStyles = { mb: 2, borderRadius: 1, '&:before': { display: 'none' }, border: '1px solid', borderColor: 'divider', boxShadow: 'none' };
+export const accordionSummaryStyles = { minHeight: '48px', '& .MuiAccordionSummary-content': { margin: '8px 0', width: '100%' } };
+export const accordionDetailsStyles = { p: 0 };
+export const headerBoxStyles = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pr: 1 };
+export const listStyles = { p: 0, m: 0 };
+export const listItemStyles = { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', p: 1.5, borderTop: '1px solid', borderColor: 'divider' };
+export const itemHeaderStyles = { display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 0.5 };
+export const actionsBoxStyles = { display: 'flex', gap: 0.5 };
+export const promptTextStyles = { width: '100%', whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.8, fontSize: '0.8rem', fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1 };
