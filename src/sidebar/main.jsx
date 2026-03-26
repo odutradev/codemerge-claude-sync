@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo, lazy, Suspense, StrictMode } from 'react';
-import { useMediaQuery, CssBaseline, Box } from '@mui/material';
+import { useMediaQuery, CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { createRoot } from 'react-dom/client';
 
 import { NavigationTabs } from '@/sidebar/components/navigationTabs';
 import { FallbackLoader } from '@/sidebar/components/fallbackLoader';
 import useSelectionStore from '@/sidebar/store/selectionStore';
-import useConfigStore from '@/sidebar/store/configStore';
 import { TabPanel } from '@/sidebar/components/tabPanel';
+import useConfigStore from '@/sidebar/store/configStore';
 import { getAppTheme } from '@/sidebar/styles/theme';
+import { AppContainer } from './styles';
 
 const ArtifactsView = lazy(() => import('@/sidebar/tabs/artifacts'));
 const SettingsView = lazy(() => import('@/sidebar/tabs/settings'));
@@ -38,7 +39,7 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default', color: 'text.primary' }}>
+            <AppContainer>
                 <NavigationTabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
                 {tabsView.map((View, index) => (
                     <TabPanel key={index} currentTab={currentTab} index={index}>
@@ -47,7 +48,7 @@ const App = () => {
                         </Suspense>
                     </TabPanel>
                 ))}
-            </Box>
+            </AppContainer>
         </ThemeProvider>
     );
 };
