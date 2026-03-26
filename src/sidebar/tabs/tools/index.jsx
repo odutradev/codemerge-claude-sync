@@ -1,6 +1,6 @@
 import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
-import { PromptPresets } from '@/sidebar/tabs/tools/subcomponents/PromptPresets';
+import { PromptPresets } from '@/sidebar/tabs/tools/subcomponents/promptPresets';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
 import { useTools } from '@/sidebar/tabs/tools/hooks/useTools';
 import { CommitBox } from '@/sidebar/components/commitBox';
