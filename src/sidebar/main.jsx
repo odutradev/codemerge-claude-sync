@@ -1,10 +1,12 @@
-import { Box, Tabs, Tab, useMediaQuery, CssBaseline, CircularProgress } from '@mui/material';
 import { useState, useEffect, useMemo, lazy, Suspense, StrictMode } from 'react';
+import { useMediaQuery, CssBaseline, Box } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import { MdSettings, MdBuild } from 'react-icons/md';
 import ReactDOM from 'react-dom/client';
 
+import { NavigationTabs } from '@/sidebar/components/navigationTabs';
+import { FallbackLoader } from '@/sidebar/components/fallbackLoader';
 import useSelectionStore from '@/sidebar/store/selectionStore';
+import { TabPanel } from '@/sidebar/components/tabPanel';
 import useConfigStore from '@/sidebar/store/configStore';
 import { getAppTheme } from '@/sidebar/styles/theme';
 
@@ -12,12 +14,6 @@ const ArtifactsView = lazy(() => import('@/sidebar/tabs/artifacts'));
 const SettingsView = lazy(() => import('@/sidebar/tabs/settings'));
 const ToolsView = lazy(() => import('@/sidebar/tabs/tools'));
 const SyncView = lazy(() => import('@/sidebar/tabs/sync'));
-
-const FallbackLoader = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress size={32} />
-    </Box>
-);
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
@@ -44,26 +40,23 @@ const App = () => {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default', color: 'text.primary' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={currentTab} onChange={(_, v) => setCurrentTab(v)} variant="standard" textColor="primary" indicatorColor="primary" sx={{ '& .MuiTabs-flexContainer': { display: 'flex' } }}>
-                        <Tab label="Sync" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
-                        <Tab label="Artefatos" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
-                        <Tab icon={<MdBuild size={20} />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
-                        <Tab icon={<MdSettings size={20} />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
-                    </Tabs>
-                </Box>
-                <Box role="tabpanel" hidden={currentTab !== 0} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 0 && <Suspense fallback={<FallbackLoader />}><SyncView fetchViaBackground={fetchViaBackground} /></Suspense>}
-                </Box>
-                <Box role="tabpanel" hidden={currentTab !== 1} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 1 && <Suspense fallback={<FallbackLoader />}><ArtifactsView fetchViaBackground={fetchViaBackground} /></Suspense>}
-                </Box>
-                <Box role="tabpanel" hidden={currentTab !== 2} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 2 && <Suspense fallback={<FallbackLoader />}><ToolsView fetchViaBackground={fetchViaBackground} /></Suspense>}
-                </Box>
-                <Box role="tabpanel" hidden={currentTab !== 3} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 3 && <Suspense fallback={<FallbackLoader />}><SettingsView /></Suspense>}
-                </Box>
+                <NavigationTabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
+                
+                <TabPanel currentTab={currentTab} index={0}>
+                    <Suspense fallback={<FallbackLoader />}><SyncView fetchViaBackground={fetchViaBackground} /></Suspense>
+                </TabPanel>
+                
+                <TabPanel currentTab={currentTab} index={1}>
+                    <Suspense fallback={<FallbackLoader />}><ArtifactsView fetchViaBackground={fetchViaBackground} /></Suspense>
+                </TabPanel>
+                
+                <TabPanel currentTab={currentTab} index={2}>
+                    <Suspense fallback={<FallbackLoader />}><ToolsView fetchViaBackground={fetchViaBackground} /></Suspense>
+                </TabPanel>
+                
+                <TabPanel currentTab={currentTab} index={3}>
+                    <Suspense fallback={<FallbackLoader />}><SettingsView /></Suspense>
+                </TabPanel>
             </Box>
         </ThemeProvider>
     );
