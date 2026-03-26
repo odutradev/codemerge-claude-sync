@@ -1,7 +1,6 @@
 import { Box } from '@mui/material';
 
 import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
-import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
 import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
@@ -35,7 +34,6 @@ const ArtifactsView = ({ fetchViaBackground }: Props) => {
                 </Box>
             </Box>
             <CommandDialog cmdDialogOpen={state.cmdDialogOpen} setCmdDialogOpen={actions.setCmdDialogOpen} cmdLoading={state.cmdLoading} cmdOutput={state.cmdOutput} handleFetchCommandOutput={actions.handleFetchCommandOutput} handleInjectOutput={actions.handleInjectOutput} />
-            <NotificationSnackbar message={state.message} onClose={() => actions.setMessage({ ...state.message, open: false })} />
         </Box>
     );
 };

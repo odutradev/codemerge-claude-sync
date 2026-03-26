@@ -1,14 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
+import useNotificationStore from '@/sidebar/stores/notification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import useConfigStore from '@/sidebar/stores/config';
 
-import type { FetchViaBackground, CommandOutput, MessageState } from '@/sidebar/types';
+import type { FetchViaBackground, CommandOutput } from '@/sidebar/types';
 import type { UseToolsReturn } from './types';
 
 export const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
-    const { serverUrl, checkInterval, verbosity, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore();
+    const { serverUrl, checkInterval, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore();
     const { serverStatus } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
+    const showNotification = useNotificationStore((state) => state.showNotification);
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [originalCommitType, setOriginalCommitType] = useState('feat');
@@ -18,9 +20,6 @@ export const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn
     const [cmdLoading, setCmdLoading] = useState(false);
     const [commitType, setCommitType] = useState('feat');
     const [cmdOutput, setCmdOutput] = useState<CommandOutput | null>(null);
-    const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
-
-    const showNotification = useCallback((text: string, type: MessageState['type'] = 'info') => { if (verbosity === 'silent') return; if (verbosity === 'errors' && type !== 'error') return; setMessage({ open: true, text, type }); }, [verbosity]);
 
     const handleCommit = async () => {
         if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
@@ -63,5 +62,5 @@ export const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn
         } catch (err: any) { showNotification(`Erro ao injetar: ${err.message}`, 'error'); }
     };
 
-    return { state: { serverStatus, cmdDialogOpen, actionLoading, commitMessage, cmdLoading, commitType, cmdOutput, message, translateCommit, originalCommitMessage, originalCommitType }, actions: { setCmdDialogOpen, setCommitMessage, setCommitType, setMessage, setTranslateCommit, handleCommit, handleFetchCommandOutput, handleInjectOutput, showNotification } };
+    return { state: { serverStatus, cmdDialogOpen, actionLoading, commitMessage, cmdLoading, commitType, cmdOutput, translateCommit, originalCommitMessage, originalCommitType }, actions: { setCmdDialogOpen, setCommitMessage, setCommitType, setTranslateCommit, handleCommit, handleFetchCommandOutput, handleInjectOutput } };
 };

@@ -3,6 +3,7 @@ import { useMediaQuery, CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { createRoot } from 'react-dom/client';
 
+import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { NavigationTabs } from '@/sidebar/components/navigationTabs';
 import { FallbackLoader } from '@/sidebar/components/fallbackLoader';
 import { TabPanel } from '@/sidebar/components/tabPanel';
@@ -43,6 +44,7 @@ const App = () => {
                         </Suspense>
                     </TabPanel>
                 ))}
+                <NotificationSnackbar />
             </AppContainer>
         </ThemeProvider>
     );

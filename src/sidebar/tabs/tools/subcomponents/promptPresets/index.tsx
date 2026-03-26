@@ -4,12 +4,10 @@ import { MdContentCopy, MdExpandMore, MdDelete, MdInput, MdEdit, MdAdd } from 'r
 import { accordionStyles, accordionSummaryStyles, accordionDetailsStyles, headerBoxStyles, listStyles, listItemStyles, itemHeaderStyles, actionsBoxStyles, promptTextStyles } from './styles';
 import { usePromptPresets } from '@/sidebar/tabs/tools/hooks/usePromptPresets';
 
-import type { MessageState, Preset } from '@/sidebar/types';
+import type { Preset } from '@/sidebar/types';
 
-interface Props { showNotification: (text: string, type: MessageState['type']) => void; }
-
-export const PromptPresets = ({ showNotification }: Props) => {
-    const { state, actions } = usePromptPresets(showNotification);
+export const PromptPresets = () => {
+    const { state, actions } = usePromptPresets();
 
     return (
         <>

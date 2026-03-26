@@ -1,23 +1,24 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import useNotificationStore from '@/sidebar/stores/notification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import { flattenStructure } from '@/sidebar/utils/treeProcessor';
 import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useConfigStore from '@/sidebar/stores/config';
 
-import type { FileNode, FetchViaBackground, MessageState } from '@/sidebar/types';
+import type { FileNode, FetchViaBackground } from '@/sidebar/types';
 import type { UseSyncReturn } from './types';
 
 export const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn => {
-    const { serverUrl, setServerUrl, verbosity, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
+    const { serverUrl, setServerUrl, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
     const { selections, expansions, pinned, activeProjectId, setActiveProjectId, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
+    const showNotification = useNotificationStore((state) => state.showNotification);
 
     const [projectStructure, setProjectStructure] = useState<FileNode | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
     const [lastTreeFetchTime, setLastTreeFetchTime] = useState<number | null>(null);
     const [isCopyMode, setIsCopyMode] = useState(false);
 
@@ -32,7 +33,6 @@ export const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn =
         return { files: selectedList.length, lines: totalLines, lastUpdate: lastTreeFetchTime ? new Date(lastTreeFetchTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-' };
     }, [projectStructure, selectedPaths, activeProjectId, lastTreeFetchTime, allFilesMap]);
 
-    const showNotification = useCallback((text: string, type: MessageState['type'] = 'info') => { if (verbosity === 'silent' || (verbosity === 'errors' && type !== 'error')) return; setMessage({ open: true, text, type }); }, [verbosity]);
     const handleCopyPath = useCallback((path: string) => { const fmt = `{${path}}`; navigator.clipboard.writeText(fmt); showNotification(`Caminho copiado: ${fmt}`, 'success'); }, [showNotification]);
 
     const handleToggleSelection = useCallback((node: FileNode, shouldSelect: boolean) => {
@@ -87,5 +87,5 @@ export const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn =
         } catch (err: any) { showNotification(`Erro: ${err.message}`, 'error'); } finally { setLoading(false); }
     };
 
-    return { state: { projectStructure, searchTerm, loading, message, serverStatus, isChecking, isCopyMode, selectedPaths, expandedPaths, pinnedPaths, stats, serverUrl, persistSelection }, actions: { setSearchTerm, setIsCopyMode, handleCopyPath, handleToggleSelection, handleToggleExpansion: (p: string) => activeProjectId && toggleExpansion(activeProjectId, p), handleTogglePin, handleFetchStructure, handleSync, setServerUrl, setPersistSelection, setMessage } };
+    return { state: { projectStructure, searchTerm, loading, serverStatus, isChecking, isCopyMode, selectedPaths, expandedPaths, pinnedPaths, stats, serverUrl, persistSelection }, actions: { setSearchTerm, setIsCopyMode, handleCopyPath, handleToggleSelection, handleToggleExpansion: (p: string) => activeProjectId && toggleExpansion(activeProjectId, p), handleTogglePin, handleFetchStructure, handleSync, setServerUrl, setPersistSelection } };
 };

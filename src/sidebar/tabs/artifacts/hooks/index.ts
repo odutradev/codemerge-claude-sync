@@ -1,19 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import useNotificationStore from '@/sidebar/stores/notification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useHistoryStore from '@/sidebar/stores/history';
 import useConfigStore from '@/sidebar/stores/config';
 
-import type { FetchViaBackground, CommandOutput, MessageState, Artifact, HookStatus } from '@/sidebar/types';
+import type { FetchViaBackground, CommandOutput, Artifact, HookStatus } from '@/sidebar/types';
 import type { UseArtifactsReturn } from './types';
 
 export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsReturn => {
-    const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
+    const { serverUrl, checkInterval, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
     const { activeProjectId, addPathsToSelection } = useSelectionStore();
+    const showNotification = useNotificationStore((state) => state.showNotification);
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [selectedDeletions, setSelectedDeletions] = useState<Set<string>>(new Set());
@@ -21,7 +23,6 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifac
     const [originalCommitType, setOriginalCommitType] = useState('feat');
     const [commandsToExecute, setCommandsToExecute] = useState<string[]>([]);
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
-    const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
@@ -38,8 +39,6 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifac
     const historyData = activeUrl ? histories[activeUrl] : null;
     const currentHistoryIndex = historyData?.currentIndex ?? -1;
     const historyLength = historyData?.snapshots?.length ?? 0;
-
-    const showNotification = useCallback((text: string, type: MessageState['type'] = 'info') => { if (verbosity === 'silent' || (verbosity === 'errors' && type !== 'error')) return; setMessage({ open: true, text, type }); }, [verbosity]);
 
     useEffect(() => {
         let isMounted = true;
@@ -143,5 +142,5 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifac
         try { const tabs = await chrome.tabs.query({ active: true, currentWindow: true }); if (!tabs[0]) throw new Error('Aba não encontrada'); const res = await chrome.tabs.sendMessage(tabs[0].id!, { type: tabs[0].url?.includes('gemini.google.com') ? 'ADD_FILE_GEMINI' : 'ADD_FILE', fileName: 'command-output.txt', content }); if (!res?.success && res?.error) throw new Error(res.error); showNotification('Output inserido no input!', 'success'); setCmdDialogOpen(false); } catch (err: any) { showNotification(`Erro ao injetar: ${err.message}`, 'error'); }
     };
 
-    return { state: { artifacts, filesToDelete, commandsToExecute, selectedIndices, selectedDeletions, selectedCommands, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, message, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength, currentHistoryIndex, hookStatus }, actions: { handleFetchArtifacts, handleApplyAll, handleExecuteCommands, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll: () => { setSelectedDeletions(new Set()); setSelectedCommands(new Set()); setSelectedIndices(new Set()); }, handlePrevHistory, handleNextHistory, setCmdDialogOpen, toggleSelection: (i: number) => setSelectedIndices(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; }), toggleDeleteSelection: (p: string) => setSelectedDeletions(pr => { const n = new Set(pr); n.has(p) ? n.delete(p) : n.add(p); return n; }), toggleCommandSelection: (c: string) => setSelectedCommands(p => { const n = new Set(p); n.has(c) ? n.delete(c) : n.add(c); return n; }), setRemoveComments, setMessage, setCommitMessage, setCommitType, setTranslateCommit } };
+    return { state: { artifacts, filesToDelete, commandsToExecute, selectedIndices, selectedDeletions, selectedCommands, fetching, serverStatus, isChecking, cmdDialogOpen, cmdOutput, cmdLoading, removeComments, commitMessage, commitType, translateCommit, originalCommitMessage, originalCommitType, actionLoading, historyLength, currentHistoryIndex, hookStatus }, actions: { handleFetchArtifacts, handleApplyAll, handleExecuteCommands, handleCommit, handleOpenCmdDialog, handleFetchCommandOutput, handleInjectOutput, handleDeselectAll: () => { setSelectedDeletions(new Set()); setSelectedCommands(new Set()); setSelectedIndices(new Set()); }, handlePrevHistory, handleNextHistory, setCmdDialogOpen, toggleSelection: (i: number) => setSelectedIndices(p => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; }), toggleDeleteSelection: (p: string) => setSelectedDeletions(pr => { const n = new Set(pr); n.has(p) ? n.delete(p) : n.add(p); return n; }), toggleCommandSelection: (c: string) => setSelectedCommands(p => { const n = new Set(p); n.has(c) ? n.delete(c) : n.add(c); return n; }), setRemoveComments, setCommitMessage, setCommitType, setTranslateCommit } };
 };

@@ -1,11 +1,10 @@
-import type { FileNode, MessageState, ServerStatus } from '@/sidebar/types';
+import type { FileNode, ServerStatus } from '@/sidebar/types';
 
 export interface UseSyncReturn {
     state: {
         projectStructure: FileNode | null;
         searchTerm: string;
         loading: boolean;
-        message: MessageState;
         serverStatus: ServerStatus;
         isChecking: boolean;
         isCopyMode: boolean;
@@ -27,6 +26,5 @@ export interface UseSyncReturn {
         handleSync: () => void;
         setServerUrl: (u: string) => void;
         setPersistSelection: (p: boolean) => void;
-        setMessage: (m: MessageState) => void;
     };
 }

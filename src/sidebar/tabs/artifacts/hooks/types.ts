@@ -1,4 +1,4 @@
-import type { CommandOutput, MessageState, Artifact, HookStatus, ServerStatus } from '@/sidebar/types';
+import type { CommandOutput, Artifact, HookStatus, ServerStatus } from '@/sidebar/types';
 
 export interface UseArtifactsReturn {
     state: {
@@ -14,7 +14,6 @@ export interface UseArtifactsReturn {
         cmdDialogOpen: boolean;
         cmdOutput: CommandOutput | null;
         cmdLoading: boolean;
-        message: MessageState;
         removeComments: boolean;
         commitMessage: string;
         commitType: string;
@@ -42,7 +41,6 @@ export interface UseArtifactsReturn {
         toggleDeleteSelection: (p: string) => void;
         toggleCommandSelection: (c: string) => void;
         setRemoveComments: (v: boolean) => void;
-        setMessage: (m: MessageState) => void;
         setCommitMessage: (m: string) => void;
         setCommitType: (t: string) => void;
         setTranslateCommit: (v: boolean) => void;
