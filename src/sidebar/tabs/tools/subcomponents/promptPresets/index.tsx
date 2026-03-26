@@ -4,7 +4,7 @@ import { MdContentCopy, MdExpandMore, MdDelete, MdInput, MdEdit, MdAdd } from 'r
 import { accordionStyles, accordionSummaryStyles, accordionDetailsStyles, headerBoxStyles, listStyles, listItemStyles, itemHeaderStyles, actionsBoxStyles, promptTextStyles } from './styles';
 import { usePromptPresets } from '@/sidebar/tabs/tools/hooks/usePromptPresets';
 
-import type { MessageState } from '@/sidebar/types';
+import type { MessageState, Preset } from '@/sidebar/types';
 
 interface Props { showNotification: (text: string, type: MessageState['type']) => void; }
 
@@ -23,7 +23,7 @@ export const PromptPresets = ({ showNotification }: Props) => {
                 <AccordionDetails sx={accordionDetailsStyles}>
                     {state.presets.length === 0 ? <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>Nenhum preset cadastrado.</Typography> : (
                         <List sx={listStyles}>
-                            {state.presets.map((preset) => (
+                            {state.presets.map((preset: Preset) => (
                                 <ListItem key={preset.id} sx={listItemStyles}>
                                     <Box sx={itemHeaderStyles}>
                                         <Typography variant="body2" fontWeight="bold">{preset.title}</Typography>

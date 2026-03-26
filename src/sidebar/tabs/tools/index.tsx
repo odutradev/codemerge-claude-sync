@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material';
 import { PromptPresets } from '@/sidebar/tabs/tools/subcomponents/promptPresets';
 import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
-import { CommitBox } from '@/components/commitBox';
+import { CommitBox } from '@/sidebar/components/commitBox';
 import { containerStyles, titleStyles } from './styles';
 import { useTools } from '@/sidebar/tabs/tools/hooks/useTools';
 
