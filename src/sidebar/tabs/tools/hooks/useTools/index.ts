@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
+import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import useConfigStore from '@/sidebar/stores/config';
 
 import type { FetchViaBackground, CommandOutput, MessageState } from '@/sidebar/types';
+import type { UseToolsReturn } from './types';
 
-export const useTools = (fetchViaBackground: FetchViaBackground) => {
+export const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
     const { serverUrl, checkInterval, verbosity, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore();
+    const { serverStatus } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
+
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [originalCommitType, setOriginalCommitType] = useState('feat');
-    const [serverStatus, setServerStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
@@ -18,14 +21,6 @@ export const useTools = (fetchViaBackground: FetchViaBackground) => {
     const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
 
     const showNotification = useCallback((text: string, type: MessageState['type'] = 'info') => { if (verbosity === 'silent') return; if (verbosity === 'errors' && type !== 'error') return; setMessage({ open: true, text, type }); }, [verbosity]);
-
-    useEffect(() => {
-        let isMounted = true;
-        const checkHealth = async () => { if (!serverUrl) return; try { const res = await fetchViaBackground(`${serverUrl}/health`); if (isMounted) setServerStatus(res.success ? 'connected' : 'disconnected'); } catch { if (isMounted) setServerStatus('disconnected'); } };
-        checkHealth();
-        const interval = setInterval(checkHealth, checkInterval);
-        return () => { isMounted = false; clearInterval(interval); };
-    }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleCommit = async () => {
         if (!commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');

@@ -1,11 +1,13 @@
-import { Box, Snackbar, Alert } from '@mui/material';
+import { Box } from '@mui/material';
 
 import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
+import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
-import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks/useArtifacts';
 import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
 import { CommitBox } from '@/sidebar/components/commitBox';
+import { containerStyles, scrollableStyles } from './styles';
+import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks';
 
 import type { FetchViaBackground } from '@/sidebar/types';
 
@@ -15,11 +17,11 @@ const ArtifactsView = ({ fetchViaBackground }: Props) => {
     const { state, actions } = useArtifacts(fetchViaBackground);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default', overflow: 'hidden' }}>
+        <Box sx={containerStyles}>
             <Box sx={{ flexShrink: 0 }}>
                 <Header serverStatus={state.serverStatus} isChecking={state.isChecking} handleFetchArtifacts={actions.handleFetchArtifacts} loading={state.actionLoading || state.fetching} handleOpenCmdDialog={actions.handleOpenCmdDialog} removeComments={state.removeComments} setRemoveComments={actions.setRemoveComments} historyLength={state.historyLength} currentHistoryIndex={state.currentHistoryIndex} handlePrevHistory={actions.handlePrevHistory} handleNextHistory={actions.handleNextHistory} hookStatus={state.hookStatus} />
             </Box>
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', pr: 0.5, mr: -0.5, pb: 1, '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: 'action.hover', borderRadius: '4px' } }}>
+            <Box sx={scrollableStyles}>
                 {!!(state.originalCommitMessage || state.commitMessage) && (
                     <Box sx={{ flexShrink: 0, mb: 2 }}>
                         <CommitBox commitType={state.commitType} setCommitType={actions.setCommitType} translateCommit={state.translateCommit} setTranslateCommit={actions.setTranslateCommit} commitMessage={state.commitMessage} setCommitMessage={actions.setCommitMessage} originalCommitMessage={state.originalCommitMessage} originalCommitType={state.originalCommitType} handleCommit={actions.handleCommit} actionLoading={state.actionLoading} serverStatus={state.serverStatus} />
@@ -33,7 +35,7 @@ const ArtifactsView = ({ fetchViaBackground }: Props) => {
                 </Box>
             </Box>
             <CommandDialog cmdDialogOpen={state.cmdDialogOpen} setCmdDialogOpen={actions.setCmdDialogOpen} cmdLoading={state.cmdLoading} cmdOutput={state.cmdOutput} handleFetchCommandOutput={actions.handleFetchCommandOutput} handleInjectOutput={actions.handleInjectOutput} />
-            <Snackbar open={state.message.open} autoHideDuration={2000} onClose={() => actions.setMessage({ ...state.message, open: false })}><Alert severity={state.message.type} variant="filled" sx={{ width: '100%', borderRadius: 2 }}>{state.message.text}</Alert></Snackbar>
+            <NotificationSnackbar message={state.message} onClose={() => actions.setMessage({ ...state.message, open: false })} />
         </Box>
     );
 };

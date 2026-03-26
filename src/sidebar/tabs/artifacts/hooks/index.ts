@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useHistoryStore from '@/sidebar/stores/history';
 import useConfigStore from '@/sidebar/stores/config';
 
 import type { FetchViaBackground, CommandOutput, MessageState, Artifact, HookStatus } from '@/sidebar/types';
+import type { UseArtifactsReturn } from './types';
 
-export const useArtifacts = (fetchViaBackground: FetchViaBackground) => {
+export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsReturn => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
+    const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
     const { activeProjectId, addPathsToSelection } = useSelectionStore();
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
@@ -19,14 +22,12 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground) => {
     const [commandsToExecute, setCommandsToExecute] = useState<string[]>([]);
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
     const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
-    const [serverStatus, setServerStatus] = useState<'connected'|'disconnected'|'checking'>('checking');
     const [cmdDialogOpen, setCmdDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [commitMessage, setCommitMessage] = useState('');
     const [hookStatus, setHookStatus] = useState<HookStatus>('idle');
     const [commitType, setCommitType] = useState('feat');
     const [filesToDelete, setFilesToDelete] = useState<string[]>([]);
-    const [isChecking, setIsChecking] = useState(false);
     const [cmdLoading, setCmdLoading] = useState(false);
     const [activeUrl, setActiveUrl] = useState<string | null>(null);
     const [fetching, setFetching] = useState(false);
@@ -53,12 +54,6 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground) => {
         };
         init(); return () => { isMounted = false; };
     }, [cleanExpired, getHistory]);
-
-    useEffect(() => {
-        let isMounted = true;
-        const checkHealth = async () => { if (!serverUrl) return; if (isMounted) setIsChecking(true); try { const res = await fetchViaBackground(`${serverUrl}/health`); if (isMounted) setServerStatus(res.success ? 'connected' : 'disconnected'); } catch { if (isMounted) setServerStatus('disconnected'); } finally { setTimeout(() => { if (isMounted) setIsChecking(false); }, 500); } };
-        checkHealth(); const interval = setInterval(checkHealth, checkInterval); return () => { isMounted = false; clearInterval(interval); };
-    }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleFetchArtifacts = useCallback(async (silent = false) => {
         setActionLoading(true); setFetching(true);
@@ -118,17 +113,19 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground) => {
     const handleApplyAll = async () => {
         setActionLoading(true); setHookStatus('loading');
         try {
+            const tasks: Promise<any>[] = [];
             if (selectedIndices.size > 0) {
-                const selectedFiles = Array.from(selectedIndices).map(i => { const art = artifacts[i]; return { path: art.name, content: removeComments ? processCode(art.code, { removeComments: true, removeEmptyLines, removeLogs }) : art.code }; });
-                const res = await fetchViaBackground(`${serverUrl}/upsert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: selectedFiles }) });
-                if (!res.success) throw new Error(`Sync: ${res.error}`);
+                const selectedFiles = Array.from(selectedIndices).map(i => ({ path: artifacts[i].name, content: removeComments ? processCode(artifacts[i].code, { removeComments: true, removeEmptyLines, removeLogs }) : artifacts[i].code }));
+                tasks.push(fetchViaBackground(`${serverUrl}/upsert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: selectedFiles }) }));
                 if (autoSelectSynced && activeProjectId) addPathsToSelection(activeProjectId, selectedFiles.map(f => f.path));
             }
             if (selectedDeletions.size > 0) {
-                const res = await fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: Array.from(selectedDeletions) }) });
-                if (!res.success) throw new Error(`Deleção: ${res.error}`);
+                tasks.push(fetchViaBackground(`${serverUrl}/delete-files`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ basePath: './', files: Array.from(selectedDeletions) }) }));
                 setSelectedDeletions(new Set());
             }
+            const results = await Promise.all(tasks);
+            const errors = results.filter(r => !r.success);
+            if (errors.length > 0) throw new Error(errors.map(e => e.error).join(' | '));
             showNotification('Sincronização e deleções aplicadas!', 'success'); setHookStatus('success');
         } catch (error: any) { showNotification(`Erro: ${error.message}`, 'error'); setHookStatus('error'); } finally { setActionLoading(false); setTimeout(() => setHookStatus(p => p !== 'loading' ? 'idle' : p), 4000); }
     };

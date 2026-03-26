@@ -1,30 +1,29 @@
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 
+import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { Appearance } from '@/sidebar/tabs/settings/subcomponents/appearance';
 import { GitCommands } from '@/sidebar/tabs/settings/subcomponents/gitCommands';
 import { CodeCleanup } from '@/sidebar/tabs/settings/subcomponents/codeCleanup';
 import { DataSync } from '@/sidebar/tabs/settings/subcomponents/dataSync';
+import { containerStyles, versionTextStyles } from './styles';
+import { useSettings } from '@/sidebar/tabs/settings/hooks';
 
-import type { FetchViaBackground, MessageState } from '@/sidebar/types';
+import type { FetchViaBackground } from '@/sidebar/types';
 
 interface Props { fetchViaBackground?: FetchViaBackground; }
 
 const SettingsView = ({ fetchViaBackground }: Props) => {
-    const [msg, setMsg] = useState<MessageState>({ open: false, text: '', type: 'info' });
-    const [version, setVersion] = useState('0.0.0');
-
-    useEffect(() => { if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) setVersion(chrome.runtime.getManifest().version); }, []);
+    const { state, actions } = useSettings();
 
     return (
-        <Box sx={{ p: 2, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <Box sx={containerStyles}>
             <Typography variant="h6" sx={{ mb: 3 }}>Configurações</Typography>
             <Appearance />
             <GitCommands />
             <CodeCleanup />
-            <DataSync setMsg={setMsg} />
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>CodeMerge Sync v{version}</Typography>
-            <Snackbar open={msg.open} autoHideDuration={2000} onClose={() => setMsg({ ...msg, open: false })}><Alert severity={msg.type} sx={{ width: '100%' }}>{msg.text}</Alert></Snackbar>
+            <DataSync setMsg={actions.setMsg} />
+            <Typography variant="caption" sx={versionTextStyles}>CodeMerge Sync v{state.version}</Typography>
+            <NotificationSnackbar message={state.msg} onClose={() => actions.setMsg({ ...state.msg, open: false })} />
         </Box>
     );
 };

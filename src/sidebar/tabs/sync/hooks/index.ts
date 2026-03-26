@@ -1,22 +1,23 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
+import { flattenStructure } from '@/sidebar/utils/treeProcessor';
 import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useConfigStore from '@/sidebar/stores/config';
 
 import type { FileNode, FetchViaBackground, MessageState } from '@/sidebar/types';
+import type { UseSyncReturn } from './types';
 
-const flattenStructure = (node: FileNode): FileNode[] => [...(node.type === 'file' ? [node] : []), ...(node.children ? node.children.flatMap(flattenStructure) : [])];
-
-export const useSync = (fetchViaBackground: FetchViaBackground) => {
-    const { serverUrl, checkInterval, setServerUrl, verbosity, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
+export const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn => {
+    const { serverUrl, setServerUrl, verbosity, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
     const { selections, expansions, pinned, activeProjectId, setActiveProjectId, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
+    const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
+
     const [projectStructure, setProjectStructure] = useState<FileNode | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<MessageState>({ open: false, text: '', type: 'info' });
-    const [serverStatus, setServerStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
-    const [isChecking, setIsChecking] = useState(false);
     const [lastTreeFetchTime, setLastTreeFetchTime] = useState<number | null>(null);
     const [isCopyMode, setIsCopyMode] = useState(false);
 
@@ -48,12 +49,6 @@ export const useSync = (fetchViaBackground: FetchViaBackground) => {
         togglePin(activeProjectId, path);
         if (isPinning && !selectedPaths.has(path)) { const next = new Set(selectedPaths); next.add(path); setProjectSelection(activeProjectId, Array.from(next)); }
     }, [activeProjectId, togglePin, pinnedPaths, selectedPaths, setProjectSelection]);
-
-    useEffect(() => {
-        let isMounted = true;
-        const checkHealth = async () => { if (!serverUrl) return; if (isMounted) setIsChecking(true); try { const res = await fetchViaBackground(`${serverUrl}/health`); if (isMounted) setServerStatus(res.success ? 'connected' : 'disconnected'); } catch { if (isMounted) setServerStatus('disconnected'); } finally { setTimeout(() => { if (isMounted) setIsChecking(false); }, 500); } };
-        checkHealth(); const int = setInterval(checkHealth, checkInterval); return () => { isMounted = false; clearInterval(int); };
-    }, [serverUrl, checkInterval, fetchViaBackground]);
 
     const handleFetchStructure = useCallback(async () => {
         setLoading(true);

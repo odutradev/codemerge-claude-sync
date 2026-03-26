@@ -1,9 +1,11 @@
-import { Box, Snackbar, Alert } from '@mui/material';
+import { Box } from '@mui/material';
 
+import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
 import { ServerConfig } from '@/sidebar/tabs/sync/subcomponents/serverConfig';
 import { TreeViewer } from '@/sidebar/tabs/sync/subcomponents/treeViewer';
 import { SyncStats } from '@/sidebar/tabs/sync/subcomponents/syncStats';
-import { useSync } from '@/sidebar/tabs/sync/hooks/useSync';
+import { containerStyles } from './styles';
+import { useSync } from '@/sidebar/tabs/sync/hooks';
 
 import type { FetchViaBackground } from '@/sidebar/types';
 
@@ -13,7 +15,7 @@ const SyncView = ({ fetchViaBackground }: Props) => {
     const { state, actions } = useSync(fetchViaBackground);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
+        <Box sx={containerStyles}>
             <ServerConfig serverUrl={state.serverUrl} setServerUrl={actions.setServerUrl} handleFetchStructure={actions.handleFetchStructure} loading={state.loading} isChecking={state.isChecking} serverStatus={state.serverStatus} />
             {state.projectStructure && (
                 <>
@@ -21,7 +23,7 @@ const SyncView = ({ fetchViaBackground }: Props) => {
                     <SyncStats stats={state.stats} pinnedCount={state.pinnedPaths.size} handleSync={actions.handleSync} loading={state.loading} serverStatus={state.serverStatus} hasSelection={state.selectedPaths.size > 0} />
                 </>
             )}
-            <Snackbar open={state.message.open} autoHideDuration={1000} onClose={() => actions.setMessage({ ...state.message, open: false })}><Alert severity={state.message.type}>{state.message.text}</Alert></Snackbar>
+            <NotificationSnackbar message={state.message} onClose={() => actions.setMessage({ ...state.message, open: false })} />
         </Box>
     );
 };
