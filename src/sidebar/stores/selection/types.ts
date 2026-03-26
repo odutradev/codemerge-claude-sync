@@ -1,2 +1,20 @@
-export interface SelectionState { selections: Record<string, string[]>; expansions: Record<string, string[]>; timestamps: Record<string, number>; pinned: Record<string, string[]>; activeProjectId: string | null; }
-export interface SelectionActions { setActiveProjectId: (id: string) => void; addPathsToSelection: (projectId: string, paths: string[]) => void; toggleSelection: (projectId: string, path: string) => void; toggleExpansion: (projectId: string, path: string) => void; togglePin: (projectId: string, path: string) => void; setProjectSelection: (projectId: string, paths: string[]) => void; clearProjectSelection: (projectId: string) => void; clearAllSelections: () => void; checkExpiration: () => void; hasStoredSelection: (projectId: string) => boolean; }
+export interface SelectionState {
+  selections: Record<string, string[]>;
+  expansions: Record<string, string[]>;
+  timestamps: Record<string, number>;
+  pinned: Record<string, string[]>;
+  activeProjectId: string | null;
+}
+
+export interface SelectionActions {
+  setActiveProjectId: (id: string) => void;
+  addPathsToSelection: (projectId: string, paths: string[]) => void;
+  toggleSelection: (projectId: string, path: string) => void;
+  toggleExpansion: (projectId: string, path: string) => void;
+  togglePin: (projectId: string, path: string) => void;
+  setProjectSelection: (projectId: string, paths: string[]) => void;
+  clearProjectSelection: (projectId: string) => void;
+  clearAllSelections: () => void;
+  checkExpiration: () => void;
+  hasStoredSelection: (projectId: string) => boolean;
+}
