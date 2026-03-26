@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { createRoot } from 'react-dom/client';
 
 import { NotificationSnackbar } from '@/sidebar/components/notificationSnackbar';
+import { NotificationProvider } from '@/sidebar/hooks/useNotification';
 import { NavigationTabs } from '@/sidebar/components/navigationTabs';
 import { FallbackLoader } from '@/sidebar/components/fallbackLoader';
 import { TabPanel } from '@/sidebar/components/tabPanel';
@@ -35,17 +36,19 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AppContainer>
-                <NavigationTabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
-                {tabsView.map((View, index) => (
-                    <TabPanel key={index} currentTab={currentTab} index={index}>
-                        <Suspense fallback={<FallbackLoader />}>
-                            <View fetchViaBackground={fetchViaBackground} />
-                        </Suspense>
-                    </TabPanel>
-                ))}
-                <NotificationSnackbar />
-            </AppContainer>
+            <NotificationProvider>
+                <AppContainer>
+                    <NavigationTabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
+                    {tabsView.map((View, index) => (
+                        <TabPanel key={index} currentTab={currentTab} index={index}>
+                            <Suspense fallback={<FallbackLoader />}>
+                                <View fetchViaBackground={fetchViaBackground} />
+                            </Suspense>
+                        </TabPanel>
+                    ))}
+                    <NotificationSnackbar />
+                </AppContainer>
+            </NotificationProvider>
         </ThemeProvider>
     );
 };

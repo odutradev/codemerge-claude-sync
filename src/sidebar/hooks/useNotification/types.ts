@@ -1,10 +1,13 @@
+import type { ReactNode } from 'react';
+
 import type { MessageState } from '@/sidebar/types';
 
-export interface NotificationState {
+export interface NotificationContextData {
     message: MessageState;
-}
-
-export interface NotificationActions {
     showNotification: (text: string, type?: MessageState['type']) => void;
     hideNotification: () => void;
+}
+
+export interface NotificationProviderProps {
+    children: ReactNode;
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import useNotificationStore from '@/sidebar/stores/notification';
+import { useNotification } from '@/sidebar/hooks/useNotification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import { flattenStructure } from '@/sidebar/utils/treeProcessor';
 import { processCode } from '@/sidebar/utils/codeProcessor';
@@ -14,7 +14,7 @@ export const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn =
     const { serverUrl, setServerUrl, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore();
     const { selections, expansions, pinned, activeProjectId, setActiveProjectId, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore();
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
-    const showNotification = useNotificationStore((state) => state.showNotification);
+    const { showNotification } = useNotification();
 
     const [projectStructure, setProjectStructure] = useState<FileNode | null>(null);
     const [searchTerm, setSearchTerm] = useState('');

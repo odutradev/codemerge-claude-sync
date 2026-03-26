@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import useNotificationStore from '@/sidebar/stores/notification';
+import { useNotification } from '@/sidebar/hooks/useNotification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
@@ -15,7 +15,7 @@ export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifac
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
     const { activeProjectId, addPathsToSelection } = useSelectionStore();
-    const showNotification = useNotificationStore((state) => state.showNotification);
+    const { showNotification } = useNotification();
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [selectedDeletions, setSelectedDeletions] = useState<Set<string>>(new Set());

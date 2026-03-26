@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 
-import useNotificationStore from '@/sidebar/stores/notification';
+import { useNotification } from '@/sidebar/hooks/useNotification';
 import usePromptStore from '@/sidebar/stores/prompt';
 
 import type { UsePromptPresetsReturn } from './types';
 import type { Preset } from '@/sidebar/types';
 
 export const usePromptPresets = (): UsePromptPresetsReturn => {
-    const showNotification = useNotificationStore((state) => state.showNotification);
+    const { showNotification } = useNotification();
     const { presets, addPreset, updatePreset, deletePreset } = usePromptStore();
     const [formData, setFormData] = useState<{ id: string | null; title: string; prompt: string }>({ id: null, title: '', prompt: '' });
     const [dialogOpen, setDialogOpen] = useState(false);
