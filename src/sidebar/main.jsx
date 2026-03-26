@@ -1,11 +1,12 @@
 import { Box, Tabs, Tab, useMediaQuery, CssBaseline, CircularProgress } from '@mui/material';
 import { useState, useEffect, useMemo, lazy, Suspense, StrictMode } from 'react';
-import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { MdSettings, MdBuild } from 'react-icons/md';
 import ReactDOM from 'react-dom/client';
 
 import useSelectionStore from '@/sidebar/store/selectionStore';
 import useConfigStore from '@/sidebar/store/configStore';
+import { getAppTheme } from '@/sidebar/styles/theme';
 
 const ArtifactsView = lazy(() => import('@/sidebar/tabs/artifacts'));
 const SettingsView = lazy(() => import('@/sidebar/tabs/settings'));
@@ -29,40 +30,7 @@ const App = () => {
         checkExpiration();
     }, [loadFromBackground, checkExpiration]);
 
-    const theme = useMemo(() => {
-        const mode = themeMode === 'system' ? (prefersDarkMode ? 'dark' : 'light') : themeMode;
-        const isDark = mode === 'dark';
-        const SCROLLBAR_SIZE = '3px';
-        const SCROLLBAR_RADIUS = '3px';
-
-        return createTheme({
-            palette: {
-                mode,
-                primary: { main: primaryColor },
-                background: { default: isDark ? '#1a1a1a' : '#f5f5f5', paper: isDark ? '#262626' : '#ffffff' }
-            },
-            typography: { fontFamily: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'].join(','), fontSize: 12 },
-            components: {
-                MuiCssBaseline: {
-                    styleOverrides: (themeParam) => ({
-                        body: {
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: `${alpha(themeParam.palette.text.primary, 0.1)} transparent`,
-                            '&::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
-                            '&::-webkit-scrollbar-track': { background: 'transparent' },
-                            '&::-webkit-scrollbar-thumb': { backgroundColor: alpha(themeParam.palette.text.primary, 0.1), borderRadius: SCROLLBAR_RADIUS, '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) } },
-                            '&::-webkit-scrollbar-corner': { background: 'transparent' },
-                            '& *::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
-                            '& *::-webkit-scrollbar-track': { background: 'transparent' },
-                            '& *::-webkit-scrollbar-thumb': { backgroundColor: alpha(themeParam.palette.text.primary, 0.1), borderRadius: SCROLLBAR_RADIUS, '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) } }
-                        }
-                    })
-                },
-                MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 8 } } },
-                MuiCheckbox: { styleOverrides: { root: { padding: 4 } } }
-            }
-        });
-    }, [themeMode, primaryColor, prefersDarkMode]);
+    const theme = useMemo(() => getAppTheme(themeMode, primaryColor, prefersDarkMode), [themeMode, primaryColor, prefersDarkMode]);
 
     const fetchViaBackground = (url, options = {}) => new Promise((resolve) => {
         if (chrome?.runtime) {
