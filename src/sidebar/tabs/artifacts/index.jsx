@@ -1,9 +1,9 @@
 import { Box, Snackbar, Alert } from '@mui/material';
 
-import { CommandActions } from '@/sidebar/tabs/artifacts/components/commandActions';
-import { ArtifactList } from '@/sidebar/tabs/artifacts/components/artifactList';
+import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
+import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
 import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks/useArtifacts';
-import { Header } from '@/sidebar/tabs/artifacts/components/header';
+import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
 import { CommitBox } from '@/sidebar/components/commitBox';
 
