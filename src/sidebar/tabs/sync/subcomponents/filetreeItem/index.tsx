@@ -2,8 +2,8 @@ import { MdKeyboardArrowRight, MdKeyboardArrowDown, MdStarOutline, MdFolderOpen,
 import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 
-import useConfigStore from '@/sidebar/store/configStore';
 import FileIcon from '@/sidebar/components/fileIcon';
+import useConfigStore from '@/sidebar/stores/config';
 
 import type { FileNode } from '@/sidebar/types';
 

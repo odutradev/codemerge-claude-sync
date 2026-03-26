@@ -1,7 +1,7 @@
-import { MdAutoFixHigh } from 'react-icons/md';
 import { ToggleButtonGroup, FormControlLabel, ToggleButton, Typography, Checkbox, Paper, Box } from '@mui/material';
+import { MdAutoFixHigh } from 'react-icons/md';
 
-import useConfigStore from '@/sidebar/store/configStore';
+import useConfigStore from '@/sidebar/stores/config';
 
 export const CodeCleanup = () => {
     const { removeComments, removeEmptyLines, removeLogs, setRemoveComments, setRemoveEmptyLines, setRemoveLogs } = useConfigStore();

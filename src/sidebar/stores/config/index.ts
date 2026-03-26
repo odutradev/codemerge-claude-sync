@@ -1,12 +1,9 @@
 import { persist } from 'zustand/middleware';
 import { create } from 'zustand';
 
-import type { ThemeMode, Verbosity } from '@/sidebar/types';
+import { DEFAULT_CONFIG } from './defaultValues';
 
-interface ConfigState { serverUrl: string; checkInterval: number; themeMode: ThemeMode; primaryColor: string; compactMode: boolean; verbosity: Verbosity; persistSelection: boolean; removeComments: boolean; removeEmptyLines: boolean; removeLogs: boolean; translateCommit: boolean; showCommandModal: boolean; autoSelectSynced: boolean; }
-interface ConfigActions { setServerUrl: (url: string) => void; setCheckInterval: (interval: string | number) => void; setThemeMode: (mode: ThemeMode) => void; setPrimaryColor: (color: string) => void; setCompactMode: (mode: boolean) => void; setVerbosity: (level: Verbosity) => void; setPersistSelection: (enabled: boolean) => void; setRemoveComments: (enabled: boolean) => void; setRemoveEmptyLines: (enabled: boolean) => void; setRemoveLogs: (enabled: boolean) => void; setTranslateCommit: (enabled: boolean) => void; setShowCommandModal: (enabled: boolean) => void; setAutoSelectSynced: (enabled: boolean) => void; resetConfig: () => void; loadFromBackground: () => void; syncToBackground: () => void; }
-
-const DEFAULT_CONFIG: ConfigState = { serverUrl: 'http://localhost:9876', checkInterval: 5000, themeMode: 'system', primaryColor: '#da7756', compactMode: false, verbosity: 'all', persistSelection: true, removeComments: false, removeEmptyLines: false, removeLogs: false, translateCommit: true, showCommandModal: true, autoSelectSynced: true };
+import type { ConfigState, ConfigActions } from './types';
 
 const useConfigStore = create<ConfigState & ConfigActions>()(persist((set, get) => ({
     ...DEFAULT_CONFIG,

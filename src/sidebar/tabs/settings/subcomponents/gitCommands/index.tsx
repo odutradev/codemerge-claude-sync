@@ -1,7 +1,7 @@
-import { MdAutoFixHigh, MdTerminal, MdTranslate } from 'react-icons/md';
 import { ToggleButtonGroup, ToggleButton, Typography, Paper, Box } from '@mui/material';
+import { MdAutoFixHigh, MdTerminal, MdTranslate } from 'react-icons/md';
 
-import useConfigStore from '@/sidebar/store/configStore';
+import useConfigStore from '@/sidebar/stores/config';
 
 export const GitCommands = () => {
     const { translateCommit, showCommandModal, setTranslateCommit, setShowCommandModal } = useConfigStore();

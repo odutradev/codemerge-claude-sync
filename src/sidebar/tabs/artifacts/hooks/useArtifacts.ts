@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import useSelectionStore from '@/sidebar/store/selectionStore';
 import { processCode } from '@/sidebar/utils/codeProcessor';
-import useHistoryStore from '@/sidebar/store/historyStore';
-import useConfigStore from '@/sidebar/store/configStore';
+import useSelectionStore from '@/sidebar/stores/selection';
+import useHistoryStore from '@/sidebar/stores/history';
+import useConfigStore from '@/sidebar/stores/config';
 
 import type { FetchViaBackground, CommandOutput, MessageState, Artifact, HookStatus } from '@/sidebar/types';
 

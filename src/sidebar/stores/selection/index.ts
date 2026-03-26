@@ -1,11 +1,12 @@
 import { persist } from 'zustand/middleware';
 import { create } from 'zustand';
 
-interface SelectionState { selections: Record<string, string[]>; expansions: Record<string, string[]>; timestamps: Record<string, number>; pinned: Record<string, string[]>; activeProjectId: string | null; }
-interface SelectionActions { setActiveProjectId: (id: string) => void; addPathsToSelection: (projectId: string, paths: string[]) => void; toggleSelection: (projectId: string, path: string) => void; toggleExpansion: (projectId: string, path: string) => void; togglePin: (projectId: string, path: string) => void; setProjectSelection: (projectId: string, paths: string[]) => void; clearProjectSelection: (projectId: string) => void; clearAllSelections: () => void; checkExpiration: () => void; hasStoredSelection: (projectId: string) => boolean; }
+import { DEFAULT_SELECTION_STATE, MAX_SELECTION_AGE } from './defaultValues';
+
+import type { SelectionState, SelectionActions } from './types';
 
 const useSelectionStore = create<SelectionState & SelectionActions>()(persist((set, get) => ({
-    selections: {}, expansions: {}, timestamps: {}, pinned: {}, activeProjectId: null,
+    ...DEFAULT_SELECTION_STATE,
     setActiveProjectId: (id) => set({ activeProjectId: id }),
     addPathsToSelection: (projectId, paths) => set((state) => {
         const current = new Set(state.selections[projectId] || []);
@@ -34,17 +35,16 @@ const useSelectionStore = create<SelectionState & SelectionActions>()(persist((s
         const { [projectId]: _t, ...timestamps } = state.timestamps;
         return { selections, expansions, timestamps };
     }),
-    clearAllSelections: () => set({ selections: {}, expansions: {}, timestamps: {}, pinned: {} }),
+    clearAllSelections: () => set(DEFAULT_SELECTION_STATE),
     checkExpiration: () => set((state) => {
         const now = Date.now();
-        const MAX_AGE = 72 * 60 * 60 * 1000;
         const selections = { ...state.selections };
         const expansions = { ...state.expansions };
         const timestamps = { ...state.timestamps };
         let hasChanges = false;
         Object.keys(selections).forEach(pid => {
             const ts = timestamps[pid];
-            if (!ts) { timestamps[pid] = now; hasChanges = true; } else if (now - ts > MAX_AGE) { delete selections[pid]; delete expansions[pid]; delete timestamps[pid]; hasChanges = true; }
+            if (!ts) { timestamps[pid] = now; hasChanges = true; } else if (now - ts > MAX_SELECTION_AGE) { delete selections[pid]; delete expansions[pid]; delete timestamps[pid]; hasChanges = true; }
         });
         return hasChanges ? { selections, expansions, timestamps } : {};
     }),

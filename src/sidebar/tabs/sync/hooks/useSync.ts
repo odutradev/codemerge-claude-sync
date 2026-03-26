@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import useSelectionStore from '@/sidebar/store/selectionStore';
 import { processCode } from '@/sidebar/utils/codeProcessor';
-import useConfigStore from '@/sidebar/store/configStore';
+import useSelectionStore from '@/sidebar/stores/selection';
+import useConfigStore from '@/sidebar/stores/config';
 
 import type { FileNode, FetchViaBackground, MessageState } from '@/sidebar/types';
 

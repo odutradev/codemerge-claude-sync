@@ -5,12 +5,13 @@ import { createRoot } from 'react-dom/client';
 
 import { NavigationTabs } from '@/sidebar/components/navigationTabs';
 import { FallbackLoader } from '@/sidebar/components/fallbackLoader';
-import useSelectionStore from '@/sidebar/store/selectionStore';
 import { TabPanel } from '@/sidebar/components/tabPanel';
-import useConfigStore from '@/sidebar/store/configStore';
-import type { FetchViaBackground } from '@/sidebar/types';
+import useSelectionStore from '@/sidebar/stores/selection';
+import useConfigStore from '@/sidebar/stores/config';
 import { getAppTheme } from '@/sidebar/styles/theme';
 import { AppContainer } from './styles';
+
+import type { FetchViaBackground } from '@/sidebar/types';
 
 const ArtifactsView = lazy(() => import('@/sidebar/tabs/artifacts'));
 const SettingsView = lazy(() => import('@/sidebar/tabs/settings'));

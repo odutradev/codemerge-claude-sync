@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import useConfigStore from '@/sidebar/store/configStore';
+import useConfigStore from '@/sidebar/stores/config';
 
 import type { FetchViaBackground, CommandOutput, MessageState } from '@/sidebar/types';
 

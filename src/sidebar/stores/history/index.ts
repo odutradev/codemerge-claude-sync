@@ -1,16 +1,12 @@
 import { persist } from 'zustand/middleware';
 import { create } from 'zustand';
 
-import type { Snapshot } from '@/sidebar/types';
+import { DEFAULT_HISTORY_STATE, MAX_AGE } from './defaultValues';
 
-interface HistoryEntry { snapshots: Snapshot[]; currentIndex: number; timestamp?: number; }
-interface HistoryState { histories: Record<string, HistoryEntry>; }
-interface HistoryActions { addSnapshot: (url: string, snapshot: Snapshot) => Promise<void>; setHistoryIndex: (url: string, index: number) => void; getHistory: (url: string) => HistoryEntry; cleanExpired: () => void; clearAllHistory: () => void; }
-
-const MAX_AGE = 10800000;
+import type { HistoryState, HistoryActions } from './types';
 
 const useHistoryStore = create<HistoryState & HistoryActions>()(persist((set, get) => ({
-    histories: {},
+    ...DEFAULT_HISTORY_STATE,
     addSnapshot: async (url, snapshot) => {
         const serializedSnapshot = { ...snapshot, selectedDeletions: Array.from(snapshot.selectedDeletions || []), selectedCommands: Array.from(snapshot.selectedCommands || []), selectedIndices: Array.from(snapshot.selectedIndices || []) };
         const msgUint8 = new TextEncoder().encode(JSON.stringify(serializedSnapshot));
@@ -34,7 +30,7 @@ const useHistoryStore = create<HistoryState & HistoryActions>()(persist((set, ge
         Object.keys(newHistories).forEach(url => { if (now - (newHistories[url].timestamp || 0) > MAX_AGE) { delete newHistories[url]; hasChanges = true; } });
         return hasChanges ? { histories: newHistories } : state;
     }),
-    clearAllHistory: () => set({ histories: {} })
+    clearAllHistory: () => set(DEFAULT_HISTORY_STATE)
 }), { name: 'codemerge-history-storage', version: 2 }));
 
 export default useHistoryStore;

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-import usePromptStore from '@/sidebar/store/promptStore';
+import usePromptStore from '@/sidebar/stores/prompt';
 
 import type { MessageState } from '@/sidebar/types';
 

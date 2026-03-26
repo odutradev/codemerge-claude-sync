@@ -2,7 +2,7 @@ import { MdSettingsBrightness, MdLightMode, MdDarkMode, MdViewHeadline, MdViewCo
 import { ToggleButtonGroup, ToggleButton, Typography, IconButton, Paper, Box } from '@mui/material';
 import { useRef } from 'react';
 
-import useConfigStore from '@/sidebar/store/configStore';
+import useConfigStore from '@/sidebar/stores/config';
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'];
 

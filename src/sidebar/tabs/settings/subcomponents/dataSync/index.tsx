@@ -1,9 +1,9 @@
 import { MdOutlinePushPin, MdLibraryAddCheck, MdDeleteForever, MdDeleteSweep, MdPushPin, MdHistory, MdRestore, MdTimer } from 'react-icons/md';
 import { ToggleButtonGroup, InputAdornment, ToggleButton, Typography, TextField, Divider, Button, Paper, Box } from '@mui/material';
 
-import useSelectionStore from '@/sidebar/store/selectionStore';
-import useHistoryStore from '@/sidebar/store/historyStore';
-import useConfigStore from '@/sidebar/store/configStore';
+import useSelectionStore from '@/sidebar/stores/selection';
+import useHistoryStore from '@/sidebar/stores/history';
+import useConfigStore from '@/sidebar/stores/config';
 
 import type { MessageState } from '@/sidebar/types';
 
