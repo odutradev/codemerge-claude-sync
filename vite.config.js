@@ -1,6 +1,8 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { crx } from '@crxjs/vite-plugin'
+import { defineConfig } from 'vite'
+import path from 'path'
+
 import manifest from './manifest.json'
 
 export default defineConfig({
@@ -8,11 +10,9 @@ export default defineConfig({
     react(),
     crx({ manifest }),
   ],
-  server: {
-    port: 5173,
-    strictPort: true,
-    hmr: {
-      port: 5173,
-    },
-  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
 })

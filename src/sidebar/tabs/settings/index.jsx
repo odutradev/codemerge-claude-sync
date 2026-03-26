@@ -1,10 +1,10 @@
 import { SettingsBrightness, PushPinOutlined, LibraryAddCheck, NotificationsOff, DeleteForever, DeleteSweep, Notifications, ErrorOutline, AutoFixHigh, ViewHeadline, ViewCompact, RestartAlt, ColorLens, LightMode, DarkMode, PushPin, Terminal, Translate, History, Timer } from '@mui/icons-material';
 import { ToggleButtonGroup, FormControlLabel, InputAdornment, ToggleButton, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
-import useSelectionStore from '../../store/selectionStore';
-import useHistoryStore from '../../store/historyStore';
-import useConfigStore from '../../store/configStore';
+import useSelectionStore from '@/sidebar/store/selectionStore';
+import useHistoryStore from '@/sidebar/store/historyStore';
+import useConfigStore from '@/sidebar/store/configStore';
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'];
 

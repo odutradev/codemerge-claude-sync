@@ -1,11 +1,11 @@
 import { Box, Snackbar, Alert } from '@mui/material';
 
-import { CommandActions } from './subcomponents/CommandActions';
-import { CommandDialog } from '../../components/commandDialog';
-import { ArtifactList } from './subcomponents/ArtifactList';
-import { CommitBox } from '../../components/commitBox';
-import { useArtifacts } from './hooks/useArtifacts';
-import { Header } from './subcomponents/Header';
+import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/CommandActions';
+import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/ArtifactList';
+import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks/useArtifacts';
+import { Header } from '@/sidebar/tabs/artifacts/subcomponents/Header';
+import { CommandDialog } from '@/sidebar/components/commandDialog';
+import { CommitBox } from '@/sidebar/components/commitBox';
 
 export const ArtifactsView = ({ fetchViaBackground }) => {
     const { state, actions } = useArtifacts(fetchViaBackground);

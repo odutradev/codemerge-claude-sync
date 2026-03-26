@@ -1,4 +1,4 @@
-import { uploadFileToPage, injectTextToPage } from '../utils/messaging';
+import { uploadFileToPage, injectTextToPage } from '@/utils/messaging';
 
 const getSessionAuthenticationData = () => {
     const googleWizGlobalData = JSON.parse(localStorage.getItem("WIZ_global_data"));

@@ -1,9 +1,9 @@
 import { Box, Snackbar, Alert, Typography } from '@mui/material';
 
-import { CommandDialog } from '../../components/commandDialog';
-import { PromptPresets } from './subcomponents/PromptPresets';
-import { CommitBox } from '../../components/commitBox';
-import { useTools } from './hooks/useTools';
+import { PromptPresets } from '@/sidebar/tabs/tools/subcomponents/PromptPresets';
+import { CommandDialog } from '@/sidebar/components/commandDialog';
+import { useTools } from '@/sidebar/tabs/tools/hooks/useTools';
+import { CommitBox } from '@/sidebar/components/commitBox';
 
 export const ToolsView = ({ fetchViaBackground }) => {
     const { state, actions } = useTools(fetchViaBackground);

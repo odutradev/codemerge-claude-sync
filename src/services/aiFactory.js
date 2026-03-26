@@ -1,5 +1,5 @@
-import { geminiService } from './geminiService';
-import { claudeService } from './claudeService';
+import { geminiService } from '@/services/geminiService';
+import { claudeService } from '@/services/claudeService';
 
 export const getAiService = () => {
     const hostname = window.location.hostname;

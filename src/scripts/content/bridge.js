@@ -1,4 +1,4 @@
-import { getAiService } from '../../services/aiFactory';
+import { getAiService } from '@/services/aiFactory';
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const service = getAiService();

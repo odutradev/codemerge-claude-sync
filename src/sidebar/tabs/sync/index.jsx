@@ -1,12 +1,12 @@
-import { CircularProgress, InputAdornment, IconButton, Typography, TextField, Snackbar, Tooltip, Button, Alert, Paper, Box } from '@mui/material';
 import { FormatAlignLeft, InsertDriveFile, PushPinOutlined, ContentCopy, CloudUpload, AccessTime, PushPin, Refresh, Search, Star } from '@mui/icons-material';
+import { CircularProgress, InputAdornment, IconButton, Typography, TextField, Snackbar, Tooltip, Button, Alert, Paper, Box } from '@mui/material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { keyframes, alpha } from '@mui/material/styles';
 
-import FileTreeItem from './subcomponents/filetreeItem/index.jsx';
-import useSelectionStore from '../../store/selectionStore.js';
-import { processCode } from '../../utils/codeProcessor.js';
-import useConfigStore from '../../store/configStore.js';
+import FileTreeItem from '@/sidebar/tabs/sync/subcomponents/filetreeItem';
+import useSelectionStore from '@/sidebar/store/selectionStore';
+import { processCode } from '@/sidebar/utils/codeProcessor';
+import useConfigStore from '@/sidebar/store/configStore';
 
 const pulseGreen = keyframes`0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }`;
 const pulseRed = keyframes`0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }`;

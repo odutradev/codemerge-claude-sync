@@ -1,15 +1,15 @@
 import { Box, Typography, Button, TextField, Paper, IconButton, Select, MenuItem, Tooltip } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import TranslateIcon from '@mui/icons-material/Translate';
+import { useState, useEffect, useMemo } from 'react';
+import CommitIcon from '@mui/icons-material/Commit';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CommitIcon from '@mui/icons-material/Commit';
-import { useState, useEffect, useMemo } from 'react';
 import { alpha } from '@mui/material/styles';
 
-import FileTreeItem from '../../../sync/subcomponents/filetreeItem';
-import { buildTreeFromPaths } from '../../../../utils/treeBuilder';
-import { CommitBox } from '../../../../components/commitBox';
+import FileTreeItem from '@/sidebar/tabs/sync/subcomponents/filetreeItem';
+import { buildTreeFromPaths } from '@/sidebar/utils/treeBuilder';
+import { CommitBox } from '@/sidebar/components/commitBox';
 
 export const GitActions = ({
     commitType,

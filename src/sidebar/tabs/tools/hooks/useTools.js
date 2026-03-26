@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import useConfigStore from '../../../store/configStore';
+import useConfigStore from '@/sidebar/store/configStore';
 
 export const useTools = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore();

@@ -1,15 +1,15 @@
 import { Box, Tabs, Tab, useMediaQuery, CssBaseline } from '@mui/material';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
-import React, { useState, useEffect, useMemo } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useState, useEffect, useMemo } from 'react';
 import BuildIcon from '@mui/icons-material/Build';
 
-import useSelectionStore from '../store/selectionStore';
-import useConfigStore from '../store/configStore';
-import ArtifactsView from '../tabs/artifacts';
-import SettingsView from '../tabs/settings';
-import ToolsView from '../tabs/tools';
-import SyncView from '../tabs/sync';
+import useSelectionStore from '@/sidebar/store/selectionStore';
+import useConfigStore from '@/sidebar/store/configStore';
+import ArtifactsView from '@/sidebar/tabs/artifacts';
+import SettingsView from '@/sidebar/tabs/settings';
+import ToolsView from '@/sidebar/tabs/tools';
+import SyncView from '@/sidebar/tabs/sync';
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);

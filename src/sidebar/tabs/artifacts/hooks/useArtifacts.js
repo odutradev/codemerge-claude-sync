@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import useSelectionStore from '../../../store/selectionStore';
-import { processCode } from '../../../utils/codeProcessor';
-import useHistoryStore from '../../../store/historyStore';
-import useConfigStore from '../../../store/configStore';
+import useSelectionStore from '@/sidebar/store/selectionStore';
+import { processCode } from '@/sidebar/utils/codeProcessor';
+import useHistoryStore from '@/sidebar/store/historyStore';
+import useConfigStore from '@/sidebar/store/configStore';
 
 export const useArtifacts = (fetchViaBackground) => {
     const { serverUrl, checkInterval, verbosity, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();

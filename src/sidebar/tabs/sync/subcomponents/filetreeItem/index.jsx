@@ -2,8 +2,8 @@ import { KeyboardArrowRight, KeyboardArrowDown, StarOutline, FolderOpen, Folder,
 import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 
-import FileIcon from '../../../../components/fileIcon/index.jsx';
-import useConfigStore from '../../../../store/configStore.js';
+import useConfigStore from '@/sidebar/store/configStore';
+import FileIcon from '@/sidebar/components/fileIcon';
 
 const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPaths, isCopyMode, onCopyPath, onToggleSelection, onToggleExpansion, onTogglePin, searchTerm }) => {
   const { compactMode } = useConfigStore();

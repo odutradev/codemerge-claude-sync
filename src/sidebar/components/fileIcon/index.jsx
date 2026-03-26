@@ -1,42 +1,7 @@
-import React from 'react';
-import { 
-    SiJavascript, 
-    SiTypescript, 
-    SiHtml5, 
-    SiCss3, 
-    SiReact, 
-    SiPython, 
-    SiCplusplus, 
-    SiCsharp, 
-    SiRust, 
-    SiGo, 
-    SiPhp, 
-    SiRuby, 
-    SiMarkdown,
-    SiDocker,
-    SiGnubash,
-    SiPostgresql,
-    SiSass,
-    SiLess,
-    SiKotlin,
-    SiSwift,
-    SiDart,
-    SiLua,
-    SiNpm
-} from 'react-icons/si';
-import { VscJson } from "react-icons/vsc";
-
-import { 
-    VscFile, 
-    VscFileBinary, 
-    VscFilePdf, 
-    VscFileMedia, 
-    VscFileZip,
-    VscTerminal,
-    VscDatabase
-} from 'react-icons/vsc';
-
+import { SiJavascript, SiTypescript, SiHtml5, SiCss3, SiReact, SiPython, SiCplusplus, SiCsharp, SiRust, SiGo, SiPhp, SiRuby, SiMarkdown, SiDocker, SiGnubash, SiPostgresql, SiSass, SiLess, SiKotlin, SiSwift, SiDart, SiLua, SiNpm } from 'react-icons/si';
+import { VscFile, VscFileBinary, VscFilePdf, VscFileMedia, VscFileZip, VscTerminal, VscDatabase } from 'react-icons/vsc';
 import { FaJava, FaFileCode } from 'react-icons/fa';
+import { VscJson } from "react-icons/vsc";
 
 const FileIcon = ({ fileName, sx = {} }) => {
     const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';

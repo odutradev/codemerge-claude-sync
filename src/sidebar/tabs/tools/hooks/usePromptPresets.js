@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-import usePromptStore from '../../../store/promptStore';
+import usePromptStore from '@/sidebar/store/promptStore';
 
 export const usePromptPresets = (showNotification) => {
     const { presets, addPreset, updatePreset, deletePreset } = usePromptStore();

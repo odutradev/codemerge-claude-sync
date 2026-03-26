@@ -7,7 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 
 import { accordionStyles, accordionSummaryStyles, accordionDetailsStyles, headerBoxStyles, listStyles, listItemStyles, itemHeaderStyles, actionsBoxStyles, promptTextStyles } from './styles';
-import { usePromptPresets } from '../../hooks/usePromptPresets';
+import { usePromptPresets } from '@/sidebar/tabs/tools/hooks/usePromptPresets';
 
 export const PromptPresets = ({ showNotification }) => {
     const { state, actions } = usePromptPresets(showNotification);

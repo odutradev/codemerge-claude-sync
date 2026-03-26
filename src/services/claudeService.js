@@ -1,4 +1,4 @@
-import { uploadFileToPage, injectTextToPage } from '../utils/messaging';
+import { uploadFileToPage, injectTextToPage } from '@/utils/messaging';
 
 const getCookieValue = (name) => document.cookie.split('; ').find(c => c.startsWith(`${name}=`))?.split('=')[1];
 
