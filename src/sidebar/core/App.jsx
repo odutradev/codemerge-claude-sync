@@ -1,15 +1,22 @@
-import { Box, Tabs, Tab, useMediaQuery, CssBaseline } from '@mui/material';
+import { Box, Tabs, Tab, useMediaQuery, CssBaseline, CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useState, useEffect, useMemo } from 'react';
 import BuildIcon from '@mui/icons-material/Build';
 
 import useSelectionStore from '@/sidebar/store/selectionStore';
 import useConfigStore from '@/sidebar/store/configStore';
-import ArtifactsView from '@/sidebar/tabs/artifacts';
-import SettingsView from '@/sidebar/tabs/settings';
-import ToolsView from '@/sidebar/tabs/tools';
-import SyncView from '@/sidebar/tabs/sync';
+
+const ArtifactsView = lazy(() => import('@/sidebar/tabs/artifacts'));
+const SettingsView = lazy(() => import('@/sidebar/tabs/settings'));
+const ToolsView = lazy(() => import('@/sidebar/tabs/tools'));
+const SyncView = lazy(() => import('@/sidebar/tabs/sync'));
+
+const FallbackLoader = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <CircularProgress size={32} />
+    </Box>
+);
 
 const App = () => {
     const [currentTab, setCurrentTab] = useState(0);
@@ -46,23 +53,23 @@ const App = () => {
                 MuiCssBaseline: {
                     styleOverrides: (themeParam) => ({
                         body: {
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: `${alpha(themeParam.palette.text.primary, 0.1)} transparent`,
-                        '&::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
-                        '&::-webkit-scrollbar-track': { background: 'transparent' },
-                        '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
-                            borderRadius: SCROLLBAR_RADIUS,
-                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
-                        },
-                        '&::-webkit-scrollbar-corner': { background: 'transparent' },
-                        '& *::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
-                        '& *::-webkit-scrollbar-track': { background: 'transparent' },
-                        '& *::-webkit-scrollbar-thumb': {
-                            backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
-                            borderRadius: SCROLLBAR_RADIUS,
-                            '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
-                        }
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: `${alpha(themeParam.palette.text.primary, 0.1)} transparent`,
+                            '&::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
+                            '&::-webkit-scrollbar-track': { background: 'transparent' },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
+                                borderRadius: SCROLLBAR_RADIUS,
+                                '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
+                            },
+                            '&::-webkit-scrollbar-corner': { background: 'transparent' },
+                            '& *::-webkit-scrollbar': { width: SCROLLBAR_SIZE, height: SCROLLBAR_SIZE },
+                            '& *::-webkit-scrollbar-track': { background: 'transparent' },
+                            '& *::-webkit-scrollbar-thumb': {
+                                backgroundColor: alpha(themeParam.palette.text.primary, 0.1),
+                                borderRadius: SCROLLBAR_RADIUS,
+                                '&:hover': { backgroundColor: alpha(themeParam.palette.text.primary, 0.12) }
+                            }
                         }
                     })
                 },
@@ -103,16 +110,32 @@ const App = () => {
                 </Box>
 
                 <Box role="tabpanel" hidden={currentTab !== 0} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 0 && <SyncView fetchViaBackground={fetchViaBackground} />}
+                    {currentTab === 0 && (
+                        <Suspense fallback={<FallbackLoader />}>
+                            <SyncView fetchViaBackground={fetchViaBackground} />
+                        </Suspense>
+                    )}
                 </Box>
                 <Box role="tabpanel" hidden={currentTab !== 1} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 1 && <ArtifactsView fetchViaBackground={fetchViaBackground} />}
+                    {currentTab === 1 && (
+                        <Suspense fallback={<FallbackLoader />}>
+                            <ArtifactsView fetchViaBackground={fetchViaBackground} />
+                        </Suspense>
+                    )}
                 </Box>
                 <Box role="tabpanel" hidden={currentTab !== 2} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 2 && <ToolsView fetchViaBackground={fetchViaBackground} />}
+                    {currentTab === 2 && (
+                        <Suspense fallback={<FallbackLoader />}>
+                            <ToolsView fetchViaBackground={fetchViaBackground} />
+                        </Suspense>
+                    )}
                 </Box>
                 <Box role="tabpanel" hidden={currentTab !== 3} sx={{ flexGrow: 1, height: 'calc(100% - 49px)' }}>
-                    {currentTab === 3 && <SettingsView />}
+                    {currentTab === 3 && (
+                        <Suspense fallback={<FallbackLoader />}>
+                            <SettingsView />
+                        </Suspense>
+                    )}
                 </Box>
             </Box>
         </ThemeProvider>

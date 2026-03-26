@@ -1,9 +1,9 @@
-import react from '@vitejs/plugin-react'
-import { crx } from '@crxjs/vite-plugin'
-import { defineConfig } from 'vite'
-import path from 'path'
+import react from '@vitejs/plugin-react';
+import { crx } from '@crxjs/vite-plugin';
+import { defineConfig } from 'vite';
+import path from 'path';
 
-import manifest from './manifest.json'
+import manifest from './manifest.json';
 
 export default defineConfig({
   plugins: [
@@ -14,5 +14,18 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          mui: ['@mui/material', '@emotion/react', '@emotion/styled'],
+          icons: ['@mui/icons-material', 'react-icons'],
+          react: ['react', 'react-dom'],
+          vendor: ['zustand']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 800
   }
-})
+});
