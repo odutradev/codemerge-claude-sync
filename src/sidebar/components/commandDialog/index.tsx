@@ -2,12 +2,10 @@ import { Typography, IconButton, CircularProgress, Alert, Button, Box, DialogCon
 import { MdRefresh, MdTerminal, MdClose, MdInput } from 'react-icons/md';
 
 import { StyledDialog, StyledDialogTitle, TitleContent, IconWrapper, LoaderContainer, InfoGrid, CodeBox, StyledDialogActions, CommandText } from './styles';
-import type { CommandOutput } from '@/sidebar/types';
 import { renderAnsi } from './ansi';
+import type { CommandDialogProps } from './types';
 
-interface Props { cmdDialogOpen: boolean; setCmdDialogOpen: (v: boolean) => void; cmdLoading: boolean; cmdOutput: CommandOutput | null; handleFetchCommandOutput: () => void; handleInjectOutput: () => void; }
-
-export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmdOutput, handleFetchCommandOutput, handleInjectOutput }: Props) => (
+export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmdOutput, handleFetchCommandOutput, handleInjectOutput }: CommandDialogProps) => (
     <StyledDialog open={cmdDialogOpen} onClose={() => setCmdDialogOpen(false)} maxWidth="md" fullWidth>
         <StyledDialogTitle>
             <TitleContent>

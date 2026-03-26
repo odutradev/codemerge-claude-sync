@@ -1,10 +1,9 @@
 import { MdSettings, MdBuild } from 'react-icons/md';
 
 import { TabsContainer, StyledTabs, StyledTab, IconTab } from './styles';
+import type { NavigationTabsProps } from './types';
 
-interface Props { currentTab: number; setCurrentTab: (val: number) => void; }
-
-export const NavigationTabs = ({ currentTab, setCurrentTab }: Props) => (
+export const NavigationTabs = ({ currentTab, setCurrentTab }: NavigationTabsProps) => (
     <TabsContainer>
         <StyledTabs value={currentTab} onChange={(_, v) => setCurrentTab(v)} variant="standard" textColor="primary" indicatorColor="primary">
             <StyledTab label="Sync" />

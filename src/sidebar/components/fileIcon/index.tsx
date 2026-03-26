@@ -3,10 +3,9 @@ import { VscFile, VscFileBinary, VscFilePdf, VscFileMedia, VscFileZip, VscTermin
 import { FaJava, FaFileCode } from 'react-icons/fa';
 
 import { IconWrapper } from './styles';
+import type { FileIconProps } from './types';
 
-interface Props { fileName?: string; sx?: object; }
-
-const FileIcon = ({ fileName, sx = {} }: Props) => {
+const FileIcon = ({ fileName, sx = {} }: FileIconProps) => {
     const ext = fileName ? fileName.split('.').pop()?.toLowerCase() || '' : '';
     const name = fileName ? fileName.toLowerCase() : '';
     if (name === 'dockerfile') return <IconWrapper customcolor="#2496ED" sx={sx}><SiDocker /></IconWrapper>;

@@ -1,10 +1,7 @@
-import type { ReactNode } from 'react';
-
 import { PanelContainer } from './styles';
+import type { TabPanelProps } from './types';
 
-interface Props { children: ReactNode; currentTab: number; index: number; }
-
-export const TabPanel = ({ children, currentTab, index }: Props) => (
+export const TabPanel = ({ children, currentTab, index }: TabPanelProps) => (
     <PanelContainer role="tabpanel" hidden={currentTab !== index}>
         {currentTab === index && children}
     </PanelContainer>

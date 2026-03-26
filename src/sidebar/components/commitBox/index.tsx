@@ -3,12 +3,11 @@ import { MdTranslate, MdRestore } from 'react-icons/md';
 import { VscGitCommit } from 'react-icons/vsc';
 
 import { CommitPaper, HeaderBox, TitleTypography, ActionBox, StyledSelect, StyledMenuItem, StyledTextField, StyledButton } from './styles';
-
-interface Props { commitType: string; setCommitType: (v: string) => void; translateCommit: boolean; setTranslateCommit: (v: boolean) => void; commitMessage: string; setCommitMessage: (v: string) => void; originalCommitMessage: string; originalCommitType: string; handleCommit: () => void; actionLoading: boolean; serverStatus: string; }
+import type { CommitBoxProps } from './types';
 
 const COMMIT_TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
 
-export const CommitBox = ({ commitType, setCommitType, translateCommit, setTranslateCommit, commitMessage, setCommitMessage, originalCommitMessage, originalCommitType, handleCommit, actionLoading, serverStatus }: Props) => (
+export const CommitBox = ({ commitType, setCommitType, translateCommit, setTranslateCommit, commitMessage, setCommitMessage, originalCommitMessage, originalCommitType, handleCommit, actionLoading, serverStatus }: CommitBoxProps) => (
     <CommitPaper variant="outlined">
         <HeaderBox>
             <TitleTypography variant="caption">MENSAGEM DE COMMIT</TitleTypography>
