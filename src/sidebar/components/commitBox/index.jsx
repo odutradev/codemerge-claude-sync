@@ -1,7 +1,6 @@
 import { Box, Typography, Button, TextField, Paper, IconButton, Select, MenuItem, Tooltip } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import TranslateIcon from '@mui/icons-material/Translate';
-import CommitIcon from '@mui/icons-material/Commit';
+import { MdTranslate, MdRestore } from 'react-icons/md';
+import { VscGitCommit } from 'react-icons/vsc';
 
 const COMMIT_TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
 
@@ -15,12 +14,12 @@ export const CommitBox = ({ commitType, setCommitType, translateCommit, setTrans
                 </Select>
                 <Tooltip title={translateCommit ? 'Tradução Automática: Ativada' : 'Tradução Automática: Desativada'}>
                     <IconButton size="small" onClick={() => setTranslateCommit(!translateCommit)} color={translateCommit ? 'primary' : 'default'} disabled={actionLoading}>
-                        <TranslateIcon fontSize="small" />
+                        <MdTranslate size={20} />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Restaurar Mensagem Original">
                     <IconButton size="small" onClick={() => { setCommitMessage(originalCommitMessage); setCommitType(originalCommitType); }} disabled={(commitMessage === originalCommitMessage && commitType === originalCommitType) || actionLoading || !originalCommitMessage}>
-                        <RestartAltIcon fontSize="small" />
+                        <MdRestore size={20} />
                     </IconButton>
                 </Tooltip>
             </Box>
@@ -41,7 +40,7 @@ export const CommitBox = ({ commitType, setCommitType, translateCommit, setTrans
             variant="contained"
             onClick={handleCommit}
             disabled={actionLoading || !commitMessage.trim() || serverStatus !== 'connected'}
-            startIcon={<CommitIcon />}
+            startIcon={<VscGitCommit size={20} />}
             fullWidth
             disableElevation
             sx={{ textTransform: 'none' }}

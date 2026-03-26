@@ -1,8 +1,7 @@
 import { Box, Tabs, Tab, useMediaQuery, CssBaseline, CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import SettingsIcon from '@mui/icons-material/Settings';
-import BuildIcon from '@mui/icons-material/Build';
+import { MdSettings, MdBuild } from 'react-icons/md';
 
 import useSelectionStore from '@/sidebar/store/selectionStore';
 import useConfigStore from '@/sidebar/store/configStore';
@@ -32,7 +31,6 @@ const App = () => {
     const theme = useMemo(() => {
         const mode = themeMode === 'system' ? (prefersDarkMode ? 'dark' : 'light') : themeMode;
         const isDark = mode === 'dark';
-
         const SCROLLBAR_SIZE = '3px';
         const SCROLLBAR_RADIUS = '3px';
 
@@ -104,8 +102,8 @@ const App = () => {
                     >
                         <Tab label="Sync" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
                         <Tab label="Artefatos" sx={{ flexGrow: 1, flexBasis: 0, maxWidth: 'none' }} />
-                        <Tab icon={<BuildIcon fontSize="small" />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
-                        <Tab icon={<SettingsIcon fontSize="small" />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
+                        <Tab icon={<MdBuild size={20} />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
+                        <Tab icon={<MdSettings size={20} />} sx={{ minWidth: 48, width: 48, padding: 0 }} />
                     </Tabs>
                 </Box>
 

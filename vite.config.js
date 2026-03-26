@@ -1,6 +1,6 @@
-import react from '@vitejs/plugin-react';
-import { crx } from '@crxjs/vite-plugin';
 import { defineConfig } from 'vite';
+import { crx } from '@crxjs/vite-plugin';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
 import manifest from './manifest.json';
@@ -20,7 +20,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           mui: ['@mui/material', '@emotion/react', '@emotion/styled'],
-          icons: ['@mui/icons-material', 'react-icons'],
+          icons: ['react-icons'],
           react: ['react', 'react-dom'],
           vendor: ['zustand']
         }

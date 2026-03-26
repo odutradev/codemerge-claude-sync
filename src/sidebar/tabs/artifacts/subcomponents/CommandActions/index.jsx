@@ -1,5 +1,5 @@
 import { Box, Typography, Button, List, ListItem, Checkbox, Paper, Tooltip } from '@mui/material';
-import TerminalIcon from '@mui/icons-material/Terminal';
+import { MdTerminal } from 'react-icons/md';
 
 import { paperStyles, headerBoxStyles, listItemStyles } from './styles';
 
@@ -33,7 +33,7 @@ export const CommandActions = ({ commandsToExecute, selectedCommands, toggleComm
                     ))}
                 </List>
             </Paper>
-            <Button variant="contained" color="info" onClick={handleExecuteCommands} disabled={actionLoading || !hasSelection || serverStatus !== 'connected'} fullWidth disableElevation startIcon={<TerminalIcon />} sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}>
+            <Button variant="contained" color="info" onClick={handleExecuteCommands} disabled={actionLoading || !hasSelection || serverStatus !== 'connected'} fullWidth disableElevation startIcon={<MdTerminal size={20} />} sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}>
                 Executar Comandos
             </Button>
         </Box>

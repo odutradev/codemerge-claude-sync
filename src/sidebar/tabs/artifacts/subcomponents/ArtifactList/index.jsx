@@ -1,7 +1,5 @@
 import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress, Tooltip } from '@mui/material';
-import DeselectIcon from '@mui/icons-material/Deselect';
-import UploadIcon from '@mui/icons-material/Upload';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md';
 
 import { paperStyles, headerBoxStyles, clearBtnStyles, listItemStyles, deleteListItemStyles, emptyBoxStyles } from './styles';
 import FileIcon from '@/sidebar/components/fileIcon';
@@ -16,7 +14,7 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
     if (totalItems === 0) {
         return (
             <Box sx={emptyBoxStyles}>
-                <DeselectIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+                <Box component={MdDeselect} sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography variant="body2" color="text.secondary">Nenhum artefato ou arquivo para apagar</Typography>
             </Box>
         );
@@ -48,7 +46,7 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
                                         </Typography>
                                     </Tooltip>
                                 </Box>
-                                <DeleteIcon sx={{ fontSize: 16, color: 'error.main', opacity: 0.7 }} />
+                                <Box component={MdDelete} sx={{ fontSize: 16, color: 'error.main', opacity: 0.7 }} />
                             </Box>
                         </ListItem>
                     ))}
@@ -74,7 +72,7 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
                     ))}
                 </List>
             </Paper>
-            <Button variant="contained" onClick={handleApplyAll} disabled={actionLoading || !hasActions || serverStatus !== 'connected'} fullWidth disableElevation startIcon={<UploadIcon />} sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}>
+            <Button variant="contained" onClick={handleApplyAll} disabled={actionLoading || !hasActions || serverStatus !== 'connected'} fullWidth disableElevation startIcon={<MdUpload size={20} />} sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}>
                 Aplicar Sincronização
             </Button>
         </>

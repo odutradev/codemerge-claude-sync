@@ -1,4 +1,4 @@
-import { FormatAlignLeft, InsertDriveFile, PushPinOutlined, ContentCopy, CloudUpload, AccessTime, PushPin, Refresh, Search, Star } from '@mui/icons-material';
+import { MdFormatAlignLeft, MdInsertDriveFile, MdOutlinePushPin, MdContentCopy, MdCloudUpload, MdAccessTime, MdPushPin, MdRefresh, MdSearch, MdStar } from 'react-icons/md';
 import { CircularProgress, InputAdornment, IconButton, Typography, TextField, Snackbar, Tooltip, Button, Alert, Paper, Box } from '@mui/material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { keyframes, alpha } from '@mui/material/styles';
@@ -202,7 +202,7 @@ const SyncView = ({ fetchViaBackground }) => {
                         sx={{ '& .MuiOutlinedInput-root': { animation: statusProps.borderAnimation, '& fieldset': { borderColor: statusProps.borderColor } } }}
                     />
                     <Button variant="outlined" onClick={handleFetchStructure} disabled={loading || isChecking || serverStatus !== 'connected'} sx={{ minWidth: 'auto', px: 2 }}>
-                        {loading ? <CircularProgress size={20} /> : <Refresh />}
+                        {loading ? <CircularProgress size={20} /> : <MdRefresh size={20} />}
                     </Button>
                 </Box>
             </Box>
@@ -211,17 +211,17 @@ const SyncView = ({ fetchViaBackground }) => {
                 <>
                     <Paper variant="outlined" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', mb: 2 }}>
                         <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
-                            <Search sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                            <Box component={MdSearch} sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
                             <input style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.875rem' }}
                                 placeholder="Filtrar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             <Tooltip title={isCopyMode ? "Modo de cópia ativado" : "Ativar modo de cópia de caminho"}>
                                 <IconButton size="small" onClick={() => setIsCopyMode(!isCopyMode)} color={isCopyMode ? "primary" : "default"}>
-                                    <ContentCopy fontSize="small" />
+                                    <MdContentCopy size={20} />
                                 </IconButton>
                             </Tooltip>
                             <Tooltip title={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}>
                                 <IconButton size="small" onClick={() => setPersistSelection(!persistSelection)} color={persistSelection ? "primary" : "default"}>
-                                    {persistSelection ? <PushPin fontSize="small" /> : <PushPinOutlined fontSize="small" />}
+                                    {persistSelection ? <MdPushPin size={20} /> : <MdOutlinePushPin size={20} />}
                                 </IconButton>
                             </Tooltip>
                         </Box>
@@ -247,33 +247,33 @@ const SyncView = ({ fetchViaBackground }) => {
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 <Tooltip title="Arquivos selecionados">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <InsertDriveFile sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Box component={MdInsertDriveFile} sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.files}</Typography>
                                     </Box>
                                 </Tooltip>
                                 <Tooltip title="Total de linhas">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <FormatAlignLeft sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Box component={MdFormatAlignLeft} sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.lines}</Typography>
                                     </Box>
                                 </Tooltip>
                                 <Tooltip title="Favoritos">
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <Star sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                        <Box component={MdStar} sx={{ fontSize: 16, color: 'text.secondary' }} />
                                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{pinnedPaths.size}</Typography>
                                     </Box>
                                 </Tooltip>
                             </Box>
                             <Tooltip title="Última atualização da árvore">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                    <Box component={MdAccessTime} sx={{ fontSize: 16, color: 'text.secondary' }} />
                                     <Typography variant="caption" color="text.secondary">{stats.lastUpdate}</Typography>
                                 </Box>
                             </Tooltip>
                         </Box>
                     </Paper>
 
-                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<CloudUpload />}>
+                    <Button variant="contained" onClick={handleSync} disabled={loading || selectedPaths.size === 0 || serverStatus !== 'connected'} fullWidth startIcon={<MdCloudUpload size={20} />}>
                         Sincronizar Selecionados
                     </Button>
                 </>

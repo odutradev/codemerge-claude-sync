@@ -1,4 +1,4 @@
-import { SettingsBrightness, PushPinOutlined, LibraryAddCheck, NotificationsOff, DeleteForever, DeleteSweep, Notifications, ErrorOutline, AutoFixHigh, ViewHeadline, ViewCompact, RestartAlt, ColorLens, LightMode, DarkMode, PushPin, Terminal, Translate, History, Timer } from '@mui/icons-material';
+import { MdSettingsBrightness, MdOutlinePushPin, MdLibraryAddCheck, MdNotificationsOff, MdDeleteForever, MdDeleteSweep, MdNotifications, MdErrorOutline, MdAutoFixHigh, MdViewHeadline, MdViewCompact, MdColorLens, MdLightMode, MdDarkMode, MdPushPin, MdTerminal, MdTranslate, MdHistory, MdRestore, MdTimer } from 'react-icons/md';
 import { ToggleButtonGroup, FormControlLabel, InputAdornment, ToggleButton, Typography, IconButton, TextField, Checkbox, Snackbar, Divider, Button, Alert, Paper, Box } from '@mui/material';
 import { useRef, useState, useEffect } from 'react';
 
@@ -43,24 +43,24 @@ const SettingsView = () => {
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Aparência</Typography>
                     <ToggleButtonGroup value={themeMode} exclusive onChange={(_, v) => v && setThemeMode(v)} size="small" fullWidth>
-                        <ToggleButton value="light"><LightMode fontSize="small" sx={{ mr: 1 }} />Claro</ToggleButton>
-                        <ToggleButton value="system"><SettingsBrightness fontSize="small" sx={{ mr: 1 }} />Auto</ToggleButton>
-                        <ToggleButton value="dark"><DarkMode fontSize="small" sx={{ mr: 1 }} />Escuro</ToggleButton>
+                        <ToggleButton value="light"><MdLightMode size={20} style={{ marginRight: 8 }} />Claro</ToggleButton>
+                        <ToggleButton value="system"><MdSettingsBrightness size={20} style={{ marginRight: 8 }} />Auto</ToggleButton>
+                        <ToggleButton value="dark"><MdDarkMode size={20} style={{ marginRight: 8 }} />Escuro</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Densidade</Typography>
                     <ToggleButtonGroup value={compactMode ? 'compact' : 'normal'} exclusive onChange={(_, v) => v && setCompactMode(v === 'compact')} size="small" fullWidth>
-                        <ToggleButton value="normal"><ViewHeadline fontSize="small" sx={{ mr: 1 }} />Normal</ToggleButton>
-                        <ToggleButton value="compact"><ViewCompact fontSize="small" sx={{ mr: 1 }} />Compacto</ToggleButton>
+                        <ToggleButton value="normal"><MdViewHeadline size={20} style={{ marginRight: 8 }} />Normal</ToggleButton>
+                        <ToggleButton value="compact"><MdViewCompact size={20} style={{ marginRight: 8 }} />Compacto</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Notificações</Typography>
                     <ToggleButtonGroup value={verbosity} exclusive onChange={(_, v) => v && setVerbosity(v)} size="small" fullWidth>
-                        <ToggleButton value="all"><Notifications fontSize="small" sx={{ mr: 1 }} />Tudo</ToggleButton>
-                        <ToggleButton value="errors"><ErrorOutline fontSize="small" sx={{ mr: 1 }} />Erros</ToggleButton>
-                        <ToggleButton value="silent"><NotificationsOff fontSize="small" sx={{ mr: 1 }} />Mudo</ToggleButton>
+                        <ToggleButton value="all"><MdNotifications size={20} style={{ marginRight: 8 }} />Tudo</ToggleButton>
+                        <ToggleButton value="errors"><MdErrorOutline size={20} style={{ marginRight: 8 }} />Erros</ToggleButton>
+                        <ToggleButton value="silent"><MdNotificationsOff size={20} style={{ marginRight: 8 }} />Mudo</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box>
@@ -76,7 +76,7 @@ const SettingsView = () => {
                         ))}
                         <Box sx={{ position: 'relative' }}>
                             <IconButton onClick={() => colorInputRef.current?.click()} sx={{ width: 32, height: 32, border: '1px solid', borderColor: 'divider', p: 0 }}>
-                                <ColorLens fontSize="small" style={{ color: primaryColor }} />
+                                <MdColorLens size={20} style={{ color: primaryColor }} />
                             </IconButton>
                             <input ref={colorInputRef} type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
@@ -87,27 +87,27 @@ const SettingsView = () => {
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle2" color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                    <AutoFixHigh fontSize="small" sx={{ mr: 1 }} /> Git & Comandos
+                    <MdAutoFixHigh size={20} style={{ marginRight: 8 }} /> Git & Comandos
                 </Typography>
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Tradução Automática de Commits</Typography>
                     <ToggleButtonGroup value={translateCommit ? 'on' : 'off'} exclusive onChange={(_, v) => v && setTranslateCommit(v === 'on')} size="small" fullWidth>
                         <ToggleButton value="off">Inativo</ToggleButton>
-                        <ToggleButton value="on" color="primary"><Translate fontSize="small" sx={{ mr: 1 }} />Ativo</ToggleButton>
+                        <ToggleButton value="on" color="primary"><MdTranslate size={20} style={{ marginRight: 8 }} />Ativo</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ mb: 1 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Modal de Output</Typography>
                     <ToggleButtonGroup value={showCommandModal ? 'on' : 'off'} exclusive onChange={(_, v) => v && setShowCommandModal(v === 'on')} size="small" fullWidth>
                         <ToggleButton value="off">Ocultar</ToggleButton>
-                        <ToggleButton value="on" color="primary"><Terminal fontSize="small" sx={{ mr: 1 }} />Exibir</ToggleButton>
+                        <ToggleButton value="on" color="primary"><MdTerminal size={20} style={{ marginRight: 8 }} />Exibir</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
             </Paper>
 
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle2" color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                    <AutoFixHigh fontSize="small" sx={{ mr: 1 }} /> Limpeza de Código
+                    <MdAutoFixHigh size={20} style={{ marginRight: 8 }} /> Limpeza de Código
                 </Typography>
                 <Box sx={{ mb: 2 }}>
                     <ToggleButtonGroup value={removeComments ? 'on' : 'off'} exclusive onChange={(_, v) => v && setRemoveComments(v === 'on')} size="small" fullWidth>
@@ -127,26 +127,26 @@ const SettingsView = () => {
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Persistência</Typography>
                     <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={(_, v) => v && setPersistSelection(v === 'on')} size="small" fullWidth>
-                        <ToggleButton value="off"><PushPinOutlined fontSize="small" sx={{ mr: 1 }} />Volátil</ToggleButton>
-                        <ToggleButton value="on"><PushPin fontSize="small" sx={{ mr: 1 }} />Manter Seleção</ToggleButton>
+                        <ToggleButton value="off"><MdOutlinePushPin size={20} style={{ marginRight: 8 }} />Volátil</ToggleButton>
+                        <ToggleButton value="on"><MdPushPin size={20} style={{ marginRight: 8 }} />Manter Seleção</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ mb: 3 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Auto-selecionar Artefatos</Typography>
                     <ToggleButtonGroup value={autoSelectSynced ? 'on' : 'off'} exclusive onChange={(_, v) => v && setAutoSelectSynced(v === 'on')} size="small" fullWidth>
                         <ToggleButton value="off">Inativo</ToggleButton>
-                        <ToggleButton value="on" color="primary"><LibraryAddCheck fontSize="small" sx={{ mr: 1 }} />Ativo</ToggleButton>
+                        <ToggleButton value="on" color="primary"><MdLibraryAddCheck size={20} style={{ marginRight: 8 }} />Ativo</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                    <Button variant="outlined" color="warning" startIcon={<DeleteSweep />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache de seleções limpo', type: 'success' }); }} fullWidth size="small">Limpar Cache de Seleções</Button>
-                    <Button variant="outlined" color="warning" startIcon={<History />} onClick={() => { clearAllHistory(); setMessage({ open: true, text: 'Histórico de artefatos limpo', type: 'success' }); }} fullWidth size="small">Limpar Histórico de Artefatos</Button>
-                    <Button variant="outlined" color="error" startIcon={<DeleteForever />} onClick={() => { clearAllSelections(); clearAllHistory(); setMessage({ open: true, text: 'Todo o cache foi limpo', type: 'success' }); }} fullWidth size="small">Limpar Todo o Cache</Button>
+                    <Button variant="outlined" color="warning" startIcon={<MdDeleteSweep size={20} />} onClick={() => { clearAllSelections(); setMessage({ open: true, text: 'Cache de seleções limpo', type: 'success' }); }} fullWidth size="small">Limpar Cache de Seleções</Button>
+                    <Button variant="outlined" color="warning" startIcon={<MdHistory size={20} />} onClick={() => { clearAllHistory(); setMessage({ open: true, text: 'Histórico de artefatos limpo', type: 'success' }); }} fullWidth size="small">Limpar Histórico de Artefatos</Button>
+                    <Button variant="outlined" color="error" startIcon={<MdDeleteForever size={20} />} onClick={() => { clearAllSelections(); clearAllHistory(); setMessage({ open: true, text: 'Todo o cache foi limpo', type: 'success' }); }} fullWidth size="small">Limpar Todo o Cache</Button>
                 </Box>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Check Interval (ms)</Typography>
-                <TextField fullWidth variant="outlined" size="small" type="number" value={checkInterval} onChange={(e) => setCheckInterval(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><Timer fontSize="small" /></InputAdornment>) }} sx={{ mb: 2 }} />
-                <Button variant="outlined" color="error" startIcon={<RestartAlt />} onClick={handleReset} fullWidth size="small">Restaurar Padrões</Button>
+                <TextField fullWidth variant="outlined" size="small" type="number" value={checkInterval} onChange={(e) => setCheckInterval(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><MdTimer size={20} /></InputAdornment>) }} sx={{ mb: 2 }} />
+                <Button variant="outlined" color="error" startIcon={<MdRestore size={20} />} onClick={handleReset} fullWidth size="small">Restaurar Padrões</Button>
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 4 }}>CodeMerge Sync v{version}</Typography>

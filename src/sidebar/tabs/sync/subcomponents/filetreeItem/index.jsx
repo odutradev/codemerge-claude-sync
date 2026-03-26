@@ -1,4 +1,4 @@
-import { KeyboardArrowRight, KeyboardArrowDown, StarOutline, FolderOpen, Folder, Star } from '@mui/icons-material';
+import { MdKeyboardArrowRight, MdKeyboardArrowDown, MdStarOutline, MdFolderOpen, MdFolder, MdStar } from 'react-icons/md';
 import { Collapse, Box, Checkbox, Typography, IconButton } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 
@@ -82,7 +82,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
             onClick={handleExpandClick}
             sx={{ p: 0.5, mr: 0.5 }}
           >
-            {isExpanded ? <KeyboardArrowDown sx={{ fontSize: iconSize }} /> : <KeyboardArrowRight sx={{ fontSize: iconSize }} />}
+            {isExpanded ? <MdKeyboardArrowDown size={iconSize} /> : <MdKeyboardArrowRight size={iconSize} />}
           </IconButton>
         ) : (
           <Box sx={{ width: 24, mr: 0.5 }} />
@@ -100,7 +100,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
 
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 1, overflow: 'hidden', flexGrow: 1 }}>
             {node.type === 'directory' ?
-                (isExpanded ? <FolderOpen sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <Folder sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
+                (isExpanded ? <Box component={MdFolderOpen} sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} /> : <Box component={MdFolder} sx={{ mr: 1, color: 'text.secondary', fontSize: iconSize }} />)
                 :
                 <Box sx={{ mr: 1, display: 'flex' }}>
                     <FileIcon fileName={node.name} sx={{ fontSize: iconSize }} />
@@ -123,7 +123,7 @@ const FileTreeItem = ({ node, level = 0, selectedPaths, expandedPaths, pinnedPat
                 onClick={(e) => { e.stopPropagation(); onTogglePin(node.path); }}
                 sx={{ p: 0.25, ml: 1, opacity: isPinned ? 1 : 0, transition: 'opacity 0.2s' }}
             >
-                {isPinned ? <Star sx={{ fontSize: iconSize - 2, color: 'warning.main' }} /> : <StarOutline sx={{ fontSize: iconSize - 2, color: 'text.secondary' }} />}
+                {isPinned ? <Box component={MdStar} sx={{ fontSize: iconSize - 2, color: 'warning.main' }} /> : <Box component={MdStarOutline} sx={{ fontSize: iconSize - 2, color: 'text.secondary' }} />}
             </IconButton>
         )}
       </Box>

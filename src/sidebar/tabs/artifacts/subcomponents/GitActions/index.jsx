@@ -1,10 +1,6 @@
-import { Box, Typography, Button, TextField, Paper, IconButton, Select, MenuItem, Tooltip } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import TranslateIcon from '@mui/icons-material/Translate';
+import { Box, Typography, Button, Paper } from '@mui/material';
 import { useState, useEffect, useMemo } from 'react';
-import CommitIcon from '@mui/icons-material/Commit';
-import SearchIcon from '@mui/icons-material/Search';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { MdSearch, MdDelete } from 'react-icons/md';
 import { alpha } from '@mui/material/styles';
 
 import FileTreeItem from '@/sidebar/tabs/sync/subcomponents/filetreeItem';
@@ -89,7 +85,7 @@ export const GitActions = ({
                         </Button>
                     </Box>
                     <Box sx={{ p: 1, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
-                        <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 18 }} />
+                        <Box component={MdSearch} sx={{ color: 'text.secondary', mr: 1, fontSize: 18 }} />
                         <input
                             style={{ border: 'none', outline: 'none', flexGrow: 1, background: 'transparent', color: 'inherit', fontSize: '0.8rem' }}
                             placeholder="Filtrar..."
@@ -116,7 +112,7 @@ export const GitActions = ({
                             color="error"
                             onClick={() => handleDeleteFiles(Array.from(selectedPaths))}
                             disabled={actionLoading || selectedPaths.size === 0 || serverStatus !== 'connected'}
-                            startIcon={<DeleteIcon />}
+                            startIcon={<MdDelete size={20} />}
                             fullWidth
                             disableElevation
                             sx={{ textTransform: 'none' }}

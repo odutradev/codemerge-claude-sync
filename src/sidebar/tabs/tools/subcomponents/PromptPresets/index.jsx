@@ -1,10 +1,5 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Button, TextField, IconButton, List, ListItem, Tooltip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import DeleteIcon from '@mui/icons-material/Delete';
-import InputIcon from '@mui/icons-material/Input';
-import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
+import { MdContentCopy, MdExpandMore, MdDelete, MdInput, MdEdit, MdAdd } from 'react-icons/md';
 
 import { accordionStyles, accordionSummaryStyles, accordionDetailsStyles, headerBoxStyles, listStyles, listItemStyles, itemHeaderStyles, actionsBoxStyles, promptTextStyles } from './styles';
 import { usePromptPresets } from '@/sidebar/tabs/tools/hooks/usePromptPresets';
@@ -15,10 +10,10 @@ export const PromptPresets = ({ showNotification }) => {
     return (
         <>
             <Accordion sx={accordionStyles}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={accordionSummaryStyles}>
+                <AccordionSummary expandIcon={<MdExpandMore size={24} />} sx={accordionSummaryStyles}>
                     <Box sx={headerBoxStyles}>
                         <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>PRESETS DE PROMPT</Typography>
-                        <Button size="small" startIcon={<AddIcon />} onClick={(e) => { e.stopPropagation(); actions.handleOpenDialog(); }} sx={{ fontSize: '0.75rem', textTransform: 'none' }}>
+                        <Button size="small" startIcon={<MdAdd size={20} />} onClick={(e) => { e.stopPropagation(); actions.handleOpenDialog(); }} sx={{ fontSize: '0.75rem', textTransform: 'none' }}>
                             Novo Preset
                         </Button>
                     </Box>
@@ -36,22 +31,22 @@ export const PromptPresets = ({ showNotification }) => {
                                         <Box sx={actionsBoxStyles}>
                                             <Tooltip title="Inserir no chat">
                                                 <IconButton size="small" onClick={() => actions.handleInject(preset.prompt)} sx={{ color: '#ffffff' }}>
-                                                    <InputIcon fontSize="small" />
+                                                    <MdInput size={20} />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Copiar Prompt">
                                                 <IconButton size="small" onClick={() => actions.handleCopy(preset.prompt)} sx={{ color: '#ffffff' }}>
-                                                    <ContentCopyIcon fontSize="small" />
+                                                    <MdContentCopy size={20} />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Editar">
                                                 <IconButton size="small" onClick={() => actions.handleOpenDialog(preset)} sx={{ color: '#ffffff' }}>
-                                                    <EditIcon fontSize="small" />
+                                                    <MdEdit size={20} />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Remover">
                                                 <IconButton size="small" onClick={() => actions.handleDelete(preset.id)} sx={{ color: '#ffffff' }}>
-                                                <DeleteIcon fontSize="small" />
+                                                <MdDelete size={20} />
                                                 </IconButton>
                                             </Tooltip>
                                         </Box>

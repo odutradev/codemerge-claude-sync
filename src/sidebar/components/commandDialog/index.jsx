@@ -1,8 +1,5 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, IconButton, CircularProgress, Alert, Button } from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import TerminalIcon from '@mui/icons-material/Terminal';
-import CloseIcon from '@mui/icons-material/Close';
-import InputIcon from '@mui/icons-material/Input';
+import { MdRefresh, MdTerminal, MdClose, MdInput } from 'react-icons/md';
 
 import { dialogTitleStyles, loaderContainerStyles, infoGridStyles, codeBoxStyles } from './styles';
 import { renderAnsi } from './ansi';
@@ -11,11 +8,11 @@ export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmd
     <Dialog open={cmdDialogOpen} onClose={() => setCmdDialogOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={dialogTitleStyles}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TerminalIcon color="primary" />
+                <Box component={MdTerminal} sx={{ color: 'primary.main', fontSize: 24 }} />
                 <Typography variant="h6">{cmdOutput?.type === 'commit' ? 'Output do Commit' : 'Output do Comando'}</Typography>
             </Box>
             <IconButton size="small" onClick={() => setCmdDialogOpen(false)}>
-                <CloseIcon />
+                <MdClose size={20} />
             </IconButton>
         </DialogTitle>
         <DialogContent dividers>
@@ -49,8 +46,8 @@ export const CommandDialog = ({ cmdDialogOpen, setCmdDialogOpen, cmdLoading, cmd
         </DialogContent>
         {cmdOutput?.type !== 'commit' && (
             <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button startIcon={<RefreshIcon />} onClick={handleFetchCommandOutput} disabled={cmdLoading}>Atualizar</Button>
-                <Button variant="contained" startIcon={<InputIcon />} onClick={handleInjectOutput} disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'} disableElevation>Inserir no Chat</Button>
+                <Button startIcon={<MdRefresh size={20} />} onClick={handleFetchCommandOutput} disabled={cmdLoading}>Atualizar</Button>
+                <Button variant="contained" startIcon={<MdInput size={20} />} onClick={handleInjectOutput} disabled={cmdLoading || !cmdOutput || cmdOutput.status === 'no_command_executed'} disableElevation>Inserir no Chat</Button>
             </DialogActions>
         )}
     </Dialog>
