@@ -2,32 +2,16 @@ const getCookieValue = (name) => document.cookie.split('; ').find(c => c.startsW
 
 const getOrgId = () => getCookieValue('lastActiveOrg');
 
-const getDeviceId = () => getCookieValue('anthropic-device-id');
-
 const getChatId = () => window.location.pathname.split('/').pop();
 
-const getAnonymousId = () => localStorage.getItem('ajs_anonymous_id')?.replace(/^"|"$/g, '');
+const fetchFile = async (path) => '';
 
 const fetchConversation = async () => {
     const orgId = getOrgId();
     const chatId = getChatId();
     if (!orgId || !chatId) return null;
     const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}?tree=True&rendering_mode=messages&render_all_tools=true`;
-    const response = await fetch(url, {
-        headers: { "accept": "*/*", "anthropic-anonymous-id": getAnonymousId() ?? "", "anthropic-client-platform": "web_claude_ai", "anthropic-device-id": getDeviceId() ?? "" },
-        method: "GET",
-        credentials: "include"
-    });
-    if (!response.ok) return null;
-    return response.json();
-};
-
-const fetchFile = async (filePath) => {
-    const orgId = getOrgId();
-    const chatId = getChatId();
-    if (!orgId || !chatId) return '';
-    const url = `https://claude.ai/api/organizations/${orgId}/chat_conversations/${chatId}/outputs/${filePath}`;
-    const response = await fetch(url, { method: 'GET', credentials: 'include', headers: { 'accept': '*/*', 'anthropic-client-platform': 'web_claude_ai' } });
+    const response = await fetch(url, { headers: { "accept": "text/html", 'anthropic-client-platform': 'web_claude_ai' } });
     if (!response.ok) return '';
     return response.text();
 };
@@ -64,21 +48,45 @@ const processMessage = (message) => {
     return parts.flatMap(processPart);
 };
 
-export const getClaudeArtifacts = async () => {
-    const conversationData = await fetchConversation();
-    if (!conversationData) return [];
-    const messages = conversationData.chat_messages ?? conversationData.messages ?? [];
-    const extractedFiles = messages.flatMap(processMessage);
-    const uniqueMap = new Map(extractedFiles.map(item => [item.path, item]));
-    const filesToDownload = Array.from(uniqueMap.values());
-    const finalFiles = await Promise.all(
-        filesToDownload.map(async (file) => {
-            if (!file.needsFetch) return file;
-            const content = await fetchFile(file.path);
-            return { ...file, content };
-        })
-    );
-    return finalFiles
-        .filter(f => f.content?.length > 0)
-        .map(f => ({ name: f.path, code: f.content }));
+export const claudeService = {
+    injectText: async (text) => window.postMessage({ type: 'AI_INJECT_TEXT', text }, '*'),
+    uploadFile: async (fileName, content) => new Promise((resolve, reject) => {
+        const messageListener = (event) => {
+            if (event.source !== window) return;
+            if (event.data.type === 'AI_UPLOAD_SUCCESS') {
+                cleanup();
+                resolve();
+            } else if (event.data.type === 'AI_UPLOAD_ERROR') {
+                cleanup();
+                reject(new Error(event.data.error));
+            }
+        };
+        const cleanup = () => {
+            window.removeEventListener('message', messageListener);
+            clearTimeout(timeoutId);
+        };
+        const timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error('Timeout'));
+        }, 8000);
+        window.addEventListener('message', messageListener);
+        window.postMessage({ type: 'AI_UPLOAD_FILE', fileName, content }, '*');
+    }),
+    getArtifacts: async () => {
+        const conversationData = await fetchConversation();
+        if (!conversationData) return [];
+        const parsedData = typeof conversationData === 'string' ? JSON.parse(conversationData) : conversationData;
+        const messages = parsedData.chat_messages ?? parsedData.messages ?? [];
+        const extractedFiles = messages.flatMap(processMessage);
+        const uniqueMap = new Map(extractedFiles.map(item => [item.path, item]));
+        const filesToDownload = Array.from(uniqueMap.values());
+        const finalFiles = await Promise.all(
+            filesToDownload.map(async (file) => {
+                if (!file.needsFetch) return file;
+                const content = await fetchFile(file.path);
+                return { ...file, content };
+            })
+        );
+        return finalFiles.filter(f => f.content?.length > 0).map(f => ({ name: f.path, code: f.content }));
+    }
 };

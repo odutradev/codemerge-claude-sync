@@ -39,19 +39,21 @@
   "content_scripts": [
     {
       "matches": [
-        "https://claude.ai/*"
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
       ],
       "js": [
-        "src/scripts/claude/bridge.js"
+        "src/scripts/content/bridge.js"
       ],
       "run_at": "document_idle"
     },
     {
       "matches": [
-        "https://claude.ai/*"
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
       ],
       "js": [
-        "src/scripts/claude/injector.js"
+        "src/scripts/content/injector.js"
       ],
       "run_at": "document_idle",
       "world": "MAIN"
@@ -61,21 +63,9 @@
         "https://gemini.google.com/*"
       ],
       "js": [
-        "src/services/geminiService.js",
-        "src/scripts/gemini/brigde.js",
         "src/scripts/gemini/setWiz.js"
       ],
       "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://gemini.google.com/*"
-      ],
-      "js": [
-        "src/scripts/gemini/injector.js"
-      ],
-      "run_at": "document_idle",
-      "world": "MAIN"
     }
   ]
 }
