@@ -40,6 +40,7 @@ export const StyledListItem = styled(ListItem, {
     padding: theme.spacing(1),
     transition: 'all 0.2s',
     backgroundColor: isSelected ? 'rgba(2, 136, 209, 0.08)' : 'rgba(2, 136, 209, 0.02)',
+    cursor: 'pointer',
     '&:hover': {
         backgroundColor: 'rgba(2, 136, 209, 0.12)'
     }
@@ -72,4 +73,15 @@ export const ExecuteButton = styled(Button)(({ theme }) => ({
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
     borderRadius: theme.shape.borderRadius * 2
+}));
+
+export const HeaderTitle = styled(Typography)(({ theme }) => ({
+    fontWeight: 600,
+    color: theme.palette.info.main
+}));
+
+export const CommandText = styled(Typography)(({ theme }) => ({
+    fontFamily: 'monospace',
+    fontSize: '0.75rem',
+    color: theme.palette.text.primary
 }));

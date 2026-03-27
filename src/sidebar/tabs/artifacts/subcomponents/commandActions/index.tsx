@@ -1,7 +1,7 @@
 import { Typography, Tooltip, List } from '@mui/material';
 import { MdTerminal } from 'react-icons/md';
 
-import { CommandBox, StyledPaper, HeaderBox, StyledList, StyledListItem, ItemContentBox, CommandCheckbox, TextWrapperBox, ExecuteButton } from './styles';
+import { CommandBox, StyledPaper, HeaderBox, StyledList, StyledListItem, ItemContentBox, CommandCheckbox, TextWrapperBox, ExecuteButton, HeaderTitle, CommandText } from './styles';
 
 import type { CommandActionsProps } from './types';
 
@@ -14,16 +14,15 @@ const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSele
         <CommandBox>
             <StyledPaper elevation={0} variant="outlined">
                 <HeaderBox>
-                    <Typography variant="caption" style={{ fontWeight: 600, color: '#0288d1' }}>
+                    <HeaderTitle variant="caption">
                         COMANDOS PARA EXECUTAR ({selectedCommands.size}/{commandsToExecute.length})
-                    </Typography>
+                    </HeaderTitle>
                 </HeaderBox>
                 
                 <StyledList component={List}>
                     {commandsToExecute.map((command, index) => (
                         <StyledListItem
                             key={`cmd-${index}`}
-                            button
                             onClick={() => toggleCommandSelection(command)}
                             isSelected={selectedCommands.has(command)}
                         >
@@ -34,9 +33,9 @@ const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSele
                                 />
                                 <TextWrapperBox>
                                     <Tooltip title={command} placement="top-start" enterDelay={500}>
-                                        <Typography variant="body2" noWrap style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                        <CommandText variant="body2" noWrap>
                                             $ {command}
-                                        </Typography>
+                                        </CommandText>
                                     </Tooltip>
                                 </TextWrapperBox>
                             </ItemContentBox>

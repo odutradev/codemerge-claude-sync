@@ -67,6 +67,7 @@ export const StyledListItem = styled(ListItem, {
     padding: theme.spacing(1),
     transition: 'all 0.2s',
     backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+    cursor: 'pointer',
     '&:hover': {
         backgroundColor: 'rgba(0, 0, 0, 0.08)'
     }
@@ -80,6 +81,7 @@ export const DeleteListItem = styled(ListItem, {
     padding: theme.spacing(1),
     transition: 'all 0.2s',
     backgroundColor: isSelected ? 'rgba(244, 67, 54, 0.08)' : 'rgba(244, 67, 54, 0.02)',
+    cursor: 'pointer',
     '&:hover': {
         backgroundColor: 'rgba(244, 67, 54, 0.12)'
     }
@@ -137,4 +139,33 @@ export const ApplyButton = styled(Button)(({ theme }) => ({
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
     borderRadius: theme.shape.borderRadius * 2
+}));
+
+export const EmptyIconWrapper = styled(Box)(({ theme }) => ({
+    color: theme.palette.action.disabled,
+    fontSize: 40,
+    display: 'flex'
+}));
+
+export const HeaderTitle = styled(Typography)(({ theme }) => ({
+    fontWeight: 600,
+    color: theme.palette.text.primary
+}));
+
+export const DeleteIconWrapper = styled(Box)(({ theme }) => ({
+    color: theme.palette.error.main,
+    opacity: 0.7,
+    fontSize: 16,
+    display: 'flex'
+}));
+
+export const ArtifactNameText = styled(Typography)(({ theme }) => ({
+    fontWeight: 500,
+    color: theme.palette.text.primary
+}));
+
+export const ArtifactLinesText = styled(Typography)(({ theme }) => ({
+    fontFamily: 'monospace',
+    opacity: 0.7,
+    color: theme.palette.text.secondary
 }));

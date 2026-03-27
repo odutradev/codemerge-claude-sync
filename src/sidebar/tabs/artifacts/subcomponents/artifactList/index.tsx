@@ -1,7 +1,7 @@
 import { Typography, CircularProgress, Tooltip, List } from '@mui/material';
 import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md';
 
-import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, ApplyButton } from './styles';
+import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, ApplyButton, EmptyIconWrapper, HeaderTitle, DeleteIconWrapper, ArtifactNameText, ArtifactLinesText } from './styles';
 import FileIcon from '@/sidebar/components/fileIcon';
 
 import type { ArtifactListProps } from './types';
@@ -21,7 +21,9 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
     if (totalItems === 0) {
         return (
             <EmptyBox>
-                <MdDeselect size={40} style={{ color: 'rgba(0, 0, 0, 0.38)' }} />
+                <EmptyIconWrapper>
+                    <MdDeselect />
+                </EmptyIconWrapper>
                 <Typography variant="body2" color="text.secondary">
                     Nenhum artefato ou arquivo para apagar
                 </Typography>
@@ -33,9 +35,9 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
         <>
             <StyledPaper elevation={0} variant="outlined">
                 <HeaderBox>
-                    <Typography variant="caption" style={{ fontWeight: 600, color: 'text.primary' }}>
+                    <HeaderTitle variant="caption">
                         {totalItems} ARQUIVOS ({filesToDelete.length} PARA APAGAR)
-                    </Typography>
+                    </HeaderTitle>
                     <ClearButton
                         size="small"
                         onClick={handleDeselectAll}
@@ -49,7 +51,6 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                     {filesToDelete.map((path) => (
                         <DeleteListItem
                             key={`del-${path}`}
-                            button
                             onClick={() => toggleDeleteSelection(path)}
                             isSelected={selectedDeletions.has(path)}
                         >
@@ -72,7 +73,9 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                                         </DeleteText>
                                     </Tooltip>
                                 </TextWrapperBox>
-                                <MdDelete size={16} style={{ color: '#d32f2f', opacity: 0.7 }} />
+                                <DeleteIconWrapper>
+                                    <MdDelete />
+                                </DeleteIconWrapper>
                             </ItemContentBox>
                         </DeleteListItem>
                     ))}
@@ -80,7 +83,6 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                     {artifacts.map((artifact, index) => (
                         <StyledListItem
                             key={`art-${index}`}
-                            button
                             onClick={() => toggleSelection(index)}
                             isSelected={selectedIndices.has(index)}
                         >
@@ -94,14 +96,14 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                                 </IconWrapperBox>
                                 <TextWrapperBox>
                                     <Tooltip title={artifact.name} placement="top-start" enterDelay={500}>
-                                        <Typography variant="body2" noWrap style={{ fontWeight: 500 }}>
+                                        <ArtifactNameText variant="body2" noWrap>
                                             {artifact.name}
-                                        </Typography>
+                                        </ArtifactNameText>
                                     </Tooltip>
                                 </TextWrapperBox>
-                                <Typography variant="caption" color="text.secondary" style={{ fontFamily: 'monospace', opacity: 0.7 }}>
+                                <ArtifactLinesText variant="caption">
                                     {artifact.code.split('\n').length}
-                                </Typography>
+                                </ArtifactLinesText>
                             </ItemContentBox>
                         </StyledListItem>
                     ))}
