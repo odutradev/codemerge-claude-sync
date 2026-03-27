@@ -37,7 +37,7 @@ export const getStatusProps = (status: string, isChecking: boolean) => {
 
     return {
         ...visualProps,
-        text: textMap[status] ?? '...'
+        text: textMap[status] ?? 'OFFLINE'
     }
 }
 
