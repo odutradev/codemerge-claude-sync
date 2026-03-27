@@ -13,9 +13,32 @@ const Header = styled(Box)(({ theme }) => ({
     padding: theme.spacing(1),
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottom: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.action.hover
+    backgroundColor: theme.palette.action.hover,
+    minHeight: '48px'
 }))
+
+const LeftSection = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    flexGrow: 1,
+    overflow: 'hidden'
+})
+
+const RightSection = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+    gap: '4px'
+})
+
+const SearchWrapper = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    paddingRight: '8px'
+})
 
 const SearchInput = styled('input')({
     border: 'none',
@@ -23,7 +46,8 @@ const SearchInput = styled('input')({
     flexGrow: 1,
     background: 'transparent',
     color: 'inherit',
-    fontSize: '0.875rem'
+    fontSize: '0.875rem',
+    width: '100%'
 })
 
 const ScrollArea = styled(Box)(({ theme }) => ({
@@ -48,6 +72,9 @@ const ScrollArea = styled(Box)(({ theme }) => ({
 const Styled = {
     Container,
     Header,
+    LeftSection,
+    RightSection,
+    SearchWrapper,
     SearchInput,
     ScrollArea
 }

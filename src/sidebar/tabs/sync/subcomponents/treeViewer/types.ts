@@ -1,7 +1,7 @@
-import type { FileNode } from '@/sidebar/types'
+import type { FileNode, ServerStatus } from '@/sidebar/types'
 
 type TreeViewerProps = {
-    projectStructure: FileNode
+    projectStructure: FileNode | null
     searchTerm: string
     setSearchTerm: (s: string) => void
     isCopyMode: boolean
@@ -15,6 +15,10 @@ type TreeViewerProps = {
     handleToggleSelection: (n: FileNode, s: boolean) => void
     handleToggleExpansion: (p: string) => void
     handleTogglePin: (p: string) => void
+    serverStatus: ServerStatus
+    isChecking: boolean
+    loading: boolean
+    handleFetchStructure: () => void
 }
 
 export default TreeViewerProps
