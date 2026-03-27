@@ -1,12 +1,12 @@
 import { MdKeyboardArrowRight, MdKeyboardArrowDown, MdStarOutline, MdFolderOpen, MdFolder, MdStar } from 'react-icons/md'
 import { Collapse, Box, Typography } from '@mui/material'
 
-import FileIcon from '@/sidebar/components/fileIcon'
 import useConfigStore from '@/sidebar/stores/config'
+import FileIcon from '@/sidebar/components/fileIcon'
 import Styled from './styles'
 
-import type FileTreeItemProps from './types'
 import type { FileNode } from '@/sidebar/types'
+import type FileTreeItemProps from './types'
 
 const FileTreeItem = ({
     node,
@@ -83,7 +83,7 @@ const FileTreeItem = ({
     }
 
     const iconSize = compactMode ? 18 : 20
-    const dynamicPadding = `${1 + (level * 1.5)}rem`
+    const dynamicPadding = compactMode ? `${0.25 + (level * 0.75)}rem` : `${0.5 + (level * 1)}rem`
 
     return (
         <Box>
