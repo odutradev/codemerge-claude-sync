@@ -145,7 +145,6 @@ const FileTreeItem = ({
                         size="small"
                         onClick={handlePinClick}
                         data-pinned={isPinned}
-                        style={{ opacity: isPinned ? 1 : 0 }}
                     >
                         {isPinned ? (
                             <Box component={MdStar} style={{ fontSize: iconSize - 2, color: 'var(--mui-palette-warning-main)' }} />

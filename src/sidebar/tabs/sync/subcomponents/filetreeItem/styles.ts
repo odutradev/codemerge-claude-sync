@@ -1,11 +1,12 @@
-import { alpha, styled } from '@mui/material/styles'
 import { Box, Typography, IconButton, Checkbox } from '@mui/material'
+import { alpha, styled } from '@mui/material/styles'
 
 const ItemContainer = styled(Box)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     width: '100%',
     cursor: 'pointer',
+    paddingRight: '8px',
     transition: 'background-color 0.2s',
     '&[data-selected="true"]': {
         backgroundColor: alpha(theme.palette.primary.main, 0.15)
@@ -52,6 +53,8 @@ const FileName = styled(Typography)({
 const StarButton = styled(IconButton)({
     padding: '2px',
     marginLeft: '8px',
+    marginRight: '4px',
+    opacity: 0,
     transition: 'opacity 0.2s',
     '&[data-pinned="true"]': {
         opacity: 1
