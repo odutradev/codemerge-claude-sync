@@ -9,19 +9,27 @@ import { useSettings } from '@/sidebar/tabs/settings/hooks';
 
 import type { FetchViaBackground } from '@/sidebar/types';
 
-interface Props { fetchViaBackground?: FetchViaBackground; }
+interface Props {
+    fetchViaBackground?: FetchViaBackground;
+}
 
 const SettingsView = ({ fetchViaBackground }: Props) => {
     const { state } = useSettings();
 
     return (
         <Box sx={containerStyles}>
-            <Typography variant="h6" sx={{ mb: 3 }}>Configurações</Typography>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+                Configurações
+            </Typography>
+
             <Appearance />
             <GitCommands />
             <CodeCleanup />
             <DataSync />
-            <Typography variant="caption" sx={versionTextStyles}>CodeMerge Sync v{state.version}</Typography>
+
+            <Typography variant="caption" sx={versionTextStyles}>
+                CodeMerge Sync v{state.version}
+            </Typography>
         </Box>
     );
 };
