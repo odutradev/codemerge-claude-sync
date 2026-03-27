@@ -6,7 +6,7 @@ export const SelectorContainer = styled(Box)(({ theme }) => ({
     alignItems: 'center',
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
-    borderRadius: 18,
+    borderRadius: theme.shape.borderRadius * 2,
     height: 36,
     padding: '0 2px',
     flexShrink: 0
