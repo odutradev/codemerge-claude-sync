@@ -4,17 +4,13 @@ import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandAc
 import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
 import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
-import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks';
 import { CommitBox } from '@/sidebar/components/commitBox';
-import { containerStyles, scrollableStyles } from './styles';
+import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks';
+import { scrollableStyles, containerStyles } from './styles';
 
-import type { FetchViaBackground } from '@/sidebar/types';
+import type { ArtifactsViewProps } from './types';
 
-interface Props {
-    fetchViaBackground: FetchViaBackground;
-}
-
-const ArtifactsView = ({ fetchViaBackground }: Props) => {
+const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
     const { state, actions } = useArtifacts(fetchViaBackground);
 
     return (

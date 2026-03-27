@@ -1,26 +1,12 @@
 import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress, Tooltip } from '@mui/material';
 import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md';
 
-import { paperStyles, headerBoxStyles, clearBtnStyles, listItemStyles, deleteListItemStyles, emptyBoxStyles } from './styles';
+import { deleteListItemStyles, headerBoxStyles, clearBtnStyles, listItemStyles, emptyBoxStyles, paperStyles } from './styles';
 import FileIcon from '@/sidebar/components/fileIcon';
 
-import type { Artifact } from '@/sidebar/types';
+import type { ArtifactListProps } from './types';
 
-interface Props {
-    fetching: boolean;
-    artifacts: Artifact[];
-    filesToDelete: string[];
-    selectedIndices: Set<number>;
-    selectedDeletions: Set<string>;
-    toggleSelection: (i: number) => void;
-    toggleDeleteSelection: (p: string) => void;
-    handleDeselectAll: () => void;
-    handleApplyAll: () => void;
-    actionLoading: boolean;
-    serverStatus: string;
-}
-
-export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }: Props) => {
+export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }: ArtifactListProps) => {
     if (fetching) {
         return (
             <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

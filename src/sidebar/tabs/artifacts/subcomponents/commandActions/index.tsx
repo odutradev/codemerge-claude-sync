@@ -1,18 +1,11 @@
 import { Box, Typography, Button, List, ListItem, Checkbox, Paper, Tooltip } from '@mui/material';
 import { MdTerminal } from 'react-icons/md';
 
-import { paperStyles, headerBoxStyles, listItemStyles } from './styles';
+import { headerBoxStyles, listItemStyles, paperStyles } from './styles';
 
-interface Props {
-    commandsToExecute: string[];
-    selectedCommands: Set<string>;
-    toggleCommandSelection: (cmd: string) => void;
-    handleExecuteCommands: () => void;
-    actionLoading: boolean;
-    serverStatus: string;
-}
+import type { CommandActionsProps } from './types';
 
-export const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSelection, handleExecuteCommands, actionLoading, serverStatus }: Props) => {
+export const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSelection, handleExecuteCommands, actionLoading, serverStatus }: CommandActionsProps) => {
     if (!commandsToExecute || commandsToExecute.length === 0) {
         return null;
     }
