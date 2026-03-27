@@ -21,34 +21,40 @@ const pulseOrange = keyframes`
 `
 
 export const getStatusProps = (status: string, isChecking: boolean) => {
-    const activeStatus = isChecking ? 'checking' : status
+    const visualStatus = isChecking ? 'checking' : status
 
-    const propsMap: Record<string, { color: string; animation: string; text: string; borderColor: string }> = {
+    const visualMap: Record<string, { color: string; animation: string; borderColor: string }> = {
         connected: {
             color: 'success.main',
             animation: `${pulseGreen} 3s infinite`,
-            text: 'Online',
             borderColor: '#4caf50'
         },
         disconnected: {
             color: 'error.main',
             animation: `${pulseRed} 2s infinite`,
-            text: 'Offline',
             borderColor: '#f44336'
         },
         checking: {
             color: 'warning.main',
             animation: `${pulseOrange} 1.5s infinite`,
-            text: 'Verificando...',
             borderColor: '#ed6c02'
         }
     }
 
-    return propsMap[activeStatus] ?? {
+    const textMap: Record<string, string> = {
+        connected: 'Online',
+        disconnected: 'Offline'
+    }
+
+    const visualProps = visualMap[visualStatus] ?? {
         color: 'text.disabled',
         animation: 'none',
-        text: '...',
         borderColor: 'transparent'
+    }
+
+    return {
+        ...visualProps,
+        text: textMap[status] ?? '...'
     }
 }
 
