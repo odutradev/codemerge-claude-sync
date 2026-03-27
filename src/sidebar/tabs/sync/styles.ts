@@ -1,5 +1,5 @@
+import { Box, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { Box } from '@mui/material'
 
 const Container = styled(Box)(({ theme }) => ({
     display: 'flex',
@@ -8,8 +8,21 @@ const Container = styled(Box)(({ theme }) => ({
     padding: theme.spacing(2)
 }))
 
+const HeaderRow = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing(2)
+}))
+
+const RefreshButton = styled(IconButton)(({ theme }) => ({
+    padding: theme.spacing(1)
+}))
+
 const Styled = {
-    Container
+    Container,
+    HeaderRow,
+    RefreshButton
 }
 
 export default Styled

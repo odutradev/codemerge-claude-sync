@@ -1,44 +1,64 @@
-import { MdOutlinePushPin, MdLibraryAddCheck, MdDeleteForever, MdDeleteSweep, MdPushPin, MdHistory, MdRestore, MdTimer } from 'react-icons/md';
-import { ToggleButtonGroup, InputAdornment, ToggleButton, Button } from '@mui/material';
+import { MdOutlinePushPin, MdLibraryAddCheck, MdDeleteForever, MdDeleteSweep, MdPushPin, MdHistory, MdRestore, MdTimer, MdLink } from 'react-icons/md'
+import { ToggleButtonGroup, InputAdornment, ToggleButton, Button } from '@mui/material'
 
-import { SyncContainer, HeaderText, SectionContainer, SectionLabel, IconWrapper, ActionContainer, StyledDivider, IntervalInput } from './styles';
-import useNotificationStore from '@/sidebar/stores/notification';
-import useSelectionStore from '@/sidebar/stores/selection';
-import useHistoryStore from '@/sidebar/stores/history';
-import useConfigStore from '@/sidebar/stores/config';
+import { SyncContainer, HeaderText, SectionContainer, SectionLabel, IconWrapper, ActionContainer, StyledDivider, IntervalInput, UrlInput } from './styles'
+import useNotificationStore from '@/sidebar/stores/notification'
+import useSelectionStore from '@/sidebar/stores/selection'
+import useHistoryStore from '@/sidebar/stores/history'
+import useConfigStore from '@/sidebar/stores/config'
 
 const DataSync = () => {
-    const { checkInterval, persistSelection, autoSelectSynced, setCheckInterval, setPersistSelection, setAutoSelectSynced, resetConfig } = useConfigStore();
-    const { showNotification } = useNotificationStore();
-    const { clearAllSelections } = useSelectionStore();
-    const { clearAllHistory } = useHistoryStore();
+    const { serverUrl, checkInterval, persistSelection, autoSelectSynced, setServerUrl, setCheckInterval, setPersistSelection, setAutoSelectSynced, resetConfig } = useConfigStore()
+    const { showNotification } = useNotificationStore()
+    const { clearAllSelections } = useSelectionStore()
+    const { clearAllHistory } = useHistoryStore()
 
     const handleReset = () => {
-        resetConfig();
-        showNotification('Configurações restauradas', 'success');
-    };
+        resetConfig()
+        showNotification('Configurações restauradas', 'success')
+    }
 
     const handleClearSelections = () => {
-        clearAllSelections();
-        showNotification('Cache de seleções limpo', 'success');
-    };
+        clearAllSelections()
+        showNotification('Cache de seleções limpo', 'success')
+    }
 
     const handleClearHistory = () => {
-        clearAllHistory();
-        showNotification('Histórico limpo', 'success');
-    };
+        clearAllHistory()
+        showNotification('Histórico limpo', 'success')
+    }
 
     const handleClearAll = () => {
-        clearAllSelections();
-        clearAllHistory();
-        showNotification('Todo cache limpo', 'success');
-    };
+        clearAllSelections()
+        clearAllHistory()
+        showNotification('Todo cache limpo', 'success')
+    }
 
     return (
         <SyncContainer variant="outlined">
             <HeaderText variant="subtitle2">
                 Dados & Sincronização
             </HeaderText>
+
+            <SectionContainer>
+                <SectionLabel variant="caption">
+                    URL do Servidor
+                </SectionLabel>
+                <UrlInput
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    value={serverUrl}
+                    onChange={(e) => setServerUrl(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <MdLink size={20} />
+                            </InputAdornment>
+                        )
+                    }}
+                />
+            </SectionContainer>
 
             <SectionContainer>
                 <SectionLabel variant="caption">
@@ -154,7 +174,7 @@ const DataSync = () => {
                 Restaurar Padrões
             </Button>
         </SyncContainer>
-    );
-};
+    )
+}
 
-export default DataSync;
+export default DataSync

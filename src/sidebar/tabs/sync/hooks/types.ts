@@ -28,7 +28,6 @@ type UseSyncReturn = {
         handleTogglePin: (p: string) => void
         handleFetchStructure: () => void
         handleSync: () => void
-        setServerUrl: (u: string) => void
         setPersistSelection: (p: boolean) => void
     }
 }

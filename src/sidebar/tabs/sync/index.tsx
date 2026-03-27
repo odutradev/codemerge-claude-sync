@@ -1,4 +1,7 @@
-import ServerConfig from '@/sidebar/tabs/sync/subcomponents/serverConfig'
+import { CircularProgress, Tooltip, IconButton } from '@mui/material'
+import { MdRefresh } from 'react-icons/md'
+
+import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import TreeViewer from '@/sidebar/tabs/sync/subcomponents/treeViewer'
 import SyncStats from '@/sidebar/tabs/sync/subcomponents/syncStats'
 import useSync from '@/sidebar/tabs/sync/hooks'
@@ -11,14 +14,24 @@ const SyncView = ({ fetchViaBackground }: SyncViewProps) => {
 
     return (
         <Styled.Container>
-            <ServerConfig
-                serverUrl={state.serverUrl}
-                setServerUrl={actions.setServerUrl}
-                handleFetchStructure={actions.handleFetchStructure}
-                loading={state.loading}
-                isChecking={state.isChecking}
-                serverStatus={state.serverStatus}
-            />
+            <Styled.HeaderRow>
+                <ServerStatusIndicator
+                    status={state.serverStatus}
+                    isChecking={state.isChecking}
+                    showText={true}
+                />
+                <Tooltip title="Atualizar Estrutura">
+                    <span>
+                        <Styled.RefreshButton
+                            size="small"
+                            onClick={actions.handleFetchStructure}
+                            disabled={state.loading || state.isChecking || state.serverStatus !== 'connected'}
+                        >
+                            {state.loading ? <CircularProgress size={16} /> : <MdRefresh size={20} />}
+                        </Styled.RefreshButton>
+                    </span>
+                </Tooltip>
+            </Styled.HeaderRow>
             
             {state.projectStructure && (
                 <>

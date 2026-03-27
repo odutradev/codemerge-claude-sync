@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 
-import useNotificationStore from '@/sidebar/stores/notification'
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus'
 import { flattenStructure } from '@/sidebar/utils/treeProcessor'
+import useNotificationStore from '@/sidebar/stores/notification'
 import { processCode } from '@/sidebar/utils/codeProcessor'
 import useSelectionStore from '@/sidebar/stores/selection'
 import useConfigStore from '@/sidebar/stores/config'
@@ -11,7 +11,7 @@ import type { FileNode, FetchViaBackground } from '@/sidebar/types'
 import type UseSyncReturn from './types'
 
 const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn => {
-    const { serverUrl, setServerUrl, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore()
+    const { serverUrl, checkInterval, persistSelection, setPersistSelection, removeComments, removeEmptyLines, removeLogs } = useConfigStore()
     const { selections, expansions, pinned, activeProjectId, setActiveProjectId, setProjectSelection, hasStoredSelection, toggleExpansion, togglePin } = useSelectionStore()
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground)
     const { showNotification } = useNotificationStore()
@@ -246,7 +246,6 @@ const useSync = (fetchViaBackground: FetchViaBackground): UseSyncReturn => {
             handleTogglePin,
             handleFetchStructure,
             handleSync,
-            setServerUrl,
             setPersistSelection
         }
     }
