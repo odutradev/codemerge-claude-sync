@@ -8,16 +8,6 @@ export const LoadingContainer = styled(Box)({
     justifyContent: 'center'
 })
 
-export const EmptyBox = styled(Box)(({ theme }) => ({
-    flexGrow: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    opacity: 0.5,
-    gap: theme.spacing(1)
-}))
-
 export const StyledPaper = styled(Paper)(({ theme }) => ({
     flexGrow: 1,
     overflow: 'hidden',
@@ -132,12 +122,6 @@ export const DeleteText = styled(Typography, {
     color: theme.palette.error.main,
     fontWeight: 500,
     textDecoration: isSelected ? 'line-through' : 'none'
-}))
-
-export const EmptyIconWrapper = styled(Box)(({ theme }) => ({
-    color: theme.palette.action.disabled,
-    fontSize: 40,
-    display: 'flex'
 }))
 
 export const HeaderTitle = styled(Typography)(({ theme }) => ({

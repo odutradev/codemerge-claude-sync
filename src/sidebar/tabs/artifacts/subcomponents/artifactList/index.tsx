@@ -1,8 +1,9 @@
-import { Typography, CircularProgress, Tooltip, List } from '@mui/material'
+import { CircularProgress, Typography, Tooltip, List } from '@mui/material'
 import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md'
 
-import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, EmptyIconWrapper, HeaderTitle, DeleteIconWrapper, ArtifactNameText, ArtifactLinesText } from './styles'
+import { LoadingContainer, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, HeaderTitle, DeleteIconWrapper, ArtifactNameText, ArtifactLinesText } from './styles'
 import ActionButton from '@/sidebar/components/actionButton'
+import EmptyState from '@/sidebar/components/emptyState'
 import FileIcon from '@/sidebar/components/fileIcon'
 
 import type { ArtifactListProps } from './types'
@@ -20,16 +21,7 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
     const totalSelected = selectedIndices.size + selectedDeletions.size
 
     if (totalItems === 0) {
-        return (
-            <EmptyBox>
-                <EmptyIconWrapper>
-                    <MdDeselect />
-                </EmptyIconWrapper>
-                <Typography variant="body2" color="text.secondary">
-                    Nenhum artefato ou arquivo para apagar
-                </Typography>
-            </EmptyBox>
-        )
+        return <EmptyState message="Nenhum artefato ou arquivo para apagar" icon={<MdDeselect />} />
     }
 
     return (

@@ -1,10 +1,11 @@
-import { MdSearch, MdContentCopy, MdPushPin, MdOutlinePushPin, MdRefresh, MdClose } from 'react-icons/md'
+import { MdSearch, MdContentCopy, MdPushPin, MdOutlinePushPin, MdRefresh, MdFolderOff, MdClose } from 'react-icons/md'
 import { useState, useEffect } from 'react'
 import { Box } from '@mui/material'
 
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import FileTreeItem from '@/sidebar/tabs/sync/subcomponents/filetreeItem'
 import ActionButton from '@/sidebar/components/actionButton'
+import EmptyState from '@/sidebar/components/emptyState'
 import Styled from './styles'
 
 import type TreeViewerProps from './types'
@@ -104,7 +105,7 @@ const TreeViewer = ({ projectStructure, searchTerm, setSearchTerm, isCopyMode, s
             </Styled.Header>
 
             <Styled.ScrollArea>
-                {projectStructure && (
+                {projectStructure ? (
                     <FileTreeItem
                         node={projectStructure}
                         selectedPaths={selectedPaths}
@@ -117,7 +118,12 @@ const TreeViewer = ({ projectStructure, searchTerm, setSearchTerm, isCopyMode, s
                         onTogglePin={handleTogglePin}
                         searchTerm={searchTerm}
                     />
-                )}
+                ) : !loading ? (
+                    <EmptyState
+                        message="Nenhuma estrutura de projeto carregada"
+                        icon={<MdFolderOff />}
+                    />
+                ) : null}
             </Styled.ScrollArea>
         </Styled.Container>
     )
