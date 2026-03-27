@@ -1,20 +1,72 @@
-import { Box, Typography, Button, Paper, Tooltip } from '@mui/material';
-import { MdFormatAlignLeft, MdInsertDriveFile, MdCloudUpload, MdAccessTime, MdStar } from 'react-icons/md';
+import { MdFormatAlignLeft, MdInsertDriveFile, MdCloudUpload, MdAccessTime, MdStar } from 'react-icons/md'
+import { Tooltip, Box, Typography } from '@mui/material'
 
-interface Props { stats: { files: number; lines: number; lastUpdate: string }; pinnedCount: number; handleSync: () => void; loading: boolean; serverStatus: string; hasSelection: boolean; }
+import Styled from './styles'
 
-export const SyncStats = ({ stats, pinnedCount, handleSync, loading, serverStatus, hasSelection }: Props) => (
-    <>
-        <Paper variant="outlined" sx={{ p: 1, mb: 2, bgcolor: 'background.paper', borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Tooltip title="Arquivos selecionados"><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box component={MdInsertDriveFile} sx={{ fontSize: 16, color: 'text.secondary' }} /><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.files}</Typography></Box></Tooltip>
-                    <Tooltip title="Total de linhas"><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box component={MdFormatAlignLeft} sx={{ fontSize: 16, color: 'text.secondary' }} /><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{stats.lines}</Typography></Box></Tooltip>
-                    <Tooltip title="Favoritos"><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box component={MdStar} sx={{ fontSize: 16, color: 'text.secondary' }} /><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{pinnedCount}</Typography></Box></Tooltip>
-                </Box>
-                <Tooltip title="Última atualização"><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box component={MdAccessTime} sx={{ fontSize: 16, color: 'text.secondary' }} /><Typography variant="caption" color="text.secondary">{stats.lastUpdate}</Typography></Box></Tooltip>
-            </Box>
-        </Paper>
-        <Button variant="contained" onClick={handleSync} disabled={loading || !hasSelection || serverStatus !== 'connected'} fullWidth startIcon={<MdCloudUpload size={20} />}>Sincronizar Selecionados</Button>
-    </>
-);
+import type SyncStatsProps from './types'
+
+const SyncStats = ({
+    stats,
+    pinnedCount,
+    handleSync,
+    loading,
+    serverStatus,
+    hasSelection
+}: SyncStatsProps) => {
+    return (
+        <>
+            <Styled.Container variant="outlined">
+                <Styled.LayoutRow>
+                    <Styled.MetricsGroup>
+                        <Tooltip title="Arquivos selecionados">
+                            <Styled.MetricItem>
+                                <Box component={MdInsertDriveFile} style={{ fontSize: 16, color: 'var(--mui-palette-text-secondary)' }} />
+                                <Styled.MetricValue variant="caption" color="text.secondary">
+                                    {stats.files}
+                                </Styled.MetricValue>
+                            </Styled.MetricItem>
+                        </Tooltip>
+
+                        <Tooltip title="Total de linhas">
+                            <Styled.MetricItem>
+                                <Box component={MdFormatAlignLeft} style={{ fontSize: 16, color: 'var(--mui-palette-text-secondary)' }} />
+                                <Styled.MetricValue variant="caption" color="text.secondary">
+                                    {stats.lines}
+                                </Styled.MetricValue>
+                            </Styled.MetricItem>
+                        </Tooltip>
+
+                        <Tooltip title="Favoritos">
+                            <Styled.MetricItem>
+                                <Box component={MdStar} style={{ fontSize: 16, color: 'var(--mui-palette-text-secondary)' }} />
+                                <Styled.MetricValue variant="caption" color="text.secondary">
+                                    {pinnedCount}
+                                </Styled.MetricValue>
+                            </Styled.MetricItem>
+                        </Tooltip>
+                    </Styled.MetricsGroup>
+
+                    <Tooltip title="Última atualização">
+                        <Styled.MetricItem>
+                            <Box component={MdAccessTime} style={{ fontSize: 16, color: 'var(--mui-palette-text-secondary)' }} />
+                            <Typography variant="caption" color="text.secondary">
+                                {stats.lastUpdate}
+                            </Typography>
+                        </Styled.MetricItem>
+                    </Tooltip>
+                </Styled.LayoutRow>
+            </Styled.Container>
+
+            <Styled.ActionButton
+                variant="contained"
+                onClick={handleSync}
+                disabled={loading || !hasSelection || serverStatus !== 'connected'}
+                startIcon={<MdCloudUpload size={20} />}
+            >
+                Sincronizar Selecionados
+            </Styled.ActionButton>
+        </>
+    )
+}
+
+export default SyncStats
