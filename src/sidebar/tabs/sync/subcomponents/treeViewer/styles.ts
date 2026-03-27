@@ -52,6 +52,8 @@ const SearchInput = styled('input')({
 
 const ScrollArea = styled(Box)(({ theme }) => ({
     flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
     overflow: 'auto',
     '&::-webkit-scrollbar': {
         width: '6px',
