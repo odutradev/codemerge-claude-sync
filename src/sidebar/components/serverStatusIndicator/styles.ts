@@ -1,6 +1,7 @@
-import { pulseOrange, pulseGreen, pulseRed } from '@/sidebar/styles'
+import { Box, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 
-import type { SxProps, Theme } from '@mui/material'
+import { pulseOrange, pulseGreen, pulseRed } from '@/sidebar/styles'
 
 export const getStatusProps = (status: string, isChecking: boolean) => {
     const visualStatus = isChecking ? 'checking' : status
@@ -40,26 +41,37 @@ export const getStatusProps = (status: string, isChecking: boolean) => {
     }
 }
 
-export const containerStyles: SxProps<Theme> = {
-    display: 'flex',
+export const StatusContainer = styled(Box)({
     alignItems: 'center',
-    gap: 0.75
-}
+    display: 'flex',
+    gap: 6
+})
 
-export const textStyles: SxProps<Theme> = {
-    color: 'text.secondary',
-    fontWeight: 500,
+export const StatusText = styled(Typography)(({ theme }) => ({
+    color: theme.palette.text.secondary,
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
-    textTransform: 'uppercase'
-}
+    fontWeight: 500
+}))
 
-export const indicatorStyles = (color: string, animation: string, borderColor: string): SxProps<Theme> => ({
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    bgcolor: color,
-    animation,
-    flexShrink: 0,
-    border: borderColor !== 'transparent' ? `1px solid ${borderColor}` : 'none',
-    margin: '6px'
+export const Indicator = styled(Box)<{ statuscolor: string; statusanimation: string; statusbordercolor: string }>(({ theme, statuscolor, statusanimation, statusbordercolor }) => {
+    const resolveColor = (path: string) => {
+        const parts = path.split('.')
+        if (parts.length === 2) {
+            const paletteGroup = theme.palette[parts[0] as keyof typeof theme.palette] as Record<string, string>
+            return paletteGroup ? paletteGroup[parts[1]] : path
+        }
+        return path
+    }
+
+    return {
+        border: statusbordercolor !== 'transparent' ? `1px solid ${statusbordercolor}` : 'none',
+        backgroundColor: resolveColor(statuscolor),
+        animation: statusanimation,
+        borderRadius: '50%',
+        flexShrink: 0,
+        margin: '6px',
+        height: 8,
+        width: 8
+    }
 })
