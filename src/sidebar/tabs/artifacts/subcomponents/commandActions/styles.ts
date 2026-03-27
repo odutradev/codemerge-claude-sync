@@ -1,32 +1,75 @@
-import type { Theme } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Box, Typography, Button, ListItem, Checkbox, Paper } from '@mui/material';
 
-export const paperStyles = {
-    mb: 1,
+export const CommandBox = styled(Box)(({ theme }) => ({
+    marginBottom: theme.spacing(2)
+}));
+
+export const StyledPaper = styled(Paper)(({ theme }) => ({
+    marginBottom: theme.spacing(1),
     display: 'flex',
     flexDirection: 'column',
-    bgcolor: 'background.paper',
-    borderRadius: 2,
-    borderColor: 'divider'
-};
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: theme.shape.borderRadius * 2,
+    borderColor: theme.palette.divider
+}));
 
-export const headerBoxStyles = (theme: Theme) => ({
-    px: 2,
-    py: 1.5,
-    borderBottom: 1,
-    borderColor: 'divider',
+export const HeaderBox = styled(Box)(({ theme }) => ({
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+    paddingTop: theme.spacing(1.5),
+    paddingBottom: theme.spacing(1.5),
+    borderBottom: `1px solid ${theme.palette.divider}`,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    bgcolor: theme.palette.mode === 'dark' ? 'rgba(2, 136, 209, 0.05)' : 'rgba(2, 136, 209, 0.05)'
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(2, 136, 209, 0.05)' : 'rgba(2, 136, 209, 0.05)'
+}));
+
+export const StyledList = styled(Box)(({ theme }) => ({
+    padding: theme.spacing(1),
+    maxHeight: 150,
+    overflowY: 'auto'
+}));
+
+export const StyledListItem = styled(ListItem, {
+    shouldForwardProp: (prop) => prop !== 'isSelected'
+})<{ isSelected: boolean }>(({ theme, isSelected }) => ({
+    borderRadius: theme.shape.borderRadius * 1.5,
+    marginBottom: theme.spacing(0.5),
+    padding: theme.spacing(1),
+    transition: 'all 0.2s',
+    backgroundColor: isSelected ? 'rgba(2, 136, 209, 0.08)' : 'rgba(2, 136, 209, 0.02)',
+    '&:hover': {
+        backgroundColor: 'rgba(2, 136, 209, 0.12)'
+    }
+}));
+
+export const ItemContentBox = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0,
+    width: '100%'
 });
 
-export const listItemStyles = (isSelected: boolean) => (theme: Theme) => ({
-    borderRadius: 1.5,
-    mb: 0.5,
-    p: 1,
-    transition: 'all 0.2s',
-    bgcolor: isSelected ? 'rgba(2, 136, 209, 0.08)' : 'rgba(2, 136, 209, 0.02)',
-    '&:hover': {
-        bgcolor: 'rgba(2, 136, 209, 0.12)'
+export const CommandCheckbox = styled(Checkbox)(({ theme }) => ({
+    padding: theme.spacing(0.5),
+    marginRight: theme.spacing(1.5),
+    color: theme.palette.info.main,
+    '&.Mui-checked': {
+        color: theme.palette.info.main
     }
-});
+}));
+
+export const TextWrapperBox = styled(Box)(({ theme }) => ({
+    flexGrow: 1,
+    minWidth: 0,
+    marginRight: theme.spacing(2)
+}));
+
+export const ExecuteButton = styled(Button)(({ theme }) => ({
+    textTransform: 'none',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    borderRadius: theme.shape.borderRadius * 2
+}));

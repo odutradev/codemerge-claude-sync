@@ -3,11 +3,11 @@ import type { HookStatus } from '@/sidebar/types';
 export interface HeaderProps {
     serverStatus: string;
     isChecking: boolean;
-    handleFetchArtifacts: (s?: boolean) => void;
+    handleFetchArtifacts: (silent?: boolean) => void;
     loading: boolean;
     handleOpenCmdDialog: () => void;
     removeComments: boolean;
-    setRemoveComments: (v: boolean) => void;
+    setRemoveComments: (value: boolean) => void;
     historyLength: number;
     currentHistoryIndex: number;
     handlePrevHistory: () => void;

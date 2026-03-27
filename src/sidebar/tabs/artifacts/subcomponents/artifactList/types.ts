@@ -6,8 +6,8 @@ export interface ArtifactListProps {
     filesToDelete: string[];
     selectedIndices: Set<number>;
     selectedDeletions: Set<string>;
-    toggleSelection: (i: number) => void;
-    toggleDeleteSelection: (p: string) => void;
+    toggleSelection: (index: number) => void;
+    toggleDeleteSelection: (path: string) => void;
     handleDeselectAll: () => void;
     handleApplyAll: () => void;
     actionLoading: boolean;

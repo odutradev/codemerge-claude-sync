@@ -1,60 +1,51 @@
-import { Box, Typography, Button, List, ListItem, Checkbox, Paper, Tooltip } from '@mui/material';
+import { Typography, Tooltip, List } from '@mui/material';
 import { MdTerminal } from 'react-icons/md';
 
-import { headerBoxStyles, listItemStyles, paperStyles } from './styles';
+import { CommandBox, StyledPaper, HeaderBox, StyledList, StyledListItem, ItemContentBox, CommandCheckbox, TextWrapperBox, ExecuteButton } from './styles';
 
 import type { CommandActionsProps } from './types';
 
-export const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSelection, handleExecuteCommands, actionLoading, serverStatus }: CommandActionsProps) => {
+const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSelection, handleExecuteCommands, actionLoading, serverStatus }: CommandActionsProps) => {
     if (!commandsToExecute || commandsToExecute.length === 0) {
         return null;
     }
 
     return (
-        <Box sx={{ mb: 2 }}>
-            <Paper elevation={0} variant="outlined" sx={paperStyles}>
-                <Box sx={headerBoxStyles}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'info.main' }}>
+        <CommandBox>
+            <StyledPaper elevation={0} variant="outlined">
+                <HeaderBox>
+                    <Typography variant="caption" style={{ fontWeight: 600, color: '#0288d1' }}>
                         COMANDOS PARA EXECUTAR ({selectedCommands.size}/{commandsToExecute.length})
                     </Typography>
-                </Box>
-                <List sx={{ p: 1, maxHeight: 150, overflowY: 'auto' }}>
-                    {commandsToExecute.map((cmd, index) => (
-                        <ListItem
+                </HeaderBox>
+                
+                <StyledList component={List}>
+                    {commandsToExecute.map((command, index) => (
+                        <StyledListItem
                             key={`cmd-${index}`}
                             button
-                            onClick={() => toggleCommandSelection(cmd)}
-                            sx={listItemStyles(selectedCommands.has(cmd))}
+                            onClick={() => toggleCommandSelection(command)}
+                            isSelected={selectedCommands.has(command)}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, width: '100%' }}>
-                                <Checkbox
-                                    checked={selectedCommands.has(cmd)}
+                            <ItemContentBox>
+                                <CommandCheckbox
+                                    checked={selectedCommands.has(command)}
                                     size="small"
-                                    sx={{
-                                        p: 0.5,
-                                        mr: 1.5,
-                                        color: 'info.main',
-                                        '&.Mui-checked': { color: 'info.main' }
-                                    }}
                                 />
-                                <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
-                                    <Tooltip title={cmd} placement="top-start" enterDelay={500}>
-                                        <Typography
-                                            variant="body2"
-                                            noWrap
-                                            sx={{ color: 'text.primary', fontFamily: 'monospace', fontSize: '0.75rem' }}
-                                        >
-                                            $ {cmd}
+                                <TextWrapperBox>
+                                    <Tooltip title={command} placement="top-start" enterDelay={500}>
+                                        <Typography variant="body2" noWrap style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                            $ {command}
                                         </Typography>
                                     </Tooltip>
-                                </Box>
-                            </Box>
-                        </ListItem>
+                                </TextWrapperBox>
+                            </ItemContentBox>
+                        </StyledListItem>
                     ))}
-                </List>
-            </Paper>
+                </StyledList>
+            </StyledPaper>
 
-            <Button
+            <ExecuteButton
                 variant="contained"
                 color="info"
                 onClick={handleExecuteCommands}
@@ -62,10 +53,11 @@ export const CommandActions = ({ commandsToExecute, selectedCommands, toggleComm
                 fullWidth
                 disableElevation
                 startIcon={<MdTerminal size={20} />}
-                sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}
             >
                 Executar Comandos
-            </Button>
-        </Box>
+            </ExecuteButton>
+        </CommandBox>
     );
 };
+
+export default CommandActions;

@@ -1,12 +1,10 @@
-import { Box } from '@mui/material';
-
-import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
-import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
-import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
+import { ScrollableContainer, HeaderWrapper, CommitWrapper, CommandWrapper, ListWrapper, Container } from './styles';
+import CommandActions from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
+import ArtifactList from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
+import Header from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
 import { CommitBox } from '@/sidebar/components/commitBox';
-import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks';
-import { scrollableStyles, containerStyles } from './styles';
+import useArtifacts from '@/sidebar/tabs/artifacts/hooks';
 
 import type { ArtifactsViewProps } from './types';
 
@@ -14,8 +12,8 @@ const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
     const { state, actions } = useArtifacts(fetchViaBackground);
 
     return (
-        <Box sx={containerStyles}>
-            <Box sx={{ flexShrink: 0 }}>
+        <Container>
+            <HeaderWrapper>
                 <Header
                     serverStatus={state.serverStatus}
                     isChecking={state.isChecking}
@@ -30,28 +28,28 @@ const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
                     handleNextHistory={actions.handleNextHistory}
                     hookStatus={state.hookStatus}
                 />
-            </Box>
+            </HeaderWrapper>
 
-            <Box sx={scrollableStyles}>
+            <ScrollableContainer>
                 {!!(state.originalCommitMessage || state.commitMessage) && (
-                    <Box sx={{ flexShrink: 0, mb: 2 }}>
+                    <CommitWrapper>
                         <CommitBox
                             commitType={state.commitType}
-                            setCommitType={(v) => actions.setField('commitType', v)}
+                            setCommitType={(value) => actions.setField('commitType', value)}
                             translateCommit={state.translateCommit}
                             setTranslateCommit={actions.setTranslateCommit}
                             commitMessage={state.commitMessage}
-                            setCommitMessage={(v) => actions.setField('commitMessage', v)}
+                            setCommitMessage={(value) => actions.setField('commitMessage', value)}
                             originalCommitMessage={state.originalCommitMessage}
                             originalCommitType={state.originalCommitType}
                             handleCommit={actions.handleCommit}
                             actionLoading={state.actionLoading}
                             serverStatus={state.serverStatus}
                         />
-                    </Box>
+                    </CommitWrapper>
                 )}
 
-                <Box sx={{ flexShrink: 0 }}>
+                <CommandWrapper>
                     <CommandActions
                         commandsToExecute={state.commandsToExecute}
                         selectedCommands={state.selectedCommands}
@@ -60,9 +58,9 @@ const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
                         actionLoading={state.actionLoading}
                         serverStatus={state.serverStatus}
                     />
-                </Box>
+                </CommandWrapper>
 
-                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 250 }}>
+                <ListWrapper>
                     <ArtifactList
                         fetching={state.fetching}
                         artifacts={state.artifacts}
@@ -76,18 +74,18 @@ const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
                         actionLoading={state.actionLoading}
                         serverStatus={state.serverStatus}
                     />
-                </Box>
-            </Box>
+                </ListWrapper>
+            </ScrollableContainer>
 
             <CommandDialog
                 cmdDialogOpen={state.cmdDialogOpen}
-                setCmdDialogOpen={(v) => actions.setField('cmdDialogOpen', v)}
+                setCmdDialogOpen={(value) => actions.setField('cmdDialogOpen', value)}
                 cmdLoading={state.cmdLoading}
                 cmdOutput={state.cmdOutput}
                 handleFetchCommandOutput={actions.handleFetchCommandOutput}
                 handleInjectOutput={actions.handleInjectOutput}
             />
-        </Box>
+        </Container>
     );
 };
 

@@ -1,17 +1,17 @@
-import { Box, Typography, Button, List, ListItem, Checkbox, Paper, CircularProgress, Tooltip } from '@mui/material';
+import { Typography, CircularProgress, Tooltip, List } from '@mui/material';
 import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md';
 
-import { deleteListItemStyles, headerBoxStyles, clearBtnStyles, listItemStyles, emptyBoxStyles, paperStyles } from './styles';
+import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, ApplyButton } from './styles';
 import FileIcon from '@/sidebar/components/fileIcon';
 
 import type { ArtifactListProps } from './types';
 
-export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }: ArtifactListProps) => {
+const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }: ArtifactListProps) => {
     if (fetching) {
         return (
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LoadingContainer>
                 <CircularProgress size={24} />
-            </Box>
+            </LoadingContainer>
         );
     }
 
@@ -20,124 +20,106 @@ export const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndic
 
     if (totalItems === 0) {
         return (
-            <Box sx={emptyBoxStyles}>
-                <Box component={MdDeselect} sx={{ fontSize: 40, color: 'text.disabled' }} />
+            <EmptyBox>
+                <MdDeselect size={40} style={{ color: 'rgba(0, 0, 0, 0.38)' }} />
                 <Typography variant="body2" color="text.secondary">
                     Nenhum artefato ou arquivo para apagar
                 </Typography>
-            </Box>
+            </EmptyBox>
         );
     }
 
     return (
         <>
-            <Paper elevation={0} variant="outlined" sx={paperStyles}>
-                <Box sx={headerBoxStyles}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            <StyledPaper elevation={0} variant="outlined">
+                <HeaderBox>
+                    <Typography variant="caption" style={{ fontWeight: 600, color: 'text.primary' }}>
                         {totalItems} ARQUIVOS ({filesToDelete.length} PARA APAGAR)
                     </Typography>
-                    <Button
+                    <ClearButton
                         size="small"
                         onClick={handleDeselectAll}
                         disabled={totalSelected === 0 || actionLoading}
-                        sx={clearBtnStyles}
                     >
                         Limpar Seleção
-                    </Button>
-                </Box>
+                    </ClearButton>
+                </HeaderBox>
 
-                <List sx={{ p: 1, overflowY: 'auto', flexGrow: 1 }}>
+                <StyledList component={List}>
                     {filesToDelete.map((path) => (
-                        <ListItem
+                        <DeleteListItem
                             key={`del-${path}`}
                             button
                             onClick={() => toggleDeleteSelection(path)}
-                            sx={deleteListItemStyles(selectedDeletions.has(path))}
+                            isSelected={selectedDeletions.has(path)}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, width: '100%' }}>
-                                <Checkbox
+                            <ItemContentBox>
+                                <DeleteCheckbox
                                     checked={selectedDeletions.has(path)}
                                     size="small"
-                                    sx={{
-                                        p: 0.5,
-                                        mr: 1.5,
-                                        color: 'error.main',
-                                        '&.Mui-checked': { color: 'error.main' }
-                                    }}
                                 />
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2, color: 'error.main', width: 24, height: 24 }}>
+                                <IconWrapperBox isError={true}>
                                     <FileIcon fileName={path} />
-                                </Box>
-                                <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
+                                </IconWrapperBox>
+                                <TextWrapperBox>
                                     <Tooltip title={path} placement="top-start" enterDelay={500}>
-                                        <Typography
+                                        <DeleteText
                                             variant="body2"
                                             noWrap
-                                            sx={{
-                                                color: 'error.main',
-                                                fontWeight: 500,
-                                                textDecoration: selectedDeletions.has(path) ? 'line-through' : 'none'
-                                            }}
+                                            isSelected={selectedDeletions.has(path)}
                                         >
                                             {path}
-                                        </Typography>
+                                        </DeleteText>
                                     </Tooltip>
-                                </Box>
-                                <Box component={MdDelete} sx={{ fontSize: 16, color: 'error.main', opacity: 0.7 }} />
-                            </Box>
-                        </ListItem>
+                                </TextWrapperBox>
+                                <MdDelete size={16} style={{ color: '#d32f2f', opacity: 0.7 }} />
+                            </ItemContentBox>
+                        </DeleteListItem>
                     ))}
 
                     {artifacts.map((artifact, index) => (
-                        <ListItem
+                        <StyledListItem
                             key={`art-${index}`}
                             button
                             onClick={() => toggleSelection(index)}
-                            sx={listItemStyles(selectedIndices.has(index))}
+                            isSelected={selectedIndices.has(index)}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, width: '100%' }}>
-                                <Checkbox
+                            <ItemContentBox>
+                                <StandardCheckbox
                                     checked={selectedIndices.has(index)}
                                     size="small"
-                                    sx={{ p: 0.5, mr: 1.5 }}
                                 />
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2, color: 'text.secondary', width: 24, height: 24 }}>
+                                <IconWrapperBox>
                                     <FileIcon fileName={artifact.name} />
-                                </Box>
-                                <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2 }}>
+                                </IconWrapperBox>
+                                <TextWrapperBox>
                                     <Tooltip title={artifact.name} placement="top-start" enterDelay={500}>
-                                        <Typography
-                                            variant="body2"
-                                            noWrap
-                                            sx={{ color: 'text.primary', fontWeight: 500 }}
-                                        >
+                                        <Typography variant="body2" noWrap style={{ fontWeight: 500 }}>
                                             {artifact.name}
                                         </Typography>
                                     </Tooltip>
-                                </Box>
-                                <Typography
-                                    variant="caption"
-                                    sx={{ color: 'text.secondary', fontFamily: 'monospace', opacity: 0.7 }}
-                                >
+                                </TextWrapperBox>
+                                <Typography variant="caption" color="text.secondary" style={{ fontFamily: 'monospace', opacity: 0.7 }}>
                                     {artifact.code.split('\n').length}
                                 </Typography>
-                            </Box>
-                        </ListItem>
+                            </ItemContentBox>
+                        </StyledListItem>
                     ))}
-                </List>
-            </Paper>
+                </StyledList>
+            </StyledPaper>
 
-            <Button
+            <ApplyButton
                 variant="contained"
                 onClick={handleApplyAll}
                 disabled={actionLoading || totalSelected === 0 || serverStatus !== 'connected'}
                 fullWidth
                 disableElevation
                 startIcon={<MdUpload size={20} />}
-                sx={{ textTransform: 'none', py: 1, borderRadius: 2 }}
             >
                 Aplicar Sincronização
-            </Button>
+            </ApplyButton>
         </>
     );
 };
+
+export default ArtifactList;

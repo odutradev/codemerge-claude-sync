@@ -1,42 +1,42 @@
 import { MdChevronRight, MdChevronLeft, MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md';
-import { Box, Typography, Button, Tooltip, IconButton, CircularProgress } from '@mui/material';
+import { Typography, Button, Tooltip, CircularProgress, IconButton } from '@mui/material';
 
+import { Container, ActionsContainer, HistoryBox, StyledIconButton, PageIndicator } from './styles';
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator';
-import { containerStyles, actionsContainerStyles, historyBoxStyles, iconButtonStyles } from './styles';
 
 import type { HeaderProps } from './types';
 
-export const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory, hookStatus }: HeaderProps) => {
+const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory, hookStatus }: HeaderProps) => {
     return (
-        <Box sx={containerStyles}>
-            <ServerStatusIndicator status={serverStatus} isChecking={isChecking} />
+        <Container>
+            <ServerStatusIndicator
+                status={serverStatus}
+                isChecking={isChecking}
+            />
 
-            <Box sx={actionsContainerStyles}>
+            <ActionsContainer>
                 {historyLength > 0 && (
-                    <Box sx={historyBoxStyles}>
+                    <HistoryBox>
                         <IconButton
                             size="small"
                             onClick={handlePrevHistory}
                             disabled={currentHistoryIndex <= 0 || loading}
-                            sx={{ p: 0.25 }}
                         >
                             <MdChevronLeft size={20} />
                         </IconButton>
-                        <Typography
-                            variant="caption"
-                            sx={{ minWidth: 28, textAlign: 'center', fontWeight: 600, color: 'text.secondary' }}
-                        >
+                        
+                        <PageIndicator>
                             {currentHistoryIndex + 1}/{historyLength}
-                        </Typography>
+                        </PageIndicator>
+                        
                         <IconButton
                             size="small"
                             onClick={handleNextHistory}
                             disabled={currentHistoryIndex >= historyLength - 1 || loading}
-                            sx={{ p: 0.25 }}
                         >
                             <MdChevronRight size={20} />
                         </IconButton>
-                    </Box>
+                    </HistoryBox>
                 )}
 
                 <Button
@@ -46,33 +46,40 @@ export const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading
                     disabled={loading}
                     fullWidth
                     size="small"
-                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                    style={{ textTransform: 'none', borderRadius: 8 }}
                 >
                     Buscar
                 </Button>
 
                 <Tooltip title="Output do Comando (Hooks)">
-                    <IconButton
+                    <StyledIconButton
                         size="small"
                         onClick={handleOpenCmdDialog}
                         disabled={serverStatus !== 'connected' || hookStatus === 'loading'}
-                        sx={iconButtonStyles(false, hookStatus)}
+                        isActive={false}
+                        hookStatus={hookStatus}
                     >
-                        {hookStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : <MdTerminal size={20} />}
-                    </IconButton>
+                        {hookStatus === 'loading'
+                            ? <CircularProgress size={16} color="inherit" />
+                            : <MdTerminal size={20} />}
+                    </StyledIconButton>
                 </Tooltip>
 
-                <Tooltip title={removeComments ? "Limpeza ativa" : "Limpeza inativa"}>
-                    <IconButton
+                <Tooltip title={removeComments ? 'Limpeza ativa' : 'Limpeza inativa'}>
+                    <StyledIconButton
                         size="small"
-                        color={removeComments ? "primary" : "default"}
+                        color={removeComments ? 'primary' : 'default'}
                         onClick={() => setRemoveComments(!removeComments)}
-                        sx={iconButtonStyles(removeComments)}
+                        isActive={removeComments}
                     >
-                        {removeComments ? <MdCodeOff size={20} /> : <MdCode size={20} />}
-                    </IconButton>
+                        {removeComments
+                            ? <MdCodeOff size={20} />
+                            : <MdCode size={20} />}
+                    </StyledIconButton>
                 </Tooltip>
-            </Box>
-        </Box>
+            </ActionsContainer>
+        </Container>
     );
 };
+
+export default Header;
