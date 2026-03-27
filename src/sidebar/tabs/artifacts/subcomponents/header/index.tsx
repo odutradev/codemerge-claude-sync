@@ -1,9 +1,9 @@
-import { MdChevronRight, MdChevronLeft, MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md'
-import { IconButton } from '@mui/material'
+import { MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md'
 
+import VersionSelector from '@/sidebar/tabs/artifacts/subcomponents/versionSelector'
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import ActionButton from '@/sidebar/components/actionButton'
-import { Container, ActionsContainer, HistoryBox, PageIndicator } from './styles'
+import { Container, ActionsContainer } from './styles'
 
 import type { HeaderProps } from './types'
 
@@ -28,29 +28,13 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
             />
 
             <ActionsContainer>
-                {historyLength > 0 && (
-                    <HistoryBox>
-                        <IconButton
-                            size="small"
-                            onClick={handlePrevHistory}
-                            disabled={currentHistoryIndex <= 0 || loading}
-                        >
-                            <MdChevronLeft size={20} />
-                        </IconButton>
-
-                        <PageIndicator>
-                            {currentHistoryIndex + 1}/{historyLength}
-                        </PageIndicator>
-
-                        <IconButton
-                            size="small"
-                            onClick={handleNextHistory}
-                            disabled={currentHistoryIndex >= historyLength - 1 || loading}
-                        >
-                            <MdChevronRight size={20} />
-                        </IconButton>
-                    </HistoryBox>
-                )}
+                <VersionSelector
+                    historyLength={historyLength}
+                    currentHistoryIndex={currentHistoryIndex}
+                    handlePrevHistory={handlePrevHistory}
+                    handleNextHistory={handleNextHistory}
+                    loading={loading}
+                />
 
                 <ActionButton
                     variant="outlined"
