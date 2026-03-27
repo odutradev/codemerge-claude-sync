@@ -1,26 +1,46 @@
-import { Box, Typography } from '@mui/material';
+import PromptPresets from '@/sidebar/tabs/tools/subcomponents/promptPresets'
+import { CommandDialog } from '@/sidebar/components/commandDialog'
+import { CommitBox } from '@/sidebar/components/commitBox'
+import useTools from '@/sidebar/tabs/tools/hooks/useTools'
+import { Container, Title } from './styles'
 
-import { PromptPresets } from '@/sidebar/tabs/tools/subcomponents/promptPresets';
-import { CommandDialog } from '@/sidebar/components/commandDialog';
-import { CommitBox } from '@/sidebar/components/commitBox';
-import { containerStyles, titleStyles } from './styles';
-import { useTools } from '@/sidebar/tabs/tools/hooks/useTools';
+import type ToolsViewProps from './types'
 
-import type { FetchViaBackground } from '@/sidebar/types';
+const ToolsView = ({ fetchViaBackground }: ToolsViewProps) => {
+  const { state, actions } = useTools(fetchViaBackground)
 
-interface Props { fetchViaBackground: FetchViaBackground; }
+  return (
+    <Container>
+      <Title variant="subtitle2">
+        Ferramentas Globais
+      </Title>
 
-const ToolsView = ({ fetchViaBackground }: Props) => {
-    const { state, actions } = useTools(fetchViaBackground);
+      <CommitBox
+        commitType={state.commitType}
+        setCommitType={actions.setCommitType}
+        translateCommit={state.translateCommit}
+        setTranslateCommit={actions.setTranslateCommit}
+        commitMessage={state.commitMessage}
+        setCommitMessage={actions.setCommitMessage}
+        originalCommitMessage={state.originalCommitMessage}
+        originalCommitType={state.originalCommitType}
+        handleCommit={actions.handleCommit}
+        actionLoading={state.actionLoading}
+        serverStatus={state.serverStatus}
+      />
 
-    return (
-        <Box sx={containerStyles}>
-            <Typography variant="subtitle2" sx={titleStyles}>Ferramentas Globais</Typography>
-            <CommitBox commitType={state.commitType} setCommitType={actions.setCommitType} translateCommit={state.translateCommit} setTranslateCommit={actions.setTranslateCommit} commitMessage={state.commitMessage} setCommitMessage={actions.setCommitMessage} originalCommitMessage={state.originalCommitMessage} originalCommitType={state.originalCommitType} handleCommit={actions.handleCommit} actionLoading={state.actionLoading} serverStatus={state.serverStatus} />
-            <PromptPresets />
-            <CommandDialog cmdDialogOpen={state.cmdDialogOpen} setCmdDialogOpen={actions.setCmdDialogOpen} cmdLoading={state.cmdLoading} cmdOutput={state.cmdOutput} handleFetchCommandOutput={actions.handleFetchCommandOutput} handleInjectOutput={actions.handleInjectOutput} />
-        </Box>
-    );
-};
+      <PromptPresets />
 
-export default ToolsView;
+      <CommandDialog
+        cmdDialogOpen={state.cmdDialogOpen}
+        setCmdDialogOpen={actions.setCmdDialogOpen}
+        cmdLoading={state.cmdLoading}
+        cmdOutput={state.cmdOutput}
+        handleFetchCommandOutput={actions.handleFetchCommandOutput}
+        handleInjectOutput={actions.handleInjectOutput}
+      />
+    </Container>
+  )
+}
+
+export default ToolsView
