@@ -1,24 +1,6 @@
-import { keyframes } from '@mui/material/styles'
+import { pulseOrange, pulseGreen, pulseRed } from '@/sidebar/styles'
 
 import type { SxProps, Theme } from '@mui/material'
-
-const pulseGreen = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-`
-
-const pulseRed = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-`
-
-const pulseOrange = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(237, 108, 2, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(237, 108, 2, 0); }
-`
 
 export const getStatusProps = (status: string, isChecking: boolean) => {
     const visualStatus = isChecking ? 'checking' : status
