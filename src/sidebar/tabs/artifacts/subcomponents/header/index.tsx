@@ -9,12 +9,14 @@ import type { HeaderProps } from './types'
 
 const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory, hookStatus }: HeaderProps) => {
     const getHookPulse = () => {
+        if (hookStatus === 'loading') return 'warning'
         if (hookStatus === 'success') return 'success'
         if (hookStatus === 'error') return 'error'
         return 'none'
     }
 
     const getHookColor = () => {
+        if (hookStatus === 'loading') return 'warning'
         if (hookStatus === 'success') return 'success'
         if (hookStatus === 'error') return 'error'
         return 'inherit'

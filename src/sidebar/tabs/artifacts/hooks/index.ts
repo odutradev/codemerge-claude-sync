@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 
+import { processCode } from '@/sidebar/utils/codeProcessor';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import useNotificationStore from '@/sidebar/stores/notification';
-import { processCode } from '@/sidebar/utils/codeProcessor';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useHistoryStore from '@/sidebar/stores/history';
 import useConfigStore from '@/sidebar/stores/config';
@@ -50,18 +50,14 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 currentWindow: true
             });
 
-            if (!tabs[0]?.url || !isMounted) {
-                return;
-            }
+            if (!tabs[0]?.url || !isMounted) return;
 
             const url = tabs[0].url.split('#')[0];
             patchState({ activeUrl: url });
 
             const history = getHistory(url);
 
-            if (history.currentIndex < 0) {
-                return;
-            }
+            if (history.currentIndex < 0) return;
 
             const snapshot = history.snapshots[history.currentIndex];
 
@@ -98,30 +94,22 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 currentWindow: true
             });
 
-            if (!tabs[0]) {
-                throw new Error('Aba ativa não encontrada');
-            }
+            if (!tabs[0]) throw new Error('Aba ativa não encontrada');
 
             const isGemini = tabs[0].url!.includes('gemini.google.com');
             const isClaude = tabs[0].url!.includes('claude.ai');
 
-            if (!isGemini && !isClaude) {
-                throw new Error('Esta função requer Gemini ou Claude aberto na aba ativa');
-            }
+            if (!isGemini && !isClaude) throw new Error('Esta função requer Gemini ou Claude aberto na aba ativa');
 
             const url = tabs[0].url!.split('#')[0];
 
-            if (url !== state.activeUrl) {
-                patchState({ activeUrl: url });
-            }
+            if (url !== state.activeUrl) patchState({ activeUrl: url });
 
             const response = await chrome.tabs.sendMessage(tabs[0].id!, {
                 type: isGemini ? 'GET_GEMINI_ARTIFACTS' : 'GET_CLAUDE_ARTIFACTS'
             });
 
-            if (!response.success) {
-                throw new Error(response.error);
-            }
+            if (!response.success) throw new Error(response.error);
 
             const rawArtifacts = response.artifacts ?? [];
             let parsedCommandsToExecute: string[] = [];
@@ -180,9 +168,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 artifacts: filteredArtifacts
             });
 
-            if (!silent) {
-                showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
-            }
+            if (!silent) showNotification(`${filteredArtifacts.length} artefatos encontrados`, 'success');
         } catch (error) {
             if (!silent) {
                 const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -197,16 +183,12 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     }, [state.activeUrl, showNotification, addSnapshot]);
 
     const applySnapshot = useCallback((index: number) => {
-        if (!state.activeUrl) {
-            return;
-        }
+        if (!state.activeUrl) return;
 
         const history = getHistory(state.activeUrl);
         const snapshot = history.snapshots[index];
 
-        if (!snapshot) {
-            return;
-        }
+        if (!snapshot) return;
 
         setHistoryIndex(state.activeUrl, index);
 
@@ -225,15 +207,11 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     }, [state.activeUrl, getHistory, setHistoryIndex]);
 
     const handlePrevHistory = useCallback(() => {
-        if (currentHistoryIndex > 0) {
-            applySnapshot(currentHistoryIndex - 1);
-        }
+        if (currentHistoryIndex > 0) applySnapshot(currentHistoryIndex - 1);
     }, [currentHistoryIndex, applySnapshot]);
 
     const handleNextHistory = useCallback(() => {
-        if (currentHistoryIndex < historyLength - 1) {
-            applySnapshot(currentHistoryIndex + 1);
-        }
+        if (currentHistoryIndex < historyLength - 1) applySnapshot(currentHistoryIndex + 1);
     }, [currentHistoryIndex, historyLength, applySnapshot]);
 
     useEffect(() => {
@@ -246,11 +224,9 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     }, [serverStatus, historyLength, state.activeUrl, state.fetching, handleFetchArtifacts]);
 
     const handleCommit = async () => {
-        if (!state.commitMessage.trim()) {
-            return showNotification('Mensagem de commit vazia', 'warning');
-        }
+        if (!state.commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning');
 
-        patchState({ actionLoading: true });
+        patchState({ actionLoading: true, hookStatus: 'loading' });
 
         try {
             const response = await fetchViaBackground(`${serverUrl}/commit`, {
@@ -264,39 +240,37 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 })
             });
 
-            if (!response.success) {
-                throw new Error(`Commit: ${response.error}`);
-            }
+            if (!response.success) throw new Error(`Commit: ${response.error}`);
 
             const data = response.data ? JSON.parse(response.data) : {};
+            const success = data.success ?? true;
 
             patchState({
                 originalCommitMessage: state.commitMessage,
                 originalCommitType: state.commitType,
-                commitMessage: ''
-            });
-
-            showNotification('Commit realizado com sucesso!', 'success');
-
-            patchState({
+                hookStatus: success ? 'success' : 'error',
+                commitMessage: '',
                 cmdOutput: {
                     type: 'commit',
                     command: `git commit -m "${state.commitType}: ${state.commitMessage}"`,
                     timestamp: Date.now(),
-                    success: data.success ?? true,
+                    success,
                     output: data.output ?? 'Commit executado sem retorno de texto.',
                     error: data.error ?? null
                 }
             });
 
+            showNotification('Commit realizado com sucesso!', 'success');
+
             if (showCommandModal) {
-                patchState({ cmdDialogOpen: true });
+                patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
             showNotification(`Erro ao commitar: ${errorMessage}`, 'error');
 
             patchState({
+                hookStatus: 'error',
                 cmdOutput: {
                     type: 'commit',
                     command: `git commit -m "${state.commitType}: ${state.commitMessage}"`,
@@ -308,7 +282,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             });
 
             if (showCommandModal) {
-                patchState({ cmdDialogOpen: true });
+                patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } finally {
             patchState({ actionLoading: false });
@@ -316,11 +290,9 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     };
 
     const handleExecuteCommands = async () => {
-        if (state.selectedCommands.size === 0) {
-            return showNotification('Nenhum comando selecionado', 'warning');
-        }
+        if (state.selectedCommands.size === 0) return showNotification('Nenhum comando selecionado', 'warning');
 
-        patchState({ actionLoading: true });
+        patchState({ actionLoading: true, hookStatus: 'loading' });
 
         try {
             const response = await fetchViaBackground(`${serverUrl}/execute-commands`, {
@@ -332,32 +304,34 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 })
             });
 
-            if (!response.success) {
-                throw new Error(`Execução: ${response.error}`);
-            }
+            if (!response.success) throw new Error(`Execução: ${response.error}`);
 
             const data = response.data ? JSON.parse(response.data) : {};
+            const success = data.success ?? true;
+
             showNotification('Comandos enviados para execução!', 'success');
 
             patchState({
+                hookStatus: success ? 'success' : 'error',
                 cmdOutput: {
                     type: 'execute',
                     command: 'Múltiplos comandos',
                     timestamp: Date.now(),
-                    success: data.success ?? true,
+                    success,
                     output: JSON.stringify(data.results, null, 2),
                     error: data.error ?? null
                 }
             });
 
             if (showCommandModal) {
-                patchState({ cmdDialogOpen: true });
+                patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
             showNotification(`Erro: ${errorMessage}`, 'error');
 
             patchState({
+                hookStatus: 'error',
                 cmdOutput: {
                     type: 'execute',
                     command: 'Falha na execução',
@@ -369,7 +343,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             });
 
             if (showCommandModal) {
-                patchState({ cmdDialogOpen: true });
+                patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } finally {
             patchState({ actionLoading: false });
@@ -422,9 +396,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             const results = await Promise.all(tasks);
             const errors = (results as { success: boolean; error?: string }[]).filter((result) => !result.success);
 
-            if (errors.length > 0) {
-                throw new Error(errors.map((error) => error.error).join(' | '));
-            }
+            if (errors.length > 0) throw new Error(errors.map((error) => error.error).join(' | '));
 
             showNotification('Sincronização e deleções aplicadas!', 'success');
             patchState({ hookStatus: 'success' });
@@ -434,12 +406,6 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             patchState({ hookStatus: 'error' });
         } finally {
             patchState({ actionLoading: false });
-            setTimeout(() => {
-                setState((prev) => ({
-                    ...prev,
-                    hookStatus: prev.hookStatus !== 'loading' ? 'idle' : prev.hookStatus
-                }));
-            }, 4000);
         }
     };
 
@@ -449,9 +415,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
         try {
             const response = await fetchViaBackground(`${serverUrl}/command-output`);
 
-            if (!response.success) {
-                throw new Error(response.error);
-            }
+            if (!response.success) throw new Error(response.error);
 
             patchState({
                 cmdOutput: {
@@ -479,14 +443,12 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     };
 
     const handleOpenCmdDialog = () => {
-        patchState({ cmdDialogOpen: true });
+        patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
         handleFetchCommandOutput();
     };
 
     const handleInjectOutput = async () => {
-        if (!state.cmdOutput) {
-            return;
-        }
+        if (!state.cmdOutput) return;
 
         const isNoCommand = state.cmdOutput.status === 'no_command_executed';
         const formattedStatus = state.cmdOutput.success ? 'SUCCESS' : 'ERROR';
@@ -502,9 +464,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 currentWindow: true
             });
 
-            if (!tabs[0]) {
-                throw new Error('Aba não encontrada');
-            }
+            if (!tabs[0]) throw new Error('Aba não encontrada');
 
             const response = await chrome.tabs.sendMessage(tabs[0].id!, {
                 type: tabs[0].url?.includes('gemini.google.com') ? 'ADD_FILE_GEMINI' : 'ADD_FILE',
@@ -512,9 +472,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 content
             });
 
-            if (!response?.success && response?.error) {
-                throw new Error(response.error);
-            }
+            if (!response?.success && response?.error) throw new Error(response.error);
 
             showNotification('Output inserido no input!', 'success');
             patchState({ cmdDialogOpen: false });
