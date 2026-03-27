@@ -7,10 +7,10 @@ import useSelectionStore from '@/sidebar/stores/selection';
 import useHistoryStore from '@/sidebar/stores/history';
 import useConfigStore from '@/sidebar/stores/config';
 
+import { INITIAL_STATE } from './defaultValues';
+
 import type { UseArtifactsReturn, ArtifactsLocalState } from './types';
 import type { FetchViaBackground, Artifact } from '@/sidebar/types';
-
-const INITIAL_STATE: ArtifactsLocalState = { artifacts: [], filesToDelete: [], commandsToExecute: [], selectedIndices: new Set(), selectedDeletions: new Set(), selectedCommands: new Set(), fetching: false, cmdDialogOpen: false, cmdOutput: null, cmdLoading: false, commitMessage: '', commitType: 'feat', originalCommitMessage: '', originalCommitType: 'feat', actionLoading: false, hookStatus: 'idle', activeUrl: null };
 
 export const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsReturn => {
     const { serverUrl, checkInterval, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
