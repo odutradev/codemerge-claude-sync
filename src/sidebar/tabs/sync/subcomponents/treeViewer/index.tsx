@@ -1,33 +1,15 @@
 import { MdSearch, MdContentCopy, MdPushPin, MdOutlinePushPin, MdRefresh, MdClose } from 'react-icons/md'
-import { CircularProgress, Tooltip, IconButton, Box } from '@mui/material'
 import { useState, useEffect } from 'react'
+import { Box } from '@mui/material'
 
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import FileTreeItem from '@/sidebar/tabs/sync/subcomponents/filetreeItem'
+import ActionButton from '@/sidebar/components/actionButton'
 import Styled from './styles'
 
 import type TreeViewerProps from './types'
 
-const TreeViewer = ({
-    projectStructure,
-    searchTerm,
-    setSearchTerm,
-    isCopyMode,
-    setIsCopyMode,
-    persistSelection,
-    setPersistSelection,
-    selectedPaths,
-    expandedPaths,
-    pinnedPaths,
-    handleCopyPath,
-    handleToggleSelection,
-    handleToggleExpansion,
-    handleTogglePin,
-    serverStatus,
-    isChecking,
-    loading,
-    handleFetchStructure
-}: TreeViewerProps) => {
+const TreeViewer = ({ projectStructure, searchTerm, setSearchTerm, isCopyMode, setIsCopyMode, persistSelection, setPersistSelection, selectedPaths, expandedPaths, pinnedPaths, handleCopyPath, handleToggleSelection, handleToggleExpansion, handleTogglePin, serverStatus, isChecking, loading, handleFetchStructure }: TreeViewerProps) => {
     const [isSearchActive, setIsSearchActive] = useState(false)
 
     useEffect(() => {
@@ -60,9 +42,12 @@ const TreeViewer = ({
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                             />
-                            <IconButton size="small" onClick={handleCloseSearch}>
-                                <MdClose size={16} />
-                            </IconButton>
+                            <ActionButton
+                                variant="icon"
+                                icon={<MdClose size={16} />}
+                                onClick={handleCloseSearch}
+                                size="small"
+                            />
                         </Styled.SearchWrapper>
                     ) : (
                         <ServerStatusIndicator
@@ -75,40 +60,46 @@ const TreeViewer = ({
 
                 <Styled.RightSection>
                     {projectStructure && !isSearchActive && (
-                        <Tooltip title="Pesquisar">
-                            <IconButton size="small" onClick={() => setIsSearchActive(true)}>
-                                <MdSearch size={20} />
-                            </IconButton>
-                        </Tooltip>
+                        <ActionButton
+                            variant="icon"
+                            tooltip="Pesquisar"
+                            icon={<MdSearch size={20} />}
+                            onClick={() => setIsSearchActive(true)}
+                            size="small"
+                        />
                     )}
 
                     {projectStructure && (
                         <>
-                            <Tooltip title={isCopyMode ? "Modo de cópia ativado" : "Ativar modo de cópia"}>
-                                <IconButton size="small" onClick={handleToggleCopyMode} color={isCopyMode ? "primary" : "default"}>
-                                    <MdContentCopy size={20} />
-                                </IconButton>
-                            </Tooltip>
+                            <ActionButton
+                                variant="icon"
+                                tooltip={isCopyMode ? "Modo de cópia ativado" : "Ativar modo de cópia"}
+                                icon={<MdContentCopy size={20} />}
+                                onClick={handleToggleCopyMode}
+                                color={isCopyMode ? 'primary' : 'inherit'}
+                                size="small"
+                            />
 
-                            <Tooltip title={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}>
-                                <IconButton size="small" onClick={handleTogglePersist} color={persistSelection ? "primary" : "default"}>
-                                    {persistSelection ? <MdPushPin size={20} /> : <MdOutlinePushPin size={20} />}
-                                </IconButton>
-                            </Tooltip>
+                            <ActionButton
+                                variant="icon"
+                                tooltip={persistSelection ? "Manter seleção ativa" : "Manter seleção inativa"}
+                                icon={persistSelection ? <MdPushPin size={20} /> : <MdOutlinePushPin size={20} />}
+                                onClick={handleTogglePersist}
+                                color={persistSelection ? 'primary' : 'inherit'}
+                                size="small"
+                            />
                         </>
                     )}
 
-                    <Tooltip title="Atualizar Estrutura">
-                        <span>
-                            <IconButton
-                                size="small"
-                                onClick={handleFetchStructure}
-                                disabled={loading || isChecking || serverStatus !== 'connected'}
-                            >
-                                {loading ? <CircularProgress size={16} /> : <MdRefresh size={20} />}
-                            </IconButton>
-                        </span>
-                    </Tooltip>
+                    <ActionButton
+                        variant="icon"
+                        tooltip="Atualizar Estrutura"
+                        icon={<MdRefresh size={20} />}
+                        onClick={handleFetchStructure}
+                        disabled={loading || isChecking || serverStatus !== 'connected'}
+                        loading={loading}
+                        size="small"
+                    />
                 </Styled.RightSection>
             </Styled.Header>
             

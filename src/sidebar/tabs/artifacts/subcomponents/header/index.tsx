@@ -1,12 +1,25 @@
-import { MdChevronRight, MdChevronLeft, MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md';
-import { Typography, Button, Tooltip, CircularProgress, IconButton } from '@mui/material';
+import { MdChevronRight, MdChevronLeft, MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md'
+import { IconButton } from '@mui/material'
 
-import { Container, ActionsContainer, HistoryBox, StyledIconButton, PageIndicator } from './styles';
-import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator';
+import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
+import ActionButton from '@/sidebar/components/actionButton'
+import { Container, ActionsContainer, HistoryBox, PageIndicator } from './styles'
 
-import type { HeaderProps } from './types';
+import type { HeaderProps } from './types'
 
 const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handleOpenCmdDialog, removeComments, setRemoveComments, historyLength, currentHistoryIndex, handlePrevHistory, handleNextHistory, hookStatus }: HeaderProps) => {
+    const getHookPulse = () => {
+        if (hookStatus === 'success') return 'success'
+        if (hookStatus === 'error') return 'error'
+        return 'none'
+    }
+
+    const getHookColor = () => {
+        if (hookStatus === 'success') return 'success'
+        if (hookStatus === 'error') return 'error'
+        return 'inherit'
+    }
+
     return (
         <Container>
             <ServerStatusIndicator
@@ -39,47 +52,40 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
                     </HistoryBox>
                 )}
 
-                <Button
+                <ActionButton
                     variant="outlined"
-                    startIcon={<MdDownload size={20} />}
+                    icon={<MdDownload size={20} />}
                     onClick={() => handleFetchArtifacts(false)}
                     disabled={loading}
                     fullWidth
                     size="small"
-                    style={{ textTransform: 'none', borderRadius: 8 }}
                 >
                     Buscar
-                </Button>
+                </ActionButton>
 
-                <Tooltip title="Output do Comando (Hooks)">
-                    <StyledIconButton
-                        size="small"
-                        onClick={handleOpenCmdDialog}
-                        disabled={serverStatus !== 'connected' || hookStatus === 'loading'}
-                        isActive={false}
-                        hookStatus={hookStatus}
-                    >
-                        {hookStatus === 'loading'
-                            ? <CircularProgress size={16} color="inherit" />
-                            : <MdTerminal size={20} />}
-                    </StyledIconButton>
-                </Tooltip>
+                <ActionButton
+                    variant="icon"
+                    tooltip="Output do Comando (Hooks)"
+                    icon={<MdTerminal size={20} />}
+                    onClick={handleOpenCmdDialog}
+                    disabled={serverStatus !== 'connected' || hookStatus === 'loading'}
+                    loading={hookStatus === 'loading'}
+                    pulse={getHookPulse()}
+                    color={getHookColor()}
+                    size="small"
+                />
 
-                <Tooltip title={removeComments ? 'Limpeza ativa' : 'Limpeza inativa'}>
-                    <StyledIconButton
-                        size="small"
-                        color={removeComments ? 'primary' : 'default'}
-                        onClick={() => setRemoveComments(!removeComments)}
-                        isActive={removeComments}
-                    >
-                        {removeComments
-                            ? <MdCodeOff size={20} />
-                            : <MdCode size={20} />}
-                    </StyledIconButton>
-                </Tooltip>
+                <ActionButton
+                    variant="icon"
+                    tooltip={removeComments ? 'Limpeza ativa' : 'Limpeza inativa'}
+                    icon={removeComments ? <MdCodeOff size={20} /> : <MdCode size={20} />}
+                    onClick={() => setRemoveComments(!removeComments)}
+                    color={removeComments ? 'primary' : 'inherit'}
+                    size="small"
+                />
             </ActionsContainer>
         </Container>
-    );
-};
+    )
+}
 
-export default Header;
+export default Header

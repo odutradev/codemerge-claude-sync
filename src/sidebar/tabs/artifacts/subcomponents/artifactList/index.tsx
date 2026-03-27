@@ -1,10 +1,11 @@
-import { Typography, CircularProgress, Tooltip, List } from '@mui/material';
-import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md';
+import { Typography, CircularProgress, Tooltip, List } from '@mui/material'
+import { MdDeselect, MdUpload, MdDelete } from 'react-icons/md'
 
-import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, ApplyButton, EmptyIconWrapper, HeaderTitle, DeleteIconWrapper, ArtifactNameText, ArtifactLinesText } from './styles';
-import FileIcon from '@/sidebar/components/fileIcon';
+import { LoadingContainer, EmptyBox, StyledPaper, HeaderBox, ClearButton, StyledList, StyledListItem, DeleteListItem, ItemContentBox, DeleteCheckbox, StandardCheckbox, IconWrapperBox, TextWrapperBox, DeleteText, EmptyIconWrapper, HeaderTitle, DeleteIconWrapper, ArtifactNameText, ArtifactLinesText } from './styles'
+import ActionButton from '@/sidebar/components/actionButton'
+import FileIcon from '@/sidebar/components/fileIcon'
 
-import type { ArtifactListProps } from './types';
+import type { ArtifactListProps } from './types'
 
 const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, selectedDeletions, toggleSelection, toggleDeleteSelection, handleDeselectAll, handleApplyAll, actionLoading, serverStatus }: ArtifactListProps) => {
     if (fetching) {
@@ -12,11 +13,11 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
             <LoadingContainer>
                 <CircularProgress size={24} />
             </LoadingContainer>
-        );
+        )
     }
 
-    const totalItems = artifacts.length + filesToDelete.length;
-    const totalSelected = selectedIndices.size + selectedDeletions.size;
+    const totalItems = artifacts.length + filesToDelete.length
+    const totalSelected = selectedIndices.size + selectedDeletions.size
 
     if (totalItems === 0) {
         return (
@@ -28,7 +29,7 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                     Nenhum artefato ou arquivo para apagar
                 </Typography>
             </EmptyBox>
-        );
+        )
     }
 
     return (
@@ -110,18 +111,18 @@ const ArtifactList = ({ fetching, artifacts, filesToDelete, selectedIndices, sel
                 </StyledList>
             </StyledPaper>
 
-            <ApplyButton
+            <ActionButton
                 variant="contained"
+                icon={<MdUpload size={20} />}
                 onClick={handleApplyAll}
                 disabled={actionLoading || totalSelected === 0 || serverStatus !== 'connected'}
+                loading={actionLoading}
                 fullWidth
-                disableElevation
-                startIcon={<MdUpload size={20} />}
             >
                 Aplicar Sincronização
-            </ApplyButton>
+            </ActionButton>
         </>
-    );
-};
+    )
+}
 
-export default ArtifactList;
+export default ArtifactList

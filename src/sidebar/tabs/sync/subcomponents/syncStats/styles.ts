@@ -1,4 +1,4 @@
-import { Box, Paper, Typography, Button } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 const Container = styled(Paper)(({ theme }) => ({
@@ -29,17 +29,12 @@ const MetricValue = styled(Typography)({
     fontWeight: 500
 })
 
-const ActionButton = styled(Button)({
-    width: '100%'
-})
-
 const Styled = {
     Container,
     LayoutRow,
     MetricsGroup,
     MetricItem,
-    MetricValue,
-    ActionButton
+    MetricValue
 }
 
 export default Styled

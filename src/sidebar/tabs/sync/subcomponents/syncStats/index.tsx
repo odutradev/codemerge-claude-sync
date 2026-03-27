@@ -1,18 +1,12 @@
 import { MdFormatAlignLeft, MdInsertDriveFile, MdCloudUpload, MdAccessTime, MdStar } from 'react-icons/md'
 import { Tooltip, Box, Typography } from '@mui/material'
 
+import ActionButton from '@/sidebar/components/actionButton'
 import Styled from './styles'
 
 import type SyncStatsProps from './types'
 
-const SyncStats = ({
-    stats,
-    pinnedCount,
-    handleSync,
-    loading,
-    serverStatus,
-    hasSelection
-}: SyncStatsProps) => {
+const SyncStats = ({ stats, pinnedCount, handleSync, loading, serverStatus, hasSelection }: SyncStatsProps) => {
     return (
         <>
             <Styled.Container variant="outlined">
@@ -57,14 +51,16 @@ const SyncStats = ({
                 </Styled.LayoutRow>
             </Styled.Container>
 
-            <Styled.ActionButton
+            <ActionButton
                 variant="contained"
+                icon={<MdCloudUpload size={20} />}
                 onClick={handleSync}
                 disabled={loading || !hasSelection || serverStatus !== 'connected'}
-                startIcon={<MdCloudUpload size={20} />}
+                loading={loading}
+                fullWidth
             >
                 Sincronizar Selecionados
-            </Styled.ActionButton>
+            </ActionButton>
         </>
     )
 }

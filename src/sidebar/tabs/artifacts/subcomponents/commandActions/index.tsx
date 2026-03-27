@@ -1,14 +1,13 @@
-import { Typography, Tooltip, List } from '@mui/material';
-import { MdTerminal } from 'react-icons/md';
+import { Typography, Tooltip, List } from '@mui/material'
+import { MdTerminal } from 'react-icons/md'
 
-import { CommandBox, StyledPaper, HeaderBox, StyledList, StyledListItem, ItemContentBox, CommandCheckbox, TextWrapperBox, ExecuteButton, HeaderTitle, CommandText } from './styles';
+import { CommandBox, StyledPaper, HeaderBox, StyledList, StyledListItem, ItemContentBox, CommandCheckbox, TextWrapperBox, HeaderTitle, CommandText } from './styles'
+import ActionButton from '@/sidebar/components/actionButton'
 
-import type { CommandActionsProps } from './types';
+import type { CommandActionsProps } from './types'
 
 const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSelection, handleExecuteCommands, actionLoading, serverStatus }: CommandActionsProps) => {
-    if (!commandsToExecute || commandsToExecute.length === 0) {
-        return null;
-    }
+    if (!commandsToExecute || commandsToExecute.length === 0) return null
 
     return (
         <CommandBox>
@@ -44,19 +43,19 @@ const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSele
                 </StyledList>
             </StyledPaper>
 
-            <ExecuteButton
+            <ActionButton
                 variant="contained"
                 color="info"
+                icon={<MdTerminal size={20} />}
                 onClick={handleExecuteCommands}
                 disabled={actionLoading || selectedCommands.size === 0 || serverStatus !== 'connected'}
+                loading={actionLoading}
                 fullWidth
-                disableElevation
-                startIcon={<MdTerminal size={20} />}
             >
                 Executar Comandos
-            </ExecuteButton>
+            </ActionButton>
         </CommandBox>
-    );
-};
+    )
+}
 
-export default CommandActions;
+export default CommandActions
