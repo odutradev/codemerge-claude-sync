@@ -4,8 +4,8 @@ import { CommandActions } from '@/sidebar/tabs/artifacts/subcomponents/commandAc
 import { ArtifactList } from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
 import { Header } from '@/sidebar/tabs/artifacts/subcomponents/header';
 import { CommandDialog } from '@/sidebar/components/commandDialog';
-import { CommitBox } from '@/sidebar/components/commitBox';
 import { useArtifacts } from '@/sidebar/tabs/artifacts/hooks';
+import { CommitBox } from '@/sidebar/components/commitBox';
 import { containerStyles, scrollableStyles } from './styles';
 
 import type { FetchViaBackground } from '@/sidebar/types';
@@ -41,11 +41,11 @@ const ArtifactsView = ({ fetchViaBackground }: Props) => {
                     <Box sx={{ flexShrink: 0, mb: 2 }}>
                         <CommitBox
                             commitType={state.commitType}
-                            setCommitType={actions.setCommitType}
+                            setCommitType={(v) => actions.setField('commitType', v)}
                             translateCommit={state.translateCommit}
                             setTranslateCommit={actions.setTranslateCommit}
                             commitMessage={state.commitMessage}
-                            setCommitMessage={actions.setCommitMessage}
+                            setCommitMessage={(v) => actions.setField('commitMessage', v)}
                             originalCommitMessage={state.originalCommitMessage}
                             originalCommitType={state.originalCommitType}
                             handleCommit={actions.handleCommit}
@@ -85,7 +85,7 @@ const ArtifactsView = ({ fetchViaBackground }: Props) => {
 
             <CommandDialog
                 cmdDialogOpen={state.cmdDialogOpen}
-                setCmdDialogOpen={actions.setCmdDialogOpen}
+                setCmdDialogOpen={(v) => actions.setField('cmdDialogOpen', v)}
                 cmdLoading={state.cmdLoading}
                 cmdOutput={state.cmdOutput}
                 handleFetchCommandOutput={actions.handleFetchCommandOutput}

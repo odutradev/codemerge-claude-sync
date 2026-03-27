@@ -1,29 +1,33 @@
-import type { CommandOutput, Artifact, HookStatus, ServerStatus } from '@/sidebar/types';
+import type { CommandOutput, ServerStatus, HookStatus, Artifact } from '@/sidebar/types';
+
+export interface ArtifactsLocalState {
+    artifacts: Artifact[];
+    filesToDelete: string[];
+    commandsToExecute: string[];
+    selectedIndices: Set<number>;
+    selectedDeletions: Set<string>;
+    selectedCommands: Set<string>;
+    fetching: boolean;
+    cmdDialogOpen: boolean;
+    cmdOutput: CommandOutput | null;
+    cmdLoading: boolean;
+    commitMessage: string;
+    commitType: string;
+    originalCommitMessage: string;
+    originalCommitType: string;
+    actionLoading: boolean;
+    hookStatus: HookStatus;
+    activeUrl: string | null;
+}
 
 export interface UseArtifactsReturn {
-    state: {
-        artifacts: Artifact[];
-        filesToDelete: string[];
-        commandsToExecute: string[];
-        selectedIndices: Set<number>;
-        selectedDeletions: Set<string>;
-        selectedCommands: Set<string>;
-        fetching: boolean;
+    state: ArtifactsLocalState & {
         serverStatus: ServerStatus;
         isChecking: boolean;
-        cmdDialogOpen: boolean;
-        cmdOutput: CommandOutput | null;
-        cmdLoading: boolean;
         removeComments: boolean;
-        commitMessage: string;
-        commitType: string;
         translateCommit: boolean;
-        originalCommitMessage: string;
-        originalCommitType: string;
-        actionLoading: boolean;
         historyLength: number;
         currentHistoryIndex: number;
-        hookStatus: HookStatus;
     };
     actions: {
         handleFetchArtifacts: (silent?: boolean) => void;
@@ -36,13 +40,11 @@ export interface UseArtifactsReturn {
         handleDeselectAll: () => void;
         handlePrevHistory: () => void;
         handleNextHistory: () => void;
-        setCmdDialogOpen: (v: boolean) => void;
         toggleSelection: (i: number) => void;
         toggleDeleteSelection: (p: string) => void;
         toggleCommandSelection: (c: string) => void;
+        setField: <K extends keyof ArtifactsLocalState>(k: K, v: ArtifactsLocalState[K]) => void;
         setRemoveComments: (v: boolean) => void;
-        setCommitMessage: (m: string) => void;
-        setCommitType: (t: string) => void;
         setTranslateCommit: (v: boolean) => void;
     };
 }
