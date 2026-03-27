@@ -1,7 +1,8 @@
 import { styled, keyframes, alpha } from '@mui/material/styles'
 import { IconButton, Button } from '@mui/material'
 
-import type { StyledProps } from './types'
+import type { Theme } from '@mui/material/styles'
+import type { StyledProps, PulseType } from './types'
 
 const createPulseAnimation = (color: string) => keyframes`
     0% { box-shadow: 0 0 0 0 ${color}; }
@@ -9,7 +10,7 @@ const createPulseAnimation = (color: string) => keyframes`
     100% { box-shadow: 0 0 0 0 transparent; }
 `
 
-const getPulseStyles = (theme: any, pulseType: string) => {
+const getPulseStyles = (theme: Theme, pulseType: PulseType) => {
     if (pulseType === 'none') return {}
 
     const colorMap: Record<string, string> = {
@@ -27,10 +28,16 @@ const getPulseStyles = (theme: any, pulseType: string) => {
 }
 
 export const StyledButton = styled(Button, {
-    shouldForwardProp: (prop) => prop !== '$pulse'
-})<StyledProps>(({ theme, $pulse }) => ({
-    textTransform: 'none',
+    shouldForwardProp: (prop) => prop !== '$pulse' && prop !== '$isIconOnly'
+})<StyledProps>(({ theme, $pulse, $isIconOnly }) => ({
     borderRadius: theme.shape.borderRadius * 2,
+    textTransform: 'none',
+    minHeight: 36,
+    ...($isIconOnly && {
+        paddingRight: 0,
+        paddingLeft: 0,
+        minWidth: 36
+    }),
     ...getPulseStyles(theme, $pulse)
 }))
 
@@ -39,5 +46,7 @@ export const StyledIconButton = styled(IconButton, {
 })<StyledProps>(({ theme, $pulse }) => ({
     borderRadius: theme.shape.borderRadius * 2,
     transition: 'all 0.3s ease',
+    minHeight: 36,
+    minWidth: 36,
     ...getPulseStyles(theme, $pulse)
 }))

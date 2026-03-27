@@ -20,4 +20,5 @@ export interface ActionButtonProps {
 
 export interface StyledProps {
     $pulse: PulseType
+    $isIconOnly?: boolean
 }

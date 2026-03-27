@@ -37,11 +37,11 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
                         >
                             <MdChevronLeft size={20} />
                         </IconButton>
-                        
+
                         <PageIndicator>
                             {currentHistoryIndex + 1}/{historyLength}
                         </PageIndicator>
-                        
+
                         <IconButton
                             size="small"
                             onClick={handleNextHistory}
@@ -64,7 +64,7 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
                 </ActionButton>
 
                 <ActionButton
-                    variant="icon"
+                    variant="outlined"
                     tooltip="Output do Comando (Hooks)"
                     icon={<MdTerminal size={20} />}
                     onClick={handleOpenCmdDialog}
@@ -76,7 +76,7 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
                 />
 
                 <ActionButton
-                    variant="icon"
+                    variant="outlined"
                     tooltip={removeComments ? 'Limpeza ativa' : 'Limpeza inativa'}
                     icon={removeComments ? <MdCodeOff size={20} /> : <MdCode size={20} />}
                     onClick={() => setRemoveComments(!removeComments)}

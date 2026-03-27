@@ -17,7 +17,7 @@ const CommandActions = ({ commandsToExecute, selectedCommands, toggleCommandSele
                         COMANDOS PARA EXECUTAR ({selectedCommands.size}/{commandsToExecute.length})
                     </HeaderTitle>
                 </HeaderBox>
-                
+
                 <StyledList component={List}>
                     {commandsToExecute.map((command, index) => (
                         <StyledListItem

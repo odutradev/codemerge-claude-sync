@@ -26,7 +26,7 @@ const TreeViewer = ({ projectStructure, searchTerm, setSearchTerm, isCopyMode, s
     }
 
     const handleToggleCopyMode = () => setIsCopyMode(!isCopyMode)
-    
+
     const handleTogglePersist = () => setPersistSelection(!persistSelection)
 
     return (
@@ -102,7 +102,7 @@ const TreeViewer = ({ projectStructure, searchTerm, setSearchTerm, isCopyMode, s
                     />
                 </Styled.RightSection>
             </Styled.Header>
-            
+
             <Styled.ScrollArea>
                 {projectStructure && (
                     <FileTreeItem
