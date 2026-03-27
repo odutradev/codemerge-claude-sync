@@ -1,12 +1,12 @@
 import { Snackbar, Alert } from '@mui/material';
 
-import { useNotification } from '@/sidebar/hooks/useNotification';
+import useNotificationStore from '@/sidebar/stores/notification';
 import { alertStyles } from './styles';
 
 import type { NotificationSnackbarProps } from './types';
 
 export const NotificationSnackbar = ({}: NotificationSnackbarProps) => {
-    const { message, hideNotification } = useNotification();
+    const { message, hideNotification } = useNotificationStore();
 
     return (
         <Snackbar open={message.open} autoHideDuration={2000} onClose={hideNotification}>

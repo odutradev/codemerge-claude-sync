@@ -1,14 +1,14 @@
 import { MdOutlinePushPin, MdLibraryAddCheck, MdDeleteForever, MdDeleteSweep, MdPushPin, MdHistory, MdRestore, MdTimer } from 'react-icons/md';
 import { ToggleButtonGroup, InputAdornment, ToggleButton, Typography, TextField, Divider, Button, Paper, Box } from '@mui/material';
 
-import { useNotification } from '@/sidebar/hooks/useNotification';
+import useNotificationStore from '@/sidebar/stores/notification';
 import useSelectionStore from '@/sidebar/stores/selection';
 import useHistoryStore from '@/sidebar/stores/history';
 import useConfigStore from '@/sidebar/stores/config';
 
 export const DataSync = () => {
     const { checkInterval, persistSelection, autoSelectSynced, setCheckInterval, setPersistSelection, setAutoSelectSynced, resetConfig } = useConfigStore();
-    const { showNotification } = useNotification();
+    const { showNotification } = useNotificationStore();
     const { clearAllSelections } = useSelectionStore();
     const { clearAllHistory } = useHistoryStore();
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useNotification } from '@/sidebar/hooks/useNotification';
+import useNotificationStore from '@/sidebar/stores/notification';
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus';
 import useConfigStore from '@/sidebar/stores/config';
 
@@ -10,7 +10,7 @@ import type { UseToolsReturn } from './types';
 export const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
     const { serverUrl, checkInterval, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore();
     const { serverStatus } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
-    const { showNotification } = useNotification();
+    const { showNotification } = useNotificationStore();
 
     const [originalCommitMessage, setOriginalCommitMessage] = useState('');
     const [originalCommitType, setOriginalCommitType] = useState('feat');
