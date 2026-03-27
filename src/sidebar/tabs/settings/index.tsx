@@ -5,13 +5,9 @@ import DataSync from '@/sidebar/tabs/settings/subcomponents/dataSync';
 import { SettingsContainer, PageTitle, VersionText } from './styles';
 import { useSettings } from '@/sidebar/tabs/settings/hooks';
 
-import type { FetchViaBackground } from '@/sidebar/types';
+import type { SettingsViewProps } from './types';
 
-interface Props {
-    fetchViaBackground?: FetchViaBackground;
-}
-
-const SettingsView = ({ fetchViaBackground }: Props) => {
+const SettingsView = ({ fetchViaBackground }: SettingsViewProps) => {
     const { state } = useSettings();
 
     return (
