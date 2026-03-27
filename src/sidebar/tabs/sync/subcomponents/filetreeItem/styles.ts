@@ -58,6 +58,17 @@ const StarButton = styled(IconButton)({
     }
 })
 
+const FileIconWrapper = styled(Box)({
+    marginRight: '8px',
+    display: 'flex',
+    fontSize: 'var(--icon-size)',
+    '& svg': {
+        fontSize: 'var(--icon-size)',
+        width: 'var(--icon-size)',
+        height: 'var(--icon-size)'
+    }
+})
+
 const Styled = {
     ItemContainer,
     ActionButton,
@@ -65,7 +76,8 @@ const Styled = {
     InfoWrapper,
     EmptySpace,
     FileName,
-    StarButton
+    StarButton,
+    FileIconWrapper
 }
 
 export default Styled

@@ -123,9 +123,9 @@ const FileTreeItem = ({
                             <Box component={MdFolder} style={{ marginRight: 8, color: 'var(--mui-palette-text-secondary)', fontSize: iconSize }} />
                         )
                     ) : (
-                        <Box style={{ marginRight: 8, display: 'flex' }}>
-                            <FileIcon fileName={node.name} style={{ fontSize: iconSize }} />
-                        </Box>
+                        <Styled.FileIconWrapper style={{ '--icon-size': `${iconSize}px` } as React.CSSProperties}>
+                            <FileIcon fileName={node.name} />
+                        </Styled.FileIconWrapper>
                     )}
 
                     <Styled.FileName variant="body2" title={node.name} style={{ fontSize: compactMode ? '0.8rem' : '0.875rem' }}>
