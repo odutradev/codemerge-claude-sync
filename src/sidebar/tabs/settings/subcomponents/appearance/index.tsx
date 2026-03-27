@@ -1,25 +1,26 @@
 import { MdSettingsBrightness, MdLightMode, MdDarkMode, MdViewHeadline, MdViewCompact, MdNotifications, MdErrorOutline, MdNotificationsOff, MdColorLens } from 'react-icons/md';
-import { ToggleButtonGroup, ToggleButton, Typography, IconButton, Paper, Box } from '@mui/material';
+import { ToggleButtonGroup, ToggleButton, Box } from '@mui/material';
 import { useRef } from 'react';
 
+import { AppearanceContainer, HeaderText, SectionContainer, SectionLabel, IconWrapper, ColorListContainer, ColorOption, PickerContainer, PickerButton, ColorIconWrapper, HiddenInput } from './styles';
 import useConfigStore from '@/sidebar/stores/config';
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336'];
 
-export const Appearance = () => {
+const Appearance = () => {
     const { themeMode, primaryColor, compactMode, verbosity, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity } = useConfigStore();
     const colorRef = useRef<HTMLInputElement>(null);
 
     return (
-        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle2" color="primary" sx={{ mb: 2 }}>
+        <AppearanceContainer variant="outlined">
+            <HeaderText variant="subtitle2">
                 Interface & UX
-            </Typography>
+            </HeaderText>
 
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <SectionContainer>
+                <SectionLabel variant="caption">
                     Aparência
-                </Typography>
+                </SectionLabel>
                 <ToggleButtonGroup
                     value={themeMode}
                     exclusive
@@ -28,24 +29,30 @@ export const Appearance = () => {
                     fullWidth
                 >
                     <ToggleButton value="light">
-                        <MdLightMode size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdLightMode size={20} />
+                        </IconWrapper>
                         Claro
                     </ToggleButton>
                     <ToggleButton value="system">
-                        <MdSettingsBrightness size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdSettingsBrightness size={20} />
+                        </IconWrapper>
                         Auto
                     </ToggleButton>
                     <ToggleButton value="dark">
-                        <MdDarkMode size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdDarkMode size={20} />
+                        </IconWrapper>
                         Escuro
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </Box>
+            </SectionContainer>
 
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <SectionContainer>
+                <SectionLabel variant="caption">
                     Densidade
-                </Typography>
+                </SectionLabel>
                 <ToggleButtonGroup
                     value={compactMode ? 'compact' : 'normal'}
                     exclusive
@@ -54,20 +61,24 @@ export const Appearance = () => {
                     fullWidth
                 >
                     <ToggleButton value="normal">
-                        <MdViewHeadline size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdViewHeadline size={20} />
+                        </IconWrapper>
                         Normal
                     </ToggleButton>
                     <ToggleButton value="compact">
-                        <MdViewCompact size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdViewCompact size={20} />
+                        </IconWrapper>
                         Compacto
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </Box>
+            </SectionContainer>
 
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            <SectionContainer>
+                <SectionLabel variant="caption">
                     Notificações
-                </Typography>
+                </SectionLabel>
                 <ToggleButtonGroup
                     value={verbosity}
                     exclusive
@@ -76,59 +87,56 @@ export const Appearance = () => {
                     fullWidth
                 >
                     <ToggleButton value="all">
-                        <MdNotifications size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdNotifications size={20} />
+                        </IconWrapper>
                         Tudo
                     </ToggleButton>
                     <ToggleButton value="errors">
-                        <MdErrorOutline size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdErrorOutline size={20} />
+                        </IconWrapper>
                         Erros
                     </ToggleButton>
                     <ToggleButton value="silent">
-                        <MdNotificationsOff size={20} style={{ marginRight: 8 }} />
+                        <IconWrapper>
+                            <MdNotificationsOff size={20} />
+                        </IconWrapper>
                         Mudo
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </Box>
+            </SectionContainer>
 
             <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                <SectionLabel variant="caption">
                     Cor Principal
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                </SectionLabel>
+                <ColorListContainer>
                     {PREDEFINED_COLORS.map(c => (
-                        <Box
+                        <ColorOption
                             key={c}
+                            colorValue={c}
+                            isSelected={primaryColor === c}
                             onClick={() => setPrimaryColor(c)}
-                            sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: '50%',
-                                bgcolor: c,
-                                cursor: 'pointer',
-                                border: primaryColor === c ? '2px solid white' : '2px solid transparent',
-                                outline: primaryColor === c ? `2px solid ${c}` : 'none',
-                                transition: 'transform 0.2s',
-                                '&:hover': { transform: 'scale(1.1)' }
-                            }}
                         />
                     ))}
-                    <Box sx={{ position: 'relative' }}>
-                        <IconButton
-                            onClick={() => colorRef.current?.click()}
-                            sx={{ width: 32, height: 32, border: '1px solid', borderColor: 'divider', p: 0 }}
-                        >
-                            <MdColorLens size={20} style={{ color: primaryColor }} />
-                        </IconButton>
-                        <input
+                    <PickerContainer>
+                        <PickerButton onClick={() => colorRef.current?.click()}>
+                            <ColorIconWrapper customColor={primaryColor}>
+                                <MdColorLens size={20} />
+                            </ColorIconWrapper>
+                        </PickerButton>
+                        <HiddenInput
                             ref={colorRef}
                             type="color"
                             value={primaryColor}
                             onChange={(e) => setPrimaryColor(e.target.value)}
-                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                         />
-                    </Box>
-                </Box>
+                    </PickerContainer>
+                </ColorListContainer>
             </Box>
-        </Paper>
+        </AppearanceContainer>
     );
 };
+
+export default Appearance;
