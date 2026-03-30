@@ -1,25 +1,16 @@
-import { MdTerminal, MdTranslate, MdMessage, MdCode } from 'react-icons/md'
 import { ToggleButtonGroup, ToggleButton } from '@mui/material'
+import { MdTerminal, MdMessage } from 'react-icons/md'
 
 import Section from '@/sidebar/tabs/settings/components/section'
 import Row from '@/sidebar/tabs/settings/components/row'
-import useConfigStore from '@/sidebar/stores/config'
 import { ToggleContent } from '@/sidebar/tabs/settings/styles'
+import useConfigStore from '@/sidebar/stores/config'
 
-const GitCommands = () => {
-    const { translateCommit, showCommitFeedback, showExecuteFeedback, setTranslateCommit, setShowCommitFeedback, setShowExecuteFeedback } = useConfigStore()
+const CommandOutput = () => {
+    const { showCommitFeedback, showExecuteFeedback, setShowCommitFeedback, setShowExecuteFeedback } = useConfigStore()
 
     return (
-        <Section title="Git & Comandos" icon={<MdCode size={20} />}>
-            <Row label="Tradução Automática de Commits" vertical>
-                <ToggleButtonGroup value={translateCommit ? 'on' : 'off'} exclusive onChange={(_, v) => v && setTranslateCommit(v === 'on')} size="small" fullWidth>
-                    <ToggleButton value="off">Inativo</ToggleButton>
-                    <ToggleButton value="on" color="primary">
-                        <ToggleContent><MdTranslate size={20} /> Ativo</ToggleContent>
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </Row>
-
+        <Section title="Feedback de Comandos" icon={<MdTerminal size={20} />} tooltip="Controle a exibição de logs e retornos no painel ao executar operações do terminal.">
             <Row label="Feedback de Commit" vertical>
                 <ToggleButtonGroup value={showCommitFeedback ? 'on' : 'off'} exclusive onChange={(_, v) => v && setShowCommitFeedback(v === 'on')} size="small" fullWidth>
                     <ToggleButton value="off">Ocultar</ToggleButton>
@@ -41,4 +32,4 @@ const GitCommands = () => {
     )
 }
 
-export default GitCommands
+export default CommandOutput

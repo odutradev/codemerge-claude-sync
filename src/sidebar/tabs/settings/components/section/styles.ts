@@ -46,5 +46,16 @@ export const IconWrapper = styled('span', { shouldForwardProp: (prop) => prop !=
 
 export const TitleContainer = styled(Typography)(({ theme }) => ({
     color: theme.palette.text.primary,
-    fontWeight: 600
+    fontWeight: 600,
+    flex: 1
+}))
+
+export const InfoWrapper = styled('span')(({ theme }) => ({
+    color: theme.palette.text.secondary,
+    alignItems: 'center',
+    display: 'flex',
+    cursor: 'help',
+    '&:hover': {
+        color: theme.palette.text.primary
+    }
 }))

@@ -1,20 +1,20 @@
-import { MdSettingsBrightness, MdLightMode, MdDarkMode, MdViewHeadline, MdViewCompact, MdNotifications, MdErrorOutline, MdNotificationsOff, MdPalette } from 'react-icons/md'
+import { MdSettingsBrightness, MdLightMode, MdDarkMode, MdViewHeadline, MdViewCompact, MdPalette } from 'react-icons/md'
 import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 
 import ColorPicker from '@/sidebar/tabs/settings/components/colorPicker'
 import Section from '@/sidebar/tabs/settings/components/section'
 import Row from '@/sidebar/tabs/settings/components/row'
-import useConfigStore from '@/sidebar/stores/config'
 import { ToggleContent } from '@/sidebar/tabs/settings/styles'
+import useConfigStore from '@/sidebar/stores/config'
 
 const PREDEFINED_COLORS = ['#da7756', '#2196f3', '#4caf50', '#9c27b0', '#f44336']
 
 const Appearance = () => {
-    const { themeMode, primaryColor, compactMode, verbosity, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity } = useConfigStore()
+    const { themeMode, primaryColor, compactMode, setThemeMode, setPrimaryColor, setCompactMode } = useConfigStore()
 
     return (
-        <Section title="Interface & UX" icon={<MdPalette size={20} />}>
-            <Row label="Aparência" vertical>
+        <Section title="Aparência & UX" icon={<MdPalette size={20} />} tooltip="Personalize as cores, o tema visual e a densidade dos elementos da interface.">
+            <Row label="Tema" vertical>
                 <ToggleButtonGroup value={themeMode} exclusive onChange={(_, v) => v && setThemeMode(v)} size="small" fullWidth>
                     <ToggleButton value="light">
                         <ToggleContent><MdLightMode size={20} /> Claro</ToggleContent>
@@ -39,26 +39,8 @@ const Appearance = () => {
                 </ToggleButtonGroup>
             </Row>
 
-            <Row label="Notificações" vertical>
-                <ToggleButtonGroup value={verbosity} exclusive onChange={(_, v) => v && setVerbosity(v)} size="small" fullWidth>
-                    <ToggleButton value="all">
-                        <ToggleContent><MdNotifications size={20} /> Tudo</ToggleContent>
-                    </ToggleButton>
-                    <ToggleButton value="errors">
-                        <ToggleContent><MdErrorOutline size={20} /> Erros</ToggleContent>
-                    </ToggleButton>
-                    <ToggleButton value="silent">
-                        <ToggleContent><MdNotificationsOff size={20} /> Mudo</ToggleContent>
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </Row>
-
             <Row label="Cor Principal" vertical>
-                <ColorPicker
-                    value={primaryColor}
-                    predefinedColors={PREDEFINED_COLORS}
-                    onChange={setPrimaryColor}
-                />
+                <ColorPicker value={primaryColor} predefinedColors={PREDEFINED_COLORS} onChange={setPrimaryColor} />
             </Row>
         </Section>
     )

@@ -1,16 +1,15 @@
-import { MdOutlinePushPin, MdLibraryAddCheck, MdPushPin, MdTimer, MdLink, MdSync } from 'react-icons/md'
-import { ToggleButtonGroup, InputAdornment, ToggleButton, TextField } from '@mui/material'
+import { TextField, InputAdornment } from '@mui/material'
+import { MdTimer, MdLink, MdSync } from 'react-icons/md'
 
 import Section from '@/sidebar/tabs/settings/components/section'
 import Row from '@/sidebar/tabs/settings/components/row'
 import useConfigStore from '@/sidebar/stores/config'
-import { ToggleContent } from '@/sidebar/tabs/settings/styles'
 
 const DataSync = () => {
-    const { serverUrl, checkInterval, persistSelection, autoSelectSynced, setServerUrl, setCheckInterval, setPersistSelection, setAutoSelectSynced } = useConfigStore()
+    const { serverUrl, checkInterval, setServerUrl, setCheckInterval } = useConfigStore()
 
     return (
-        <Section title="Dados & Sincronização" icon={<MdSync size={20} />}>
+        <Section title="Servidor de Sincronização" icon={<MdSync size={20} />} tooltip="Configurações de conexão e intervalo de ping com o servidor local (codemerge-cli).">
             <Row label="URL do Servidor" vertical>
                 <TextField
                     fullWidth
@@ -26,26 +25,6 @@ const DataSync = () => {
                         )
                     }}
                 />
-            </Row>
-
-            <Row label="Persistência" vertical>
-                <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={(_, v) => v && setPersistSelection(v === 'on')} size="small" fullWidth>
-                    <ToggleButton value="off">
-                        <ToggleContent><MdOutlinePushPin size={20} /> Volátil</ToggleContent>
-                    </ToggleButton>
-                    <ToggleButton value="on" color="primary">
-                        <ToggleContent><MdPushPin size={20} /> Manter Seleção</ToggleContent>
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </Row>
-
-            <Row label="Auto-selecionar Artefatos" vertical>
-                <ToggleButtonGroup value={autoSelectSynced ? 'on' : 'off'} exclusive onChange={(_, v) => v && setAutoSelectSynced(v === 'on')} size="small" fullWidth>
-                    <ToggleButton value="off">Inativo</ToggleButton>
-                    <ToggleButton value="on" color="primary">
-                        <ToggleContent><MdLibraryAddCheck size={20} /> Ativo</ToggleContent>
-                    </ToggleButton>
-                </ToggleButtonGroup>
             </Row>
 
             <Row label="Intervalo de Checagem (ms)" vertical>

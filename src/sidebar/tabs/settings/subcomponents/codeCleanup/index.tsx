@@ -10,7 +10,7 @@ const CodeCleanup = () => {
     const { removeComments, removeEmptyLines, removeLogs, setRemoveComments, setRemoveEmptyLines, setRemoveLogs } = useConfigStore()
 
     return (
-        <Section title="Limpeza de Código" icon={<MdAutoFixHigh size={20} />}>
+        <Section title="Limpeza de Código" icon={<MdAutoFixHigh size={20} />} tooltip="Remova códigos mortos, comentários e logs antes de enviar os artefatos para processamento.">
             <Row vertical>
                 <ToggleButtonGroup value={removeComments ? 'on' : 'off'} exclusive onChange={(_, v) => v && setRemoveComments(v === 'on')} size="small" fullWidth>
                     <ToggleButton value="off">Não Limpar</ToggleButton>
