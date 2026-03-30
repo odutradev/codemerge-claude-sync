@@ -1,23 +1,16 @@
-import { MdDeleteForever, MdDeleteSweep, MdHistory, MdRestore, MdWarning } from 'react-icons/md'
 import { Button } from '@mui/material'
 
-import Section from '@/sidebar/tabs/settings/components/section'
 import useNotificationStore from '@/sidebar/stores/notification'
 import useSelectionStore from '@/sidebar/stores/selection'
 import useHistoryStore from '@/sidebar/stores/history'
 import useConfigStore from '@/sidebar/stores/config'
-import { ActionGrid, WarningText } from './styles'
+import { DangerContainer, DangerTitle, DangerBox, DangerRow, DangerInfo, DangerActionTitle, DangerActionDesc } from './styles'
 
 const DangerZone = () => {
     const { showNotification } = useNotificationStore()
     const { clearAllSelections } = useSelectionStore()
     const { clearAllHistory } = useHistoryStore()
     const { resetConfig } = useConfigStore()
-
-    const handleReset = () => {
-        resetConfig()
-        showNotification('Configurações restauradas', 'success')
-    }
 
     const handleClearSelections = () => {
         clearAllSelections()
@@ -29,32 +22,59 @@ const DangerZone = () => {
         showNotification('Histórico limpo', 'success')
     }
 
+    const handleReset = () => {
+        resetConfig()
+        showNotification('Configurações restauradas', 'success')
+    }
+
     const handleClearAll = () => {
         clearAllSelections()
         clearAllHistory()
-        showNotification('Todo cache limpo', 'success')
+        showNotification('Todo o cache foi apagado', 'success')
     }
 
     return (
-        <Section title="Ações Críticas" icon={<MdWarning size={20} />} borderColor="error.main">
-            <WarningText variant="caption">
-                Atenção: As ações abaixo são irreversíveis e afetam o estado armazenado localmente na extensão.
-            </WarningText>
-            <ActionGrid>
-                <Button variant="outlined" color="warning" startIcon={<MdDeleteSweep size={20} />} onClick={handleClearSelections} size="small" fullWidth>
-                    Limpar Seleções
-                </Button>
-                <Button variant="outlined" color="warning" startIcon={<MdHistory size={20} />} onClick={handleClearHistory} size="small" fullWidth>
-                    Limpar Histórico
-                </Button>
-                <Button variant="outlined" color="error" startIcon={<MdDeleteForever size={20} />} onClick={handleClearAll} size="small" fullWidth>
-                    Apagar Cache
-                </Button>
-                <Button variant="outlined" color="error" startIcon={<MdRestore size={20} />} onClick={handleReset} size="small" fullWidth>
-                    Restaurar Padrões
-                </Button>
-            </ActionGrid>
-        </Section>
+        <DangerContainer>
+            <DangerTitle>Danger Zone</DangerTitle>
+            <DangerBox variant="outlined" elevation={0}>
+                <DangerRow>
+                    <DangerInfo>
+                        <DangerActionTitle>Limpar cache de seleções</DangerActionTitle>
+                        <DangerActionDesc>Remove as seleções de arquivos ativas. O histórico permanecerá intacto.</DangerActionDesc>
+                    </DangerInfo>
+                    <Button variant="outlined" color="error" onClick={handleClearSelections} size="small">
+                        Limpar seleções
+                    </Button>
+                </DangerRow>
+                <DangerRow>
+                    <DangerInfo>
+                        <DangerActionTitle>Limpar histórico de artefatos</DangerActionTitle>
+                        <DangerActionDesc>Apaga os registros e artefatos previamente gerados e sincronizados.</DangerActionDesc>
+                    </DangerInfo>
+                    <Button variant="outlined" color="error" onClick={handleClearHistory} size="small">
+                        Limpar histórico
+                    </Button>
+                </DangerRow>
+                <DangerRow>
+                    <DangerInfo>
+                        <DangerActionTitle>Restaurar configurações</DangerActionTitle>
+                        <DangerActionDesc>Reverte as configurações e preferências visuais para o padrão de fábrica.</DangerActionDesc>
+                    </DangerInfo>
+                    <Button variant="outlined" color="error" onClick={handleReset} size="small">
+                        Restaurar
+                    </Button>
+                </DangerRow>
+                <DangerRow>
+                    <DangerInfo>
+                        <DangerActionTitle>Apagar todos os dados</DangerActionTitle>
+                        <DangerActionDesc>Depois de apagar todo o cache, não há como voltar atrás. Por favor, tenha certeza.</DangerActionDesc>
+                    </DangerInfo>
+                    <Button variant="outlined" color="error" onClick={handleClearAll} size="small">
+                        Apagar dados
+                    </Button>
+                </DangerRow>
+            </DangerBox>
+        </DangerContainer>
     )
 }
 
