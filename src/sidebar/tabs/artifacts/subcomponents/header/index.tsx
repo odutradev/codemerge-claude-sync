@@ -1,4 +1,4 @@
-import { MdCodeOff, MdCode, MdDownload, MdTerminal } from 'react-icons/md'
+import { MdCloudUpload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md'
 
 import VersionSelector from '@/sidebar/tabs/artifacts/subcomponents/versionSelector'
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
@@ -39,7 +39,7 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
                 />
 
                 <ActionButton
-                    icon={<MdDownload size={20} />}
+                    icon={<MdCloudUpload size={20} />}
                     onClick={() => handleFetchArtifacts(false)}
                     variant="outlined"
                     disabled={loading}
