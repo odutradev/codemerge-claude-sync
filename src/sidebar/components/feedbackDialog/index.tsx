@@ -54,7 +54,7 @@ const FeedbackDialog = ({ open, onClose, loading, output, onFetchOutput, onInjec
               <InfoTypography>
                 $ {output.command}
               </InfoTypography>
-              <InfoTypography customcolor={output.success ? '#3fb950' : '#f85149'}>
+              <InfoTypography status={output.success ? 'success' : 'error'}>
                 {output.success ? 'SUCESSO' : 'ERRO'}
               </InfoTypography>
             </InfoBar>
