@@ -1,61 +1,73 @@
-import { MdInput, MdRefresh, MdClose } from 'react-icons/md'
-import { CircularProgress } from '@mui/material'
+import { MdTerminal, MdRefresh, MdInput, MdClose } from 'react-icons/md'
+import { CircularProgress, Tooltip, Box } from '@mui/material'
 
-import { StyledDialog, StyledDialogTitle, StyledDialogContent, ContentBox, InfoTypography, OutputBox, StyledDialogActions, ActionButton } from './styles'
+import { StyledDialog, StyledDialogContent, ActionIconButton, InfoTypography, HeaderActions, HeaderTitle, HeaderBox, OutputBox, InfoBar } from './styles'
+import { renderAnsi } from '@/sidebar/components/commandDialog/ansi'
 
 import type { FeedbackDialogProps } from './types'
 
 const FeedbackDialog = ({ open, onClose, loading, output, onFetchOutput, onInject }: FeedbackDialogProps) => {
   const getTitle = () => {
     if (!output) return 'Aguardando...'
-    if (output.type === 'commit') return 'Resultado do Commit'
-    if (output.type === 'execute') return 'Resultado da Execução'
-    return 'Output do Terminal'
+    if (output.type === 'commit') return 'Terminal: Commit'
+    if (output.type === 'execute') return 'Terminal: Execução'
+    return 'Terminal: Output'
   }
 
   return (
-    <StyledDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <StyledDialogTitle>
-        {getTitle()}
-      </StyledDialogTitle>
-      
-      <StyledDialogContent dividers>
+    <StyledDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <HeaderBox>
+        <HeaderTitle>
+          <MdTerminal size={18} />
+          {getTitle()}
+        </HeaderTitle>
+        <HeaderActions>
+          {output?.type === 'hook' && onFetchOutput && (
+            <Tooltip title="Atualizar">
+              <ActionIconButton onClick={onFetchOutput} color="info">
+                <MdRefresh />
+              </ActionIconButton>
+            </Tooltip>
+          )}
+          {output && output.type !== 'commit' && onInject && (
+            <Tooltip title="Inserir no Chat">
+              <ActionIconButton onClick={onInject} color="primary">
+                <MdInput />
+              </ActionIconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="Fechar">
+            <ActionIconButton onClick={onClose} color="error">
+              <MdClose />
+            </ActionIconButton>
+          </Tooltip>
+        </HeaderActions>
+      </HeaderBox>
+      <StyledDialogContent>
         {loading ? (
-          <CircularProgress size={24} />
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress size={24} />
+          </Box>
         ) : output ? (
-          <ContentBox>
-            <InfoTypography>
-              COMANDO: {output.command}
-            </InfoTypography>
-            <InfoTypography>
-              STATUS: {output.success ? 'SUCESSO' : 'ERRO'}
-            </InfoTypography>
+          <>
+            <InfoBar>
+              <InfoTypography>
+                $ {output.command}
+              </InfoTypography>
+              <InfoTypography customcolor={output.success ? '#3fb950' : '#f85149'}>
+                {output.success ? 'SUCESSO' : 'ERRO'}
+              </InfoTypography>
+            </InfoBar>
             <OutputBox>
-              {output.output ?? output.error ?? 'Sem saída registrada.'}
+              {renderAnsi(output.output ?? output.error ?? 'Sem saída registrada.')}
             </OutputBox>
-          </ContentBox>
+          </>
         ) : (
-          <InfoTypography>
+          <OutputBox>
             Nenhum dado disponível.
-          </InfoTypography>
+          </OutputBox>
         )}
       </StyledDialogContent>
-
-      <StyledDialogActions>
-        {output?.type === 'hook' && onFetchOutput && (
-          <ActionButton onClick={onFetchOutput} color="info" startIcon={<MdRefresh size={20} />}>
-            Atualizar
-          </ActionButton>
-        )}
-        {output && onInject && (
-          <ActionButton onClick={onInject} color="primary" variant="contained" startIcon={<MdInput size={20} />} disableElevation>
-            Inserir no Chat
-          </ActionButton>
-        )}
-        <ActionButton onClick={onClose} color="inherit" startIcon={<MdClose size={20} />}>
-          Fechar
-        </ActionButton>
-      </StyledDialogActions>
     </StyledDialog>
   )
 }

@@ -1,61 +1,75 @@
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Button } from '@mui/material'
+import { Dialog, Box, Typography, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 export const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius * 2
+    backgroundColor: theme.palette.mode === 'dark' ? '#0d1117' : '#ffffff',
+    borderRadius: theme.shape.borderRadius * 2,
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.shadows[10],
+    overflow: 'hidden'
   }
 }))
 
-export const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
-  paddingBottom: theme.spacing(1),
-  fontWeight: 600,
-  fontSize: '1rem'
-}))
-
-export const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
-  flexDirection: 'column',
-  paddingTop: theme.spacing(2),
-  gap: theme.spacing(2),
+export const HeaderBox = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#161b22' : '#f6f8fa',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  justifyContent: 'space-between',
+  padding: theme.spacing(1, 2),
+  alignItems: 'center',
   display: 'flex'
 }))
 
-export const ContentBox = styled(Box)(({ theme }) => ({
-  backgroundColor: theme.palette.action.hover,
-  borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(1.5),
-  flexDirection: 'column',
+export const HeaderTitle = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
   gap: theme.spacing(1),
+  alignItems: 'center',
+  fontSize: '0.85rem',
+  fontWeight: 600,
   display: 'flex'
 }))
 
-export const InfoTypography = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+export const HeaderActions = styled(Box)(({ theme }) => ({
+  gap: theme.spacing(0.5),
+  alignItems: 'center',
+  display: 'flex'
+}))
+
+export const ActionIconButton = styled(IconButton)({
+  padding: 6,
+  '& svg': {
+    fontSize: '1.2rem'
+  }
+})
+
+export const StyledDialogContent = styled(Box)({
+  backgroundColor: '#0d1117',
+  flexDirection: 'column',
+  display: 'flex',
+  padding: 0
+})
+
+export const InfoBar = styled(Box)(({ theme }) => ({
+  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  justifyContent: 'space-between',
+  padding: theme.spacing(1, 2),
+  display: 'flex'
+}))
+
+export const InfoTypography = styled(Typography)<{ customcolor?: string }>(({ customcolor }) => ({
+  color: customcolor || '#8b949e',
   fontFamily: 'monospace',
-  fontSize: '0.8rem'
+  fontSize: '0.75rem'
 }))
 
 export const OutputBox = styled(Box)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(1.5),
-  whiteSpace: 'pre-wrap',
+  padding: theme.spacing(2),
   wordBreak: 'break-word',
+  whiteSpace: 'pre-wrap',
   fontFamily: 'monospace',
   fontSize: '0.8rem',
-  backgroundColor: '#000000',
-  color: '#00ff00',
   overflowY: 'auto',
-  maxHeight: 300
+  color: '#e6edf3',
+  maxHeight: '60vh'
 }))
-
-export const StyledDialogActions = styled(DialogActions)(({ theme }) => ({
-  paddingBottom: theme.spacing(2),
-  paddingRight: theme.spacing(3),
-  paddingLeft: theme.spacing(3),
-  paddingTop: theme.spacing(2)
-}))
-
-export const ActionButton = styled(Button)({
-  textTransform: 'none'
-})
