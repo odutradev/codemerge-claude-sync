@@ -2,7 +2,7 @@ import { MdTerminal, MdRefresh, MdInput, MdClose } from 'react-icons/md'
 import { CircularProgress, Tooltip, Box } from '@mui/material'
 
 import { StyledDialog, StyledDialogContent, ActionIconButton, InfoTypography, HeaderActions, HeaderTitle, HeaderBox, OutputBox, InfoBar } from './styles'
-import { renderAnsi } from '@/sidebar/components/commandDialog/ansi'
+import AnsiOutput from '@/sidebar/components/ansiOutput'
 
 import type { FeedbackDialogProps } from './types'
 
@@ -59,7 +59,7 @@ const FeedbackDialog = ({ open, onClose, loading, output, onFetchOutput, onInjec
               </InfoTypography>
             </InfoBar>
             <OutputBox>
-              {renderAnsi(output.output ?? output.error ?? 'Sem saída registrada.')}
+              <AnsiOutput text={output.output ?? output.error ?? 'Sem saída registrada.'} />
             </OutputBox>
           </>
         ) : (
