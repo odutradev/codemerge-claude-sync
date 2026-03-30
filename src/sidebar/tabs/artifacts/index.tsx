@@ -2,9 +2,9 @@ import { ScrollableContainer, HeaderWrapper, CommitWrapper, CommandWrapper, List
 import CommandActions from '@/sidebar/tabs/artifacts/subcomponents/commandActions';
 import ArtifactList from '@/sidebar/tabs/artifacts/subcomponents/artifactList';
 import Header from '@/sidebar/tabs/artifacts/subcomponents/header';
-import { CommandDialog } from '@/sidebar/components/commandDialog';
-import { CommitBox } from '@/sidebar/components/commitBox';
+import FeedbackDialog from '@/sidebar/components/feedbackDialog';
 import useArtifacts from '@/sidebar/tabs/artifacts/hooks';
+import { CommitBox } from '@/sidebar/components/commitBox';
 
 import type { ArtifactsViewProps } from './types';
 
@@ -77,13 +77,13 @@ const ArtifactsView = ({ fetchViaBackground }: ArtifactsViewProps) => {
                 </ListWrapper>
             </ScrollableContainer>
 
-            <CommandDialog
-                cmdDialogOpen={state.cmdDialogOpen}
-                setCmdDialogOpen={(value) => actions.setField('cmdDialogOpen', value)}
-                cmdLoading={state.cmdLoading}
-                cmdOutput={state.cmdOutput}
-                handleFetchCommandOutput={actions.handleFetchCommandOutput}
-                handleInjectOutput={actions.handleInjectOutput}
+            <FeedbackDialog
+                open={state.cmdDialogOpen}
+                onClose={() => actions.setField('cmdDialogOpen', false)}
+                loading={state.cmdLoading}
+                output={state.cmdOutput}
+                onFetchOutput={actions.handleFetchCommandOutput}
+                onInject={actions.handleInjectOutput}
             />
         </Container>
     );

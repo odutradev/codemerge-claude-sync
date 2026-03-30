@@ -8,7 +8,7 @@ import type { FetchViaBackground, CommandOutput } from '@/sidebar/types'
 import type UseToolsReturn from './types'
 
 const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
-  const { serverUrl, checkInterval, translateCommit, showCommandModal, setTranslateCommit } = useConfigStore()
+  const { serverUrl, checkInterval, translateCommit, showCommitFeedback, setTranslateCommit } = useConfigStore()
   const { serverStatus } = useServerStatus(serverUrl, checkInterval, fetchViaBackground)
   const { showNotification } = useNotificationStore()
 
@@ -62,7 +62,7 @@ const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
         error: data.error ?? null
       })
 
-      if (showCommandModal) {
+      if (showCommitFeedback) {
         setCmdDialogOpen(true)
       }
     } catch (err: any) {
@@ -77,7 +77,7 @@ const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
         error: err.message
       })
 
-      if (showCommandModal) {
+      if (showCommitFeedback) {
         setCmdDialogOpen(true)
       }
     } finally {

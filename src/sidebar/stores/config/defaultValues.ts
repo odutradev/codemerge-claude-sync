@@ -12,6 +12,7 @@ export const DEFAULT_CONFIG: ConfigState = {
   removeEmptyLines: false,
   removeLogs: false,
   translateCommit: true,
-  showCommandModal: true,
+  showCommitFeedback: true,
+  showExecuteFeedback: true,
   autoSelectSynced: true,
 };

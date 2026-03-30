@@ -1,7 +1,7 @@
 import PromptPresets from '@/sidebar/tabs/tools/subcomponents/promptPresets'
-import { CommandDialog } from '@/sidebar/components/commandDialog'
-import { CommitBox } from '@/sidebar/components/commitBox'
+import FeedbackDialog from '@/sidebar/components/feedbackDialog'
 import useTools from '@/sidebar/tabs/tools/hooks/useTools'
+import { CommitBox } from '@/sidebar/components/commitBox'
 import { Container, Title } from './styles'
 
 import type ToolsViewProps from './types'
@@ -31,13 +31,13 @@ const ToolsView = ({ fetchViaBackground }: ToolsViewProps) => {
 
       <PromptPresets />
 
-      <CommandDialog
-        cmdDialogOpen={state.cmdDialogOpen}
-        setCmdDialogOpen={actions.setCmdDialogOpen}
-        cmdLoading={state.cmdLoading}
-        cmdOutput={state.cmdOutput}
-        handleFetchCommandOutput={actions.handleFetchCommandOutput}
-        handleInjectOutput={actions.handleInjectOutput}
+      <FeedbackDialog
+        open={state.cmdDialogOpen}
+        onClose={() => actions.setCmdDialogOpen(false)}
+        loading={state.cmdLoading}
+        output={state.cmdOutput}
+        onFetchOutput={actions.handleFetchCommandOutput}
+        onInject={actions.handleInjectOutput}
       />
     </Container>
   )

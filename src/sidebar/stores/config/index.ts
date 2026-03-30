@@ -56,8 +56,12 @@ const useConfigStore = create<ConfigState & ConfigActions>()(
         set({ translateCommit: enabled });
         get().syncToBackground();
       },
-      setShowCommandModal: (enabled) => {
-        set({ showCommandModal: enabled });
+      setShowCommitFeedback: (enabled) => {
+        set({ showCommitFeedback: enabled });
+        get().syncToBackground();
+      },
+      setShowExecuteFeedback: (enabled) => {
+        set({ showExecuteFeedback: enabled });
         get().syncToBackground();
       },
       setAutoSelectSynced: (enabled) => {

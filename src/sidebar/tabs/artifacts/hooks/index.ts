@@ -12,7 +12,7 @@ import type { UseArtifactsReturn, ArtifactsLocalState } from './types';
 import type { FetchViaBackground, Artifact } from '@/sidebar/types';
 
 const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsReturn => {
-    const { serverUrl, checkInterval, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommandModal, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
+    const { serverUrl, checkInterval, removeComments, removeEmptyLines, removeLogs, translateCommit, showCommitFeedback, showExecuteFeedback, autoSelectSynced, setRemoveComments, setTranslateCommit } = useConfigStore();
     const { histories, addSnapshot, setHistoryIndex, cleanExpired, getHistory } = useHistoryStore();
     const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground);
     const { activeProjectId, addPathsToSelection } = useSelectionStore();
@@ -262,7 +262,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
 
             showNotification('Commit realizado com sucesso!', 'success');
 
-            if (showCommandModal) {
+            if (showCommitFeedback) {
                 patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } catch (error) {
@@ -281,7 +281,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 }
             });
 
-            if (showCommandModal) {
+            if (showCommitFeedback) {
                 patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } finally {
@@ -323,7 +323,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 }
             });
 
-            if (showCommandModal) {
+            if (showExecuteFeedback) {
                 patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } catch (error) {
@@ -342,7 +342,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
                 }
             });
 
-            if (showCommandModal) {
+            if (showExecuteFeedback) {
                 patchState({ cmdDialogOpen: true, hookStatus: 'idle' });
             }
         } finally {

@@ -12,7 +12,8 @@ export interface ConfigState {
   removeEmptyLines: boolean;
   removeLogs: boolean;
   translateCommit: boolean;
-  showCommandModal: boolean;
+  showCommitFeedback: boolean;
+  showExecuteFeedback: boolean;
   autoSelectSynced: boolean;
 }
 
@@ -28,7 +29,8 @@ export interface ConfigActions {
   setRemoveEmptyLines: (enabled: boolean) => void;
   setRemoveLogs: (enabled: boolean) => void;
   setTranslateCommit: (enabled: boolean) => void;
-  setShowCommandModal: (enabled: boolean) => void;
+  setShowCommitFeedback: (enabled: boolean) => void;
+  setShowExecuteFeedback: (enabled: boolean) => void;
   setAutoSelectSynced: (enabled: boolean) => void;
   resetConfig: () => void;
   loadFromBackground: () => void;
