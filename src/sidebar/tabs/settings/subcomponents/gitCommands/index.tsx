@@ -1,91 +1,44 @@
-import { MdAutoFixHigh, MdTerminal, MdTranslate, MdMessage } from 'react-icons/md';
-import { ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { MdTerminal, MdTranslate, MdMessage, MdCode } from 'react-icons/md'
+import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 
-import { GitContainer, HeaderText, IconWrapper, SectionContainer, LastSectionContainer, SectionLabel } from './styles';
-import useConfigStore from '@/sidebar/stores/config';
+import Section from '@/sidebar/tabs/settings/components/section'
+import Row from '@/sidebar/tabs/settings/components/row'
+import useConfigStore from '@/sidebar/stores/config'
+import { ToggleContent } from '@/sidebar/tabs/settings/styles'
 
 const GitCommands = () => {
-    const { translateCommit, showCommitFeedback, showExecuteFeedback, setTranslateCommit, setShowCommitFeedback, setShowExecuteFeedback } = useConfigStore();
+    const { translateCommit, showCommitFeedback, showExecuteFeedback, setTranslateCommit, setShowCommitFeedback, setShowExecuteFeedback } = useConfigStore()
 
     return (
-        <GitContainer variant="outlined">
-            <HeaderText variant="subtitle2">
-                <IconWrapper>
-                    <MdAutoFixHigh size={20} />
-                </IconWrapper>
-                Git & Comandos
-            </HeaderText>
-
-            <SectionContainer>
-                <SectionLabel variant="caption">
-                    Tradução Automática de Commits
-                </SectionLabel>
-                <ToggleButtonGroup
-                    value={translateCommit ? 'on' : 'off'}
-                    exclusive
-                    onChange={(_, v) => v && setTranslateCommit(v === 'on')}
-                    size="small"
-                    fullWidth
-                >
-                    <ToggleButton value="off">
-                        Inativo
-                    </ToggleButton>
+        <Section title="Git & Comandos" icon={<MdCode size={20} />}>
+            <Row label="Tradução Automática de Commits" vertical>
+                <ToggleButtonGroup value={translateCommit ? 'on' : 'off'} exclusive onChange={(_, v) => v && setTranslateCommit(v === 'on')} size="small" fullWidth>
+                    <ToggleButton value="off">Inativo</ToggleButton>
                     <ToggleButton value="on" color="primary">
-                        <IconWrapper>
-                            <MdTranslate size={20} />
-                        </IconWrapper>
-                        Ativo
+                        <ToggleContent><MdTranslate size={20} /> Ativo</ToggleContent>
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </SectionContainer>
+            </Row>
 
-            <SectionContainer>
-                <SectionLabel variant="caption">
-                    Feedback de Commit
-                </SectionLabel>
-                <ToggleButtonGroup
-                    value={showCommitFeedback ? 'on' : 'off'}
-                    exclusive
-                    onChange={(_, v) => v && setShowCommitFeedback(v === 'on')}
-                    size="small"
-                    fullWidth
-                >
-                    <ToggleButton value="off">
-                        Ocultar
-                    </ToggleButton>
+            <Row label="Feedback de Commit" vertical>
+                <ToggleButtonGroup value={showCommitFeedback ? 'on' : 'off'} exclusive onChange={(_, v) => v && setShowCommitFeedback(v === 'on')} size="small" fullWidth>
+                    <ToggleButton value="off">Ocultar</ToggleButton>
                     <ToggleButton value="on" color="primary">
-                        <IconWrapper>
-                            <MdMessage size={20} />
-                        </IconWrapper>
-                        Exibir
+                        <ToggleContent><MdMessage size={20} /> Exibir</ToggleContent>
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </SectionContainer>
+            </Row>
 
-            <LastSectionContainer>
-                <SectionLabel variant="caption">
-                    Feedback de Execução
-                </SectionLabel>
-                <ToggleButtonGroup
-                    value={showExecuteFeedback ? 'on' : 'off'}
-                    exclusive
-                    onChange={(_, v) => v && setShowExecuteFeedback(v === 'on')}
-                    size="small"
-                    fullWidth
-                >
-                    <ToggleButton value="off">
-                        Ocultar
-                    </ToggleButton>
+            <Row label="Feedback de Execução" vertical>
+                <ToggleButtonGroup value={showExecuteFeedback ? 'on' : 'off'} exclusive onChange={(_, v) => v && setShowExecuteFeedback(v === 'on')} size="small" fullWidth>
+                    <ToggleButton value="off">Ocultar</ToggleButton>
                     <ToggleButton value="on" color="primary">
-                        <IconWrapper>
-                            <MdTerminal size={20} />
-                        </IconWrapper>
-                        Exibir
+                        <ToggleContent><MdTerminal size={20} /> Exibir</ToggleContent>
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </LastSectionContainer>
-        </GitContainer>
-    );
-};
+            </Row>
+        </Section>
+    )
+}
 
-export default GitCommands;
+export default GitCommands

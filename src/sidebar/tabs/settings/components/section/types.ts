@@ -1,0 +1,8 @@
+import type { ReactNode } from 'react'
+
+export interface SectionProps {
+    title: string
+    icon?: ReactNode
+    borderColor?: string
+    children: ReactNode
+}

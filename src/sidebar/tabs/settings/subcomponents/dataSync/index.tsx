@@ -1,50 +1,18 @@
-import { MdOutlinePushPin, MdLibraryAddCheck, MdDeleteForever, MdDeleteSweep, MdPushPin, MdHistory, MdRestore, MdTimer, MdLink } from 'react-icons/md'
-import { ToggleButtonGroup, InputAdornment, ToggleButton, Button } from '@mui/material'
+import { MdOutlinePushPin, MdLibraryAddCheck, MdPushPin, MdTimer, MdLink, MdSync } from 'react-icons/md'
+import { ToggleButtonGroup, InputAdornment, ToggleButton, TextField } from '@mui/material'
 
-import { SyncContainer, HeaderText, SectionContainer, SectionLabel, IconWrapper, ActionContainer, StyledDivider, IntervalInput, UrlInput } from './styles'
-import useNotificationStore from '@/sidebar/stores/notification'
-import useSelectionStore from '@/sidebar/stores/selection'
-import useHistoryStore from '@/sidebar/stores/history'
+import Section from '@/sidebar/tabs/settings/components/section'
+import Row from '@/sidebar/tabs/settings/components/row'
 import useConfigStore from '@/sidebar/stores/config'
+import { ToggleContent } from '@/sidebar/tabs/settings/styles'
 
 const DataSync = () => {
-    const { serverUrl, checkInterval, persistSelection, autoSelectSynced, setServerUrl, setCheckInterval, setPersistSelection, setAutoSelectSynced, resetConfig } = useConfigStore()
-    const { showNotification } = useNotificationStore()
-    const { clearAllSelections } = useSelectionStore()
-    const { clearAllHistory } = useHistoryStore()
-
-    const handleReset = () => {
-        resetConfig()
-        showNotification('Configurações restauradas', 'success')
-    }
-
-    const handleClearSelections = () => {
-        clearAllSelections()
-        showNotification('Cache de seleções limpo', 'success')
-    }
-
-    const handleClearHistory = () => {
-        clearAllHistory()
-        showNotification('Histórico limpo', 'success')
-    }
-
-    const handleClearAll = () => {
-        clearAllSelections()
-        clearAllHistory()
-        showNotification('Todo cache limpo', 'success')
-    }
+    const { serverUrl, checkInterval, persistSelection, autoSelectSynced, setServerUrl, setCheckInterval, setPersistSelection, setAutoSelectSynced } = useConfigStore()
 
     return (
-        <SyncContainer variant="outlined">
-            <HeaderText variant="subtitle2">
-                Dados & Sincronização
-            </HeaderText>
-
-            <SectionContainer>
-                <SectionLabel variant="caption">
-                    URL do Servidor
-                </SectionLabel>
-                <UrlInput
+        <Section title="Dados & Sincronização" icon={<MdSync size={20} />}>
+            <Row label="URL do Servidor" vertical>
+                <TextField
                     fullWidth
                     variant="outlined"
                     size="small"
@@ -58,122 +26,46 @@ const DataSync = () => {
                         )
                     }}
                 />
-            </SectionContainer>
+            </Row>
 
-            <SectionContainer>
-                <SectionLabel variant="caption">
-                    Persistência
-                </SectionLabel>
-                <ToggleButtonGroup
-                    value={persistSelection ? 'on' : 'off'}
-                    exclusive
-                    onChange={(_, v) => v && setPersistSelection(v === 'on')}
-                    size="small"
-                    fullWidth
-                >
+            <Row label="Persistência" vertical>
+                <ToggleButtonGroup value={persistSelection ? 'on' : 'off'} exclusive onChange={(_, v) => v && setPersistSelection(v === 'on')} size="small" fullWidth>
                     <ToggleButton value="off">
-                        <IconWrapper>
-                            <MdOutlinePushPin size={20} />
-                        </IconWrapper>
-                        Volátil
-                    </ToggleButton>
-                    <ToggleButton value="on">
-                        <IconWrapper>
-                            <MdPushPin size={20} />
-                        </IconWrapper>
-                        Manter Seleção
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </SectionContainer>
-
-            <SectionContainer>
-                <SectionLabel variant="caption">
-                    Auto-selecionar Artefatos
-                </SectionLabel>
-                <ToggleButtonGroup
-                    value={autoSelectSynced ? 'on' : 'off'}
-                    exclusive
-                    onChange={(_, v) => v && setAutoSelectSynced(v === 'on')}
-                    size="small"
-                    fullWidth
-                >
-                    <ToggleButton value="off">
-                        Inativo
+                        <ToggleContent><MdOutlinePushPin size={20} /> Volátil</ToggleContent>
                     </ToggleButton>
                     <ToggleButton value="on" color="primary">
-                        <IconWrapper>
-                            <MdLibraryAddCheck size={20} />
-                        </IconWrapper>
-                        Ativo
+                        <ToggleContent><MdPushPin size={20} /> Manter Seleção</ToggleContent>
                     </ToggleButton>
                 </ToggleButtonGroup>
-            </SectionContainer>
+            </Row>
 
-            <ActionContainer>
-                <Button
-                    variant="outlined"
-                    color="warning"
-                    startIcon={<MdDeleteSweep size={20} />}
-                    onClick={handleClearSelections}
+            <Row label="Auto-selecionar Artefatos" vertical>
+                <ToggleButtonGroup value={autoSelectSynced ? 'on' : 'off'} exclusive onChange={(_, v) => v && setAutoSelectSynced(v === 'on')} size="small" fullWidth>
+                    <ToggleButton value="off">Inativo</ToggleButton>
+                    <ToggleButton value="on" color="primary">
+                        <ToggleContent><MdLibraryAddCheck size={20} /> Ativo</ToggleContent>
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Row>
+
+            <Row label="Intervalo de Checagem (ms)" vertical>
+                <TextField
                     fullWidth
-                    size="small"
-                >
-                    Limpar Cache de Seleções
-                </Button>
-                <Button
                     variant="outlined"
-                    color="warning"
-                    startIcon={<MdHistory size={20} />}
-                    onClick={handleClearHistory}
-                    fullWidth
                     size="small"
-                >
-                    Limpar Histórico de Artefatos
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<MdDeleteForever size={20} />}
-                    onClick={handleClearAll}
-                    fullWidth
-                    size="small"
-                >
-                    Limpar Todo o Cache
-                </Button>
-            </ActionContainer>
-
-            <StyledDivider />
-
-            <SectionLabel variant="caption">
-                Check Interval (ms)
-            </SectionLabel>
-            <IntervalInput
-                fullWidth
-                variant="outlined"
-                size="small"
-                type="number"
-                value={checkInterval}
-                onChange={(e) => setCheckInterval(e.target.value)}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <MdTimer size={20} />
-                        </InputAdornment>
-                    )
-                }}
-            />
-
-            <Button
-                variant="outlined"
-                color="error"
-                startIcon={<MdRestore size={20} />}
-                onClick={handleReset}
-                fullWidth
-                size="small"
-            >
-                Restaurar Padrões
-            </Button>
-        </SyncContainer>
+                    type="number"
+                    value={checkInterval}
+                    onChange={(e) => setCheckInterval(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <MdTimer size={20} />
+                            </InputAdornment>
+                        )
+                    }}
+                />
+            </Row>
+        </Section>
     )
 }
 
