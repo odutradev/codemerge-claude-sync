@@ -1,11 +1,11 @@
+import { MdAutoFixHigh, MdTerminal, MdTranslate, MdMessage } from 'react-icons/md';
 import { ToggleButtonGroup, ToggleButton } from '@mui/material';
-import { MdAutoFixHigh, MdTerminal, MdTranslate } from 'react-icons/md';
 
 import { GitContainer, HeaderText, IconWrapper, SectionContainer, LastSectionContainer, SectionLabel } from './styles';
 import useConfigStore from '@/sidebar/stores/config';
 
 const GitCommands = () => {
-    const { translateCommit, showCommandModal, setTranslateCommit, setShowCommandModal } = useConfigStore();
+    const { translateCommit, showCommitFeedback, showExecuteFeedback, setTranslateCommit, setShowCommitFeedback, setShowExecuteFeedback } = useConfigStore();
 
     return (
         <GitContainer variant="outlined">
@@ -39,14 +39,37 @@ const GitCommands = () => {
                 </ToggleButtonGroup>
             </SectionContainer>
 
-            <LastSectionContainer>
+            <SectionContainer>
                 <SectionLabel variant="caption">
-                    Modal de Output
+                    Feedback de Commit
                 </SectionLabel>
                 <ToggleButtonGroup
-                    value={showCommandModal ? 'on' : 'off'}
+                    value={showCommitFeedback ? 'on' : 'off'}
                     exclusive
-                    onChange={(_, v) => v && setShowCommandModal(v === 'on')}
+                    onChange={(_, v) => v && setShowCommitFeedback(v === 'on')}
+                    size="small"
+                    fullWidth
+                >
+                    <ToggleButton value="off">
+                        Ocultar
+                    </ToggleButton>
+                    <ToggleButton value="on" color="primary">
+                        <IconWrapper>
+                            <MdMessage size={20} />
+                        </IconWrapper>
+                        Exibir
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </SectionContainer>
+
+            <LastSectionContainer>
+                <SectionLabel variant="caption">
+                    Feedback de Execução
+                </SectionLabel>
+                <ToggleButtonGroup
+                    value={showExecuteFeedback ? 'on' : 'off'}
+                    exclusive
+                    onChange={(_, v) => v && setShowExecuteFeedback(v === 'on')}
                     size="small"
                     fullWidth
                 >
