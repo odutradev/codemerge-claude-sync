@@ -1,5 +1,6 @@
 import { Button, Typography, Box } from '@mui/material'
-import { MdOpenInNew, MdPerson } from 'react-icons/md'
+import { MdPerson } from 'react-icons/md'
+import { FaGithub } from 'react-icons/fa'
 
 import Section from '@/sidebar/tabs/settings/components/section'
 import { CreatorInfo, CreatorName } from './styles'
@@ -16,7 +17,7 @@ const Creator = () => {
                         @odutradev
                     </Typography>
                 </Box>
-                <Button variant="contained" color="primary" size="small" endIcon={<MdOpenInNew size={16} />} onClick={handleOpenGitHub}>
+                <Button variant="contained" color="primary" size="small" startIcon={<FaGithub size={16} />} onClick={handleOpenGitHub}>
                     GitHub
                 </Button>
             </CreatorInfo>
