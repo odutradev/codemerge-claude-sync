@@ -25,7 +25,10 @@ export const HeaderTitle = styled(Typography)(({ theme }) => ({
   alignItems: 'center',
   fontSize: '0.85rem',
   fontWeight: 600,
-  display: 'flex'
+  display: 'flex',
+  '& svg': {
+    color: '#ffffff'
+  }
 }))
 
 export const HeaderActions = styled(Box)(({ theme }) => ({
@@ -35,6 +38,7 @@ export const HeaderActions = styled(Box)(({ theme }) => ({
 }))
 
 export const ActionIconButton = styled(IconButton)({
+  color: '#ffffff',
   padding: 6,
   '& svg': {
     fontSize: '1.2rem'

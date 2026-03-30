@@ -24,20 +24,20 @@ const FeedbackDialog = ({ open, onClose, loading, output, onFetchOutput, onInjec
         <HeaderActions>
           {output?.type === 'hook' && onFetchOutput && (
             <Tooltip title="Atualizar">
-              <ActionIconButton onClick={onFetchOutput} color="info">
+              <ActionIconButton onClick={onFetchOutput}>
                 <MdRefresh />
               </ActionIconButton>
             </Tooltip>
           )}
           {output && output.type !== 'commit' && onInject && (
             <Tooltip title="Inserir no Chat">
-              <ActionIconButton onClick={onInject} color="primary">
+              <ActionIconButton onClick={onInject}>
                 <MdInput />
               </ActionIconButton>
             </Tooltip>
           )}
           <Tooltip title="Fechar">
-            <ActionIconButton onClick={onClose} color="error">
+            <ActionIconButton onClick={onClose}>
               <MdClose />
             </ActionIconButton>
           </Tooltip>
