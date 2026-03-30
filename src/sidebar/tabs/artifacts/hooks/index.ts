@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
 
+import useNotificationStore from '@/sidebar/stores/notification'
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus'
 import { processCode } from '@/sidebar/utils/codeProcessor'
-import useNotificationStore from '@/sidebar/stores/notification'
 import useSelectionStore from '@/sidebar/stores/selection'
 import useHistoryStore from '@/sidebar/stores/history'
 import useConfigStore from '@/sidebar/stores/config'
@@ -242,7 +242,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
 
             if (!response.success) throw new Error(`Commit: ${response.error}`)
 
-            const data = response.data ? JSON.parse(response.data) : {}
+            const data = response.data ? JSON.parse(response.data as string) : {}
             const success = data.success ?? true
 
             patchState({
@@ -296,7 +296,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
 
             if (!response.success) throw new Error(`Execução: ${response.error}`)
 
-            const data = response.data ? JSON.parse(response.data) : {}
+            const data = response.data ? JSON.parse(response.data as string) : {}
             const success = data.success ?? true
 
             showNotification('Comandos enviados para execução!', 'success')
@@ -380,8 +380,21 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
 
             if (errors.length > 0) throw new Error(errors.map((error) => error.error).join(' | '))
 
+            const outputResponse = await fetchViaBackground(`${serverUrl}/command-output`)
+
+            if (!outputResponse.success) throw new Error(`Output: ${outputResponse.error}`)
+
+            const outputData = outputResponse.data ? JSON.parse(outputResponse.data as string) : {}
+
+            patchState({
+                hookStatus: outputData.success ? 'success' : 'error',
+                cmdOutput: {
+                    ...outputData,
+                    type: 'hook'
+                }
+            })
+
             showNotification('Sincronização e deleções aplicadas!', 'success')
-            patchState({ hookStatus: 'success' })
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
             showNotification(`Erro: ${errorMessage}`, 'error')
