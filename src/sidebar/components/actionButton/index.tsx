@@ -1,6 +1,6 @@
 import { CircularProgress, Tooltip } from '@mui/material'
 
-import { StyledIconButton, StyledButton } from './styles'
+import { StyledButton, StyledIconButton } from './styles'
 
 import type { ActionButtonProps, ButtonColor } from './types'
 
@@ -16,23 +16,23 @@ const ActionButton = ({ icon, tooltip, children, loading = false, pulse = 'none'
 
     const buttonElement = isIconVariant ? (
         <StyledIconButton
-            size={size}
             color={displayColor}
             $pulse={pulse}
             disabled={loading || props.disabled}
+            size={size}
             {...props}
         >
             {renderIcon()}
         </StyledIconButton>
     ) : (
         <StyledButton
-            size={size}
+            $isIconOnly={isIconOnly}
             color={displayColor}
             variant={variant}
             $pulse={pulse}
-            $isIconOnly={isIconOnly}
             disabled={loading || props.disabled}
             startIcon={children ? renderIcon() : undefined}
+            size={size}
             {...props}
         >
             {!children && !isIconVariant ? renderIcon() : children}

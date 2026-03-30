@@ -1,9 +1,9 @@
-import { MdDownload, MdTerminal, MdCodeOff, MdCode } from 'react-icons/md'
+import { MdCodeOff, MdCode, MdDownload, MdTerminal } from 'react-icons/md'
 
 import VersionSelector from '@/sidebar/tabs/artifacts/subcomponents/versionSelector'
 import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import ActionButton from '@/sidebar/components/actionButton'
-import { Container, ActionsContainer } from './styles'
+import { ActionsContainer, Container } from './styles'
 
 import type { HeaderProps } from './types'
 
@@ -31,42 +31,42 @@ const Header = ({ serverStatus, isChecking, handleFetchArtifacts, loading, handl
 
             <ActionsContainer>
                 <VersionSelector
-                    historyLength={historyLength}
                     currentHistoryIndex={currentHistoryIndex}
-                    handlePrevHistory={handlePrevHistory}
                     handleNextHistory={handleNextHistory}
+                    handlePrevHistory={handlePrevHistory}
+                    historyLength={historyLength}
                     loading={loading}
                 />
 
                 <ActionButton
-                    variant="outlined"
                     icon={<MdDownload size={20} />}
                     onClick={() => handleFetchArtifacts(false)}
+                    variant="outlined"
                     disabled={loading}
-                    fullWidth
                     size="small"
+                    fullWidth
                 >
                     Buscar
                 </ActionButton>
 
                 <ActionButton
-                    variant="outlined"
                     tooltip="Output do Comando (Hooks)"
                     icon={<MdTerminal size={20} />}
-                    onClick={handleOpenCmdDialog}
-                    disabled={serverStatus !== 'connected' || hookStatus === 'loading'}
+                    disabled={serverStatus !== 'connected'}
                     loading={hookStatus === 'loading'}
-                    pulse={getHookPulse()}
                     color={getHookColor()}
+                    onClick={handleOpenCmdDialog}
+                    pulse={getHookPulse()}
+                    variant="outlined"
                     size="small"
                 />
 
                 <ActionButton
-                    variant="outlined"
                     tooltip={removeComments ? 'Limpeza ativa' : 'Limpeza inativa'}
                     icon={removeComments ? <MdCodeOff size={20} /> : <MdCode size={20} />}
-                    onClick={() => setRemoveComments(!removeComments)}
                     color={removeComments ? 'primary' : 'inherit'}
+                    onClick={() => setRemoveComments(!removeComments)}
+                    variant="outlined"
                     size="small"
                 />
             </ActionsContainer>
