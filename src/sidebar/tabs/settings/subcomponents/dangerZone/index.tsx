@@ -35,14 +35,14 @@ const DangerZone = () => {
 
     return (
         <DangerContainer>
-            <DangerTitle>Danger Zone</DangerTitle>
+            <DangerTitle>Zona de Perigo</DangerTitle>
             <DangerBox variant="outlined" elevation={0}>
                 <DangerRow>
                     <DangerInfo>
                         <DangerActionTitle>Limpar cache de seleções</DangerActionTitle>
                         <DangerActionDesc>Remove as seleções de arquivos ativas. O histórico permanecerá intacto.</DangerActionDesc>
                     </DangerInfo>
-                    <Button variant="outlined" color="error" onClick={handleClearSelections} size="small">
+                    <Button variant="outlined" color="warning" onClick={handleClearSelections} size="small">
                         Limpar seleções
                     </Button>
                 </DangerRow>
@@ -51,7 +51,7 @@ const DangerZone = () => {
                         <DangerActionTitle>Limpar histórico de artefatos</DangerActionTitle>
                         <DangerActionDesc>Apaga os registros e artefatos previamente gerados e sincronizados.</DangerActionDesc>
                     </DangerInfo>
-                    <Button variant="outlined" color="error" onClick={handleClearHistory} size="small">
+                    <Button variant="outlined" color="warning" onClick={handleClearHistory} size="small">
                         Limpar histórico
                     </Button>
                 </DangerRow>
