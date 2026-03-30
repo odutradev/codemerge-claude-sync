@@ -7,18 +7,18 @@ import Section from '@/sidebar/tabs/settings/components/section'
 import useConfigStore from '@/sidebar/stores/config'
 import usePromptStore from '@/sidebar/stores/prompt'
 
-import type { BackupData } from './types'
+import type { ConfigBackupData, PresetBackupData } from './types'
 
 const Backup = () => {
     const { showNotification } = useNotificationStore()
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    const configInputRef = useRef<HTMLInputElement>(null)
+    const presetInputRef = useRef<HTMLInputElement>(null)
 
-    const handleExport = () => {
+    const handleExportConfig = () => {
         const config = useConfigStore.getState()
-        const { presets } = usePromptStore.getState()
 
-        const dataToExport: BackupData = {
-            codemergeBackup: true,
+        const dataToExport: ConfigBackupData = {
+            codemergeConfigBackup: true,
             version: 1,
             config: {
                 serverUrl: config.serverUrl,
@@ -35,21 +35,36 @@ const Backup = () => {
                 showCommitFeedback: config.showCommitFeedback,
                 showExecuteFeedback: config.showExecuteFeedback,
                 autoSelectSynced: config.autoSelectSynced
-            },
+            }
+        }
+
+        downloadBlob(dataToExport, 'config-backup')
+    }
+
+    const handleExportPresets = () => {
+        const { presets } = usePromptStore.getState()
+
+        const dataToExport: PresetBackupData = {
+            codemergePresetBackup: true,
+            version: 1,
             presets: presets.map(({ title, prompt }) => ({ title, prompt }))
         }
 
-        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' })
+        downloadBlob(dataToExport, 'presets-backup')
+    }
+
+    const downloadBlob = (data: unknown, prefix: string) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
 
         a.href = url
-        a.download = `codemerge-sync-backup-${new Date().toISOString().split('T')[0]}.json`
+        a.download = `codemerge-${prefix}-${new Date().toISOString().split('T')[0]}.json`
         a.click()
         URL.revokeObjectURL(url)
     }
 
-    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
@@ -57,31 +72,54 @@ const Backup = () => {
 
         reader.onload = (event) => {
             try {
-                const parsed = JSON.parse(event.target?.result as string) as BackupData
+                const parsed = JSON.parse(event.target?.result as string) as ConfigBackupData
 
-                if (!parsed.codemergeBackup) {
-                    showNotification('Arquivo de backup inválido', 'error')
+                if (!parsed.codemergeConfigBackup) {
+                    showNotification('Arquivo de backup de configurações inválido', 'error')
                     return
                 }
 
                 const { setServerUrl, setCheckInterval, setThemeMode, setPrimaryColor, setCompactMode, setVerbosity, setPersistSelection, setRemoveComments, setRemoveEmptyLines, setRemoveLogs, setTranslateCommit, setShowCommitFeedback, setShowExecuteFeedback, setAutoSelectSynced } = useConfigStore.getState()
+                const c = parsed.config
 
-                if (parsed.config) {
-                    const c = parsed.config
-                    if (c.serverUrl !== undefined) setServerUrl(c.serverUrl)
-                    if (c.checkInterval !== undefined) setCheckInterval(c.checkInterval)
-                    if (c.themeMode !== undefined) setThemeMode(c.themeMode)
-                    if (c.primaryColor !== undefined) setPrimaryColor(c.primaryColor)
-                    if (c.compactMode !== undefined) setCompactMode(c.compactMode)
-                    if (c.verbosity !== undefined) setVerbosity(c.verbosity)
-                    if (c.persistSelection !== undefined) setPersistSelection(c.persistSelection)
-                    if (c.removeComments !== undefined) setRemoveComments(c.removeComments)
-                    if (c.removeEmptyLines !== undefined) setRemoveEmptyLines(c.removeEmptyLines)
-                    if (c.removeLogs !== undefined) setRemoveLogs(c.removeLogs)
-                    if (c.translateCommit !== undefined) setTranslateCommit(c.translateCommit)
-                    if (c.showCommitFeedback !== undefined) setShowCommitFeedback(c.showCommitFeedback)
-                    if (c.showExecuteFeedback !== undefined) setShowExecuteFeedback(c.showExecuteFeedback)
-                    if (c.autoSelectSynced !== undefined) setAutoSelectSynced(c.autoSelectSynced)
+                if (c.serverUrl !== undefined) setServerUrl(c.serverUrl)
+                if (c.checkInterval !== undefined) setCheckInterval(c.checkInterval)
+                if (c.themeMode !== undefined) setThemeMode(c.themeMode)
+                if (c.primaryColor !== undefined) setPrimaryColor(c.primaryColor)
+                if (c.compactMode !== undefined) setCompactMode(c.compactMode)
+                if (c.verbosity !== undefined) setVerbosity(c.verbosity)
+                if (c.persistSelection !== undefined) setPersistSelection(c.persistSelection)
+                if (c.removeComments !== undefined) setRemoveComments(c.removeComments)
+                if (c.removeEmptyLines !== undefined) setRemoveEmptyLines(c.removeEmptyLines)
+                if (c.removeLogs !== undefined) setRemoveLogs(c.removeLogs)
+                if (c.translateCommit !== undefined) setTranslateCommit(c.translateCommit)
+                if (c.showCommitFeedback !== undefined) setShowCommitFeedback(c.showCommitFeedback)
+                if (c.showExecuteFeedback !== undefined) setShowExecuteFeedback(c.showExecuteFeedback)
+                if (c.autoSelectSynced !== undefined) setAutoSelectSynced(c.autoSelectSynced)
+
+                showNotification('Configurações restauradas com sucesso!', 'success')
+            } catch {
+                showNotification('Falha ao processar arquivo de configurações', 'error')
+            }
+        }
+
+        reader.readAsText(file)
+        e.target.value = ''
+    }
+
+    const handleImportPresets = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+
+        reader.onload = (event) => {
+            try {
+                const parsed = JSON.parse(event.target?.result as string) as PresetBackupData
+
+                if (!parsed.codemergePresetBackup) {
+                    showNotification('Arquivo de backup de presets inválido', 'error')
+                    return
                 }
 
                 if (parsed.presets && Array.isArray(parsed.presets)) {
@@ -90,9 +128,9 @@ const Backup = () => {
                     parsed.presets.forEach((p) => addPreset({ title: p.title, prompt: p.prompt }))
                 }
 
-                showNotification('Backup restaurado com sucesso!', 'success')
+                showNotification('Presets restaurados com sucesso!', 'success')
             } catch {
-                showNotification('Falha ao processar arquivo de backup', 'error')
+                showNotification('Falha ao processar arquivo de presets', 'error')
             }
         }
 
@@ -101,21 +139,37 @@ const Backup = () => {
     }
 
     return (
-        <Section title="Backup & Restauração" icon={<MdBackup size={20} />} tooltip="Exporte ou importe suas configurações e prompts de forma segura.">
+        <Section title="Backup & Restauração" icon={<MdBackup size={20} />} tooltip="Exporte ou importe suas configurações globais e presets de prompt separadamente.">
             <BackupRow>
                 <BackupInfo>
-                    <BackupTitle>Importar e Exportar Dados</BackupTitle>
-                    <BackupDesc>Salve um arquivo JSON local ou carregue um arquivo existente.</BackupDesc>
+                    <BackupTitle>Configurações do Sistema</BackupTitle>
+                    <BackupDesc>Salva preferências visuais, atalhos e comportamentos globais.</BackupDesc>
                 </BackupInfo>
                 <ActionGroup>
-                    <StyledButton variant="outlined" startIcon={<MdUpload size={18} />} onClick={() => fileInputRef.current?.click()} size="small">
+                    <StyledButton variant="outlined" startIcon={<MdUpload size={18} />} onClick={() => configInputRef.current?.click()} size="small">
                         Importar
                     </StyledButton>
-                    <StyledButton variant="contained" color="primary" startIcon={<MdDownload size={18} />} onClick={handleExport} size="small">
+                    <StyledButton variant="contained" color="primary" startIcon={<MdDownload size={18} />} onClick={handleExportConfig} size="small">
                         Exportar
                     </StyledButton>
                 </ActionGroup>
-                <HiddenInput type="file" accept=".json" ref={fileInputRef} onChange={handleImport} />
+                <HiddenInput type="file" accept=".json" ref={configInputRef} onChange={handleImportConfig} />
+            </BackupRow>
+
+            <BackupRow>
+                <BackupInfo>
+                    <BackupTitle>Presets de Prompts</BackupTitle>
+                    <BackupDesc>Salva seus templates personalizados de IA e instruções recorrentes.</BackupDesc>
+                </BackupInfo>
+                <ActionGroup>
+                    <StyledButton variant="outlined" startIcon={<MdUpload size={18} />} onClick={() => presetInputRef.current?.click()} size="small">
+                        Importar
+                    </StyledButton>
+                    <StyledButton variant="contained" color="primary" startIcon={<MdDownload size={18} />} onClick={handleExportPresets} size="small">
+                        Exportar
+                    </StyledButton>
+                </ActionGroup>
+                <HiddenInput type="file" accept=".json" ref={presetInputRef} onChange={handleImportPresets} />
             </BackupRow>
         </Section>
     )
