@@ -9,7 +9,7 @@ import type UseToolsReturn from './types'
 
 const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
   const { serverUrl, checkInterval, translateCommit, showCommitFeedback, setTranslateCommit } = useConfigStore()
-  const { serverStatus } = useServerStatus(serverUrl, checkInterval, fetchViaBackground)
+  const { serverStatus, isChecking } = useServerStatus(serverUrl, checkInterval, fetchViaBackground)
   const { showNotification } = useNotificationStore()
 
   const [originalCommitMessage, setOriginalCommitMessage] = useState('')
@@ -152,6 +152,7 @@ const useTools = (fetchViaBackground: FetchViaBackground): UseToolsReturn => {
   return {
     state: {
       serverStatus,
+      isChecking,
       cmdDialogOpen,
       actionLoading,
       commitMessage,

@@ -1,17 +1,19 @@
 import { styled } from '@mui/material/styles'
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 
 export const Container = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  padding: theme.spacing(2),
   backgroundColor: theme.palette.background.default,
+  flexDirection: 'column',
+  padding: theme.spacing(2),
+  overflowX: 'hidden',
   overflowY: 'auto',
-  overflowX: 'hidden'
+  display: 'flex',
+  height: '100%'
 }))
 
-export const Title = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  color: theme.palette.primary.main
+export const StatusWrapper = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  justifyContent: 'center',
+  display: 'flex',
+  width: '100%'
 }))

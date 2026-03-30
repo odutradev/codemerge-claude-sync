@@ -3,6 +3,7 @@ import type { CommandOutput, ServerStatus } from '@/sidebar/types'
 export default interface UseToolsReturn {
   state: {
     serverStatus: ServerStatus
+    isChecking: boolean
     cmdDialogOpen: boolean
     actionLoading: boolean
     commitMessage: string

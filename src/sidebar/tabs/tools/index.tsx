@@ -1,8 +1,9 @@
+import { ServerStatusIndicator } from '@/sidebar/components/serverStatusIndicator'
 import PromptPresets from '@/sidebar/tabs/tools/subcomponents/promptPresets'
 import FeedbackDialog from '@/sidebar/components/feedbackDialog'
-import useTools from '@/sidebar/tabs/tools/hooks/useTools'
 import { CommitBox } from '@/sidebar/components/commitBox'
-import { Container, Title } from './styles'
+import useTools from '@/sidebar/tabs/tools/hooks/useTools'
+import { Container, StatusWrapper } from './styles'
 
 import type ToolsViewProps from './types'
 
@@ -11,9 +12,9 @@ const ToolsView = ({ fetchViaBackground }: ToolsViewProps) => {
 
   return (
     <Container>
-      <Title variant="subtitle2">
-        Ferramentas Globais
-      </Title>
+      <StatusWrapper>
+        <ServerStatusIndicator status={state.serverStatus} isChecking={state.isChecking} />
+      </StatusWrapper>
 
       <CommitBox
         commitType={state.commitType}
