@@ -226,7 +226,7 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
     const handleCommit = async () => {
         if (!state.commitMessage.trim()) return showNotification('Mensagem de commit vazia', 'warning')
 
-        patchState({ actionLoading: true, hookStatus: 'loading' })
+        patchState({ actionLoading: true })
 
         try {
             const response = await fetchViaBackground(`${serverUrl}/commit`, {
@@ -248,7 +248,6 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             patchState({
                 originalCommitMessage: state.commitMessage,
                 originalCommitType: state.commitType,
-                hookStatus: success ? 'success' : 'error',
                 commitMessage: '',
                 cmdOutput: {
                     command: `git commit -m "${state.commitType}: ${state.commitMessage}"`,
@@ -266,7 +265,6 @@ const useArtifacts = (fetchViaBackground: FetchViaBackground): UseArtifactsRetur
             showNotification(`Erro ao commitar: ${errorMessage}`, 'error')
 
             patchState({
-                hookStatus: 'error',
                 cmdOutput: {
                     command: `git commit -m "${state.commitType}: ${state.commitMessage}"`,
                     timestamp: Date.now(),
