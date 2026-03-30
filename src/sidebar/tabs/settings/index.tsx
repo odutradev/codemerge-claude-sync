@@ -5,9 +5,10 @@ import CodeCleanup from '@/sidebar/tabs/settings/subcomponents/codeCleanup'
 import DangerZone from '@/sidebar/tabs/settings/subcomponents/dangerZone'
 import Appearance from '@/sidebar/tabs/settings/subcomponents/appearance'
 import { SettingsContainer, VersionText, StatusWrapper } from './styles'
-import DataStore from '@/sidebar/tabs/settings/subcomponents/dataStore'
 import GitConfig from '@/sidebar/tabs/settings/subcomponents/gitConfig'
+import DataStore from '@/sidebar/tabs/settings/subcomponents/dataStore'
 import DataSync from '@/sidebar/tabs/settings/subcomponents/dataSync'
+import Creator from '@/sidebar/tabs/settings/subcomponents/creator'
 import Backup from '@/sidebar/tabs/settings/subcomponents/backup'
 import { useServerStatus } from '@/sidebar/hooks/useServerStatus'
 import { useSettings } from '@/sidebar/tabs/settings/hooks'
@@ -36,6 +37,7 @@ const SettingsView = ({ fetchViaBackground }: SettingsViewProps) => {
             <DataStore />
             <DataSync />
             <Backup />
+            <Creator />
             <DangerZone />
 
             <VersionText variant="caption">CodeMerge Sync v{state.version}</VersionText>
